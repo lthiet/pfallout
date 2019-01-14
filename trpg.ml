@@ -1,3 +1,10 @@
+(* Modules *)
+open Tsdl.Sdl.Init
+
+(* Constants *)
+let screen_width = 640
+let screen_height = 480
+
 let () =
-    Printf.printf "coucou";
-    Printf.printf "aurevoir"
+    let truc = Init.init in 
+    ()

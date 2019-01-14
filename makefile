@@ -1,6 +1,6 @@
 EXE = trpg.byte
 
-all:
+all: 
 	ocamlbuild -use-ocamlfind -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf $(EXE)
 
 run:
