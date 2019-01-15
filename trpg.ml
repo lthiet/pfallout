@@ -38,14 +38,27 @@ let update_window_surface window =
     let result = Tsdl.Sdl.update_window_surface window in
     manage_result result "Update window surface error : %s"
 
-let () =
-    (* Initialize SDL *)
-    init ();
-    (* Open a Window *)
-    let window = create_window "TRPG" screen_width screen_height in
+let load_bmp string =
+    let result = Tsdl.Sdl.load_bmp string in
+    manage_result result "Load BMP error : %s"
 
-    (* Get surface from Window *)
-    let surface = get_window_surface window in
+let () =
+    let initialization () = 
+        (* Initialize SDL *)
+        init ();
+
+        (* Open a Window *)
+        let window = create_window "TRPG" screen_width screen_height in
+
+        (* Get surface from Window *)
+        let surface = get_window_surface window in
+        window, surface 
+    in
+    let load_media () = 
+        let bg = 
+
+    let window, surface = initialization () in
+
 
     (* Get RGB for white *)
     let format_enum = Tsdl.Sdl.get_surface_format_enum surface in
@@ -60,3 +73,9 @@ let () =
 
     (* Delay *)
     Tsdl.Sdl.delay (Int32.of_int 2000);
+
+    (* Destroy *)
+    Tsdl.Sdl.destroy_window window;
+
+    (* Quit *)
+    Tsdl.Sdl.quit ();
