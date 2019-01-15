@@ -61,6 +61,10 @@ let () =
     let surface_p = ref None in
     let bg_p = ref None in
 
+    (* Variables *)
+    let e = Some (Sdl.Event.create ()) in
+
+
     (* Initialize a window and a surface *)
     let initialization () = 
         (* Initialize SDL *)
@@ -93,10 +97,23 @@ let () =
 
     load_media ();
 
-    (* Transfer image *)
-    blit_surface (deref_option bg_p) None (deref_option surface_p) None;
-    update_window_surface (deref_option window_p);
+    let rec game b =
+        let over = ref false in
+        if not b then (
+            if not (Sdl.poll_event e) then (
+                match e with
+                | Some e ->
+                    if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
+                        over := true
+                | None ->
+                    ()
+            );
+            blit_surface (deref_option bg_p) None (deref_option surface_p) None;
+            update_window_surface (deref_option window_p);
+            game !over
+        )
+        else ()
+    in
 
-    Sdl.delay (Int32.of_int 2000);
-
+    game false;
     close ();
