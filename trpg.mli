@@ -11,3 +11,4 @@ val create_window : string -> int -> int -> window
 val get_window_surface : window -> surface
 val fill_rect : surface -> rect option -> uint32 -> unit
 val alloc_format : Tsdl.Sdl.Pixel.format_enum -> pixel_format
+val update_window_surface : window -> unit
