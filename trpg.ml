@@ -27,13 +27,27 @@ let get_window_surface window =
     let result = Tsdl.Sdl.get_window_surface window in
     manage_result result "Get window surface error : %s"
 
+let fill_rect surface rect color =
+    let result = Tsdl.Sdl.fill_rect surface rect color in
+    manage_result result "Fill rect error : %s"
+
+let alloc_format format_enum = 
+    let result = Tsdl.Sdl.alloc_format format_enum in
+    manage_result result "Allocate format : %s"
 
 let () =
     (* Initialize SDL *)
     init ();
     (* Open a Window *)
     let window = create_window "TRPG" screen_width screen_height in
+
     (* Get surface from Window *)
     let surface = get_window_surface window in
-    Printf.printf "ok";
 
+    (* Get RGB for white *)
+    let format_enum = Tsdl.Sdl.get_surface_format_enum surface in
+    let pixel_format = alloc_format format_enum in
+    let color = Tsdl.Sdl.map_rgb pixel_format 255 255 255 in
+
+    (* Fill rect on the window*)
+    fill_rect surface None color
