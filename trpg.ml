@@ -1,9 +1,10 @@
 (* Modules *)
 open Tsdl
+open Cell
 
 (* Constants *)
-let screen_width = 640
-let screen_height = 480
+let screen_width = 1920
+let screen_height = 1080
 
 (* Variables *)
 (* The window *)
@@ -107,7 +108,7 @@ let () =
                             current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_RIGHT)
                         else if pressed_key = Sdl.K.escape then
                             over := true
-                        else    
+                        else
                             current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT)
                     );
                 | None ->
@@ -122,4 +123,7 @@ let () =
     in
 
     game false;
-    close ()
+    close ();
+
+    let c = Cell.create_cell 0 10 in
+    print_int (Cell.get_x c)
