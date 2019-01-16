@@ -20,55 +20,56 @@ let deref_option p =
     match !p with
     | Some x -> x
     | None -> raise NonePointer
+(* Functions *)
+
+
+(* Initialize a window and a surface *)
+let initialization window_p surface_p = 
+    (* Initialize SDL *)
+    manage_result ( Sdl.init Sdl.Init.everything );
+
+    (* Open a Window *)
+    window_p := Some ( manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ));
+
+    (* Get surface from Window *)
+    let window = deref_option window_p in
+    surface_p := Some (manage_result (Sdl.get_window_surface window));
+    ()
+
+let load_media surface_p path=
+    surface_p := Some (manage_result (Sdl.load_bmp path))
+
+let close windows_p surfaces_p =
+    List.iter ( fun x -> Sdl.destroy_window (deref_option x); x:= None) windows_p;
+    List.iter ( fun y -> Sdl.free_surface (deref_option y ); y:= None) surfaces_p;
+    ()
 
 (* Main  *)
 let () =
     (* Pointers *)
     let window_p = ref None in
     let surface_p = ref None in
+    (* Background image surface *)
     let bg_p = ref None in
 
-    (* Variables *)
-    let e = Some (Sdl.Event.create ()) in
+    (* Lists *)
+    (* Windows list *)
+    let windows_p = [window_p] in
+    (* Surfaces list not associated with window *)
+    let surfaces_p = [bg_p] in
 
+    (* Events *)
+    let ev = Some (Sdl.Event.create ()) in
 
-    (* Initialize a window and a surface *)
-    let initialization () = 
-        (* Initialize SDL *)
-        manage_result ( Sdl.init Sdl.Init.everything );
+    initialization window_p surface_p;
 
-        (* Open a Window *)
-        window_p := Some ( manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ));
-
-        (* Get surface from Window *)
-        let window = deref_option window_p in
-        surface_p := Some (manage_result (Sdl.get_window_surface window))
-    in
-
-    let load_media () = 
-        bg_p := Some (manage_result (Sdl.load_bmp bg_path))
-    in
-
-    (* Safely close the program *)
-    let close () =
-        Sdl.free_surface (deref_option surface_p);
-        surface_p := None;
-        Sdl.free_surface (deref_option bg_p);
-        bg_p := None;
-        Sdl.destroy_window (deref_option window_p);
-        window_p := None
-    in
-
-
-    initialization ();
-
-    load_media ();
+    load_media bg_p bg_path;
 
     let rec game b =
         let over = ref false in
         if not b then (
-            if not (Sdl.poll_event e) then (
-                match e with
+            if not (Sdl.poll_event ev) then (
+                match ev with
                 | Some e ->
                     if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
                         over := true
@@ -83,4 +84,5 @@ let () =
     in
 
     game false;
-    close ();
+
+    close windows_p surfaces_p
