@@ -4,13 +4,12 @@ open Tsdl
 (* Constants *)
 let screen_width = 640
 let screen_height = 480
-let bg_path = "./asset/image/just.bmp"
 
 (* Variables *)
 (* The window *)
 let window_p = ref None 
-(* The surface contained by the window *)
-let screen_surface_p = ref None 
+(* The renderer *)
+let renderer_p = ref None
 (* The surface that is currently being displayed *)
 let current_surface_p = ref None 
 (* Events *)
@@ -50,16 +49,17 @@ let deref_option p =
 
 (* Functions *)
 (* Initialize a window and a surface *)
-let initialization window_p surface_p = 
+let initialization () = 
     (* Initialize SDL *)
     manage_result ( Sdl.init Sdl.Init.everything );
 
     (* Open a Window *)
     window_p := Some ( manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ));
 
-    (* Get surface from Window *)
+    (* Get renderer from Window *)
     let window = deref_option window_p in
-    surface_p := Some (manage_result (Sdl.get_window_surface window));
+    let create_renderer_flag = (Sdl.Renderer.(+)) Sdl.Renderer.accelerated Sdl.Renderer.presentvsync in 
+    renderer_p := Some (manage_result (Sdl.create_renderer ~index:(-1) ~flags:create_renderer_flag window));
     ()
 
 (* load an image at specified path*)
@@ -69,7 +69,7 @@ let load_surface path =
 (* safely close all the windows and surfaces *)
 let close () =
     List.iter ( fun x -> Sdl.destroy_window (deref_option x); x:= None) windows_p;
-    List.iter ( fun y -> Sdl.free_surface (deref_option y ); y:= None) surfaces_p
+    List.iter ( fun x -> Sdl.free_surface (deref_option x); x:= None) surfaces_p
 
 let load_media () =
     Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DEFAULT (load_surface "asset/image/just.bmp");
@@ -83,10 +83,8 @@ let load_media () =
 (* Main  *)
 let () =
    
-    initialization window_p screen_surface_p;
-
+    initialization ();
     load_media ();
-
     current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT);
 
     let rec game b =
@@ -115,8 +113,9 @@ let () =
                 | None ->
                     ()
             );
-            manage_result (Sdl.blit_surface (deref_option current_surface_p) None (deref_option screen_surface_p) None);
-            manage_result (Sdl.update_window_surface (deref_option window_p));
+            let current_texture = manage_result (Sdl.create_texture_from_surface (deref_option renderer_p) (deref_option current_surface_p)) in
+            manage_result (Sdl.render_copy (deref_option renderer_p) current_texture);
+            Sdl.render_present (deref_option renderer_p);
             game !over
         )
         else ()
