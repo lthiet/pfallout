@@ -1,0 +1,27 @@
+@startuml
+class GameObject {
+    {field} position_x : int
+    {field} position_y : int
+    {method} get_position_x : unit -> int
+    {method} get_position_y : unit -> int
+}
+
+class Unit {
+    {field} health : int
+    {field} strength : int
+    {method} get_health : unit -> int
+    {method} get_strength : unit -> int
+}
+
+class Item {
+    value : int
+}
+
+class Cursor {
+    color : (int * int * int)
+}
+
+GameObject <|-- Unit
+GameObject <|-- Item
+GameObject <|-- Cursor
+@enduml

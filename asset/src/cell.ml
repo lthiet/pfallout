@@ -1,13 +1,5 @@
-type cell = {
-    x: int;
-    y: int
-}
-
-let create_cell x y =
-{
-    x = x;
-    y = y
-}
-
-let get_x c = c.x
-let get_y c = c.y
+class virtual game_object (x : int ) ( y : int) =
+    object(self)
+        method get_x = x
+        method get_y = y
+    end;;

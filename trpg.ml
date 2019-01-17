@@ -124,6 +124,3 @@ let () =
 
     game false;
     close ();
-
-    let c = Cell.create_cell 0 10 in
-    print_int (Cell.get_x c)
