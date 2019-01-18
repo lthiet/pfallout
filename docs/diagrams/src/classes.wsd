@@ -1,27 +1,264 @@
 @startuml
-class GameObject {
+abstract class GameObject {
     {field} position_x : int
     {field} position_y : int
     {method} get_position_x : unit -> int
     {method} get_position_y : unit -> int
 }
 
-class Unit {
+abstract class Immovable {
+
+}
+
+abstract class Movable {
+
+}
+
+class Cell {
+    type : TerrainType
+    CurrentGround : Ground
+    CurrentAir : Air
+    CurrentItem : Item
+}
+
+abstract class TerrainType {
+    biome : Biome
+    natural_feature : NaturalFeature
+}
+
+abstract class Infrastructure {
+
+}
+
+class City {
+
+}
+
+abstract class Facility {
+
+}
+
+abstract class Unit {
     {field} health : int
     {field} strength : int
     {method} get_health : unit -> int
     {method} get_strength : unit -> int
 }
 
-class Item {
+abstract class Ground {
+
+}
+
+abstract class Air {
+
+}
+
+class Melee {
+
+}
+
+class Cavalry {
+
+}
+
+class AntiCavalry {
+
+}
+
+class Artillery {
+
+}
+
+class Ranged {
+
+}
+
+class Fighter {
+
+}
+
+class Bomber {
+
+}
+
+abstract class Item {
     value : int
+}
+
+class PassiveBonusItem {
+
+}
+
+class ActiveBonusItem {
+
 }
 
 class Cursor {
     color : (int * int * int)
 }
 
-GameObject <|-- Unit
-GameObject <|-- Item
-GameObject <|-- Cursor
+abstract class Biome {
+
+}
+
+class Grassland {
+
+}
+
+class Desert {
+
+}
+
+class Snow {
+
+}
+
+class Mountain {
+
+}
+
+class Airport {
+
+}
+
+class Factory {
+
+}
+
+class NuclearFoundry {
+
+}
+
+class Lake {
+
+}
+
+class Forest {
+
+}
+
+abstract class NaturalFeature {
+
+}
+
+interface Infantry {
+
+}
+
+interface Armored {
+
+}
+
+class Grid {
+    cells : Cell array array
+    height : int
+    width : int
+}
+
+abstract class Action {
+
+}
+
+class Move {
+
+}
+
+class Guard {
+
+}
+
+class Attack {
+
+}
+
+class PickUp {
+
+}
+
+class Produce {
+
+}
+
+abstract class Menu {
+
+}
+
+class MainMenu {
+
+}
+
+class EndMenu {
+
+}
+
+class Behaviour {
+
+}
+
+class PlayerInput {
+
+}
+
+class AI {
+
+}
+
+' Implements
+Infantry <|.. Melee
+Infantry <|.. Ranged
+Infantry <|.. AntiCavalry
+Armored <|.. Cavalry
+Armored <|.. Artillery
+' Inheritance
+GameObject <|-- Immovable
+GameObject <|-- Movable
+Movable <|-- Cursor
+Movable <|-- Unit
+Immovable <|-- Item
+Immovable <|-- Cell
+Immovable <|-- Infrastructure
+Unit <|-- Ground
+Unit <|-- Air
+Ground <|-- Melee
+Ground <|-- Ranged
+Ranged <|-- Artillery
+Melee <|-- Cavalry
+Melee <|-- AntiCavalry
+Air <|-- Bomber
+Air <|-- Fighter
+Infrastructure <|-- City
+Infrastructure <|-- Facility
+NaturalFeature <|-- Forest
+NaturalFeature <|-- Lake
+NaturalFeature <|-- Mountain
+Biome <|-- Desert
+Biome <|-- Grassland
+Biome <|-- Snow
+Facility <|-- Airport
+Facility <|-- Factory
+Facility <|-- NuclearFoundry
+Action <|-- Move
+Action <|-- Attack
+Action <|-- PickUp
+Action <|-- Produce
+Action <|-- Guard
+Action <|-- UseItem
+Menu <|-- MainMenu
+Menu <|-- EndMenu
+Behaviour <|-- PlayerInput
+Behaviour <|-- AI
+Item <|-- PassiveBonusItem
+Item <|-- ActiveBonusItem
+
+' Links
+TerrainType *-- Cell : contains
+Ground *-- Cell : may contains
+Air *-- Cell : may contains
+Item *-- Cell : may contains
+Item *-- Unit : may contains
+Infrastructure *-- Cell : may contains
+Biome *-- TerrainType : contains
+NaturalFeature *-- TerrainType : may contains
+Cell "many" *-- Grid : contains
+Behaviour *-- Unit : contains
 @enduml
