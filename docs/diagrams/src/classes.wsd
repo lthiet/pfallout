@@ -1,33 +1,82 @@
 @startuml
-abstract class GameObject {
+skinparam stereotypeCBackgroundColor YellowGreen
+
+skinparam class {
+	BackgroundColor<<Important>> White
+	BackgroundColor<<SuperImportant>> White
+	BorderColor<<Important>> Blue
+	BorderColor<<SuperImportant>> Red
+}
+
+abstract class GameObject <<SuperImportant>>  {
     id : int
     position_x : int
     position_y : int
+    position_z : int
     ___
     get_position_x : unit -> int
     get_position_y : unit -> int
+    get_position_z : unit -> int
 }
 
-class Cell {
+class Cell <<SuperImportant>> {
     type : TerrainType
-    CurrentGround : Ground
-    CurrentAir : Air
-    CurrentItem : Item
+    current_ground : Ground
+    current_air : Air
+    current_infrastructure : Infrastructure
+    current_item : Item
+    grid : Grid
+    ___
+    can_have_infrastructure : unit -> bool
+    can_have_ground : unit -> bool
+    can_have_item : unit -> bool
+    can_be_moved_to_by : Unit -> bool
+    is_hidden : Faction -> bool
+    can_have_infrastructure_or_item : unit -> bool
 }
+TerrainType "1" *-up- Cell 
+Ground "0..1" *-up- Cell 
+Air "0..1" *-up- Cell  
+Item "0..1" *-up- Cell 
+Infrastructure "0..1" *-up- Cell 
+Grid "1" -up- "0..n" Cell
 
-abstract class TerrainType {
+
+abstract class TerrainType <<Important>> {
     biome : Biome
     natural_feature : NaturalFeature
+    ___
+    get_biome : unit -> Biome
+    get_natural_feature : unit -> NaturalFeature
+}
+Biome "1" *-up- TerrainType 
+NaturalFeature "0..1" *-up- TerrainType 
+
+
+abstract class Infrastructure <<Important>> {
+    destroyed : bool
+    ___
+    is_destroyed : unit -> bool
 }
 
-abstract class Infrastructure {
+note bottom of Infrastructure
+    Units that cannot move. Each
+    owned infrastructure allow 
+    the faction to produce
+    unit faster
+end note
 
+Infrastructure <|-- City
+class City <<Important>> {
+    accumulated_production : int
+    is_producing : bool
+    producing : Produceable
+    ___
+    continue_production : unit -> unit
+    finish_production : unit -> Produceable
 }
 
-class City {
-
-}
-note left of City
+note bottom of City
     City is the basic
     infrastructure each faction
     starts with.
@@ -40,7 +89,7 @@ end note
 abstract class Facility {
 
 }
-note left of Facility
+note bottom of Facility
     Facilities are neutral
     structures that can be captured
     by a faction.
@@ -49,8 +98,13 @@ note left of Facility
     different type of units or item.
 end note
 
+Unit <|-- Produceable
+abstract class Produceable <<SuperImportant>> {
+    produced_by : City
+    production_cost : int 
+}
 
-abstract class Unit {
+abstract class Unit <<SuperImportant>> {
     health : int
     armor : int
     can_attack : bool
@@ -59,17 +113,28 @@ abstract class Unit {
     attack_strength : int
     defense_strength : int
     attack_range : int
+    item_list : Item list
+    possible_action : Action list
+    action_on_start : Action list
+    faction : Faction
     ___
     get_health : unit -> int
     get_attack_strength : unit -> int
     get_defense_strength : unit -> int
     get_attack_range : unit -> int
+    get_item_list : unit -> Item list
+    get_faction : unit -> Faction
+    execute_action_on_start : unit -> unit
+    add_action_on_start : Action -> unit
 }
+Item "0..1" -up- "1" Unit  
+Behaviour "1" *-up- Unit
+Action "0..n" *-up- Unit
 
 interface SpecialUnit {
 
 }
-note left of SpecialUnit
+note bottom of SpecialUnit
     Special unit
     are very strong unit that can
     only be built by a particular
@@ -80,18 +145,18 @@ end note
 class LevitatingBattleship {
 
 }
-note left of LevitatingBattleship 
+note bottom of LevitatingBattleship
     Artillery that has
     superior range and
     stronger armor, but
     limited movement
     points
-end note 
+end note
 
 class HunterKillerDroneSwarm {
 
 }
-note left of HunterKillerDroneSwarm 
+note bottom of HunterKillerDroneSwarm
     Melee unit that can
     attack twice in a
     turn and is strong
@@ -102,7 +167,7 @@ end note
 class GiantDeathRobot {
 
 }
-note left of GiantDeathRobot
+note bottom of GiantDeathRobot
     Tank unit that has
     bonus armor and health
 end note
@@ -110,47 +175,49 @@ end note
 class OrbitalCannon {
 
 }
-note left of OrbitalCannon 
+note bottom of OrbitalCannon
     Weaponized satellite
     over the
     orbit of earth.
     instantly kill any
     units beneath it and
-    cannot be attacked but 
+    cannot be attacked but
     can only move randomly
     towards the enemy
 end note
 
-abstract class Ground {
+Produceable <|-- Ground
+abstract class Ground <<SuperImportant>> {
 
 }
 
 
+Produceable <|-- Air
 abstract class Air {
 
 }
 
-class Melee {
+abstract class Melee <<SuperImportant>> {
 
 }
-note left of Melee
+note bottom of Melee
     Melee units take damage
     when attacking other
     units
 end note
 
-class Soldier {
+class Soldier <<SuperImportant>> {
 
 }
-note left of Soldier
+note bottom of Soldier
     Basic cheap unit.
     Strong against AntiArmored
 end note
 
-class Sniper {
+class Sniper <<<Important>> {
 
 }
-note left of Sniper
+note bottom of Sniper
     Basic ranged unit. Weak defense
     and strong attack
 end note
@@ -158,7 +225,7 @@ end note
 class Tank {
 
 }
-note left of Tank
+note bottom of Tank
     Armored melee unit.
     Can cover greater
     distances.
@@ -170,7 +237,7 @@ end note
 class AntiArmored {
 
 }
-note left of AntiArmored
+note bottom of AntiArmored
     Counter melee unit.
     Weak against soldiers.
     Strong against
@@ -182,7 +249,7 @@ end note
 class AntiAir {
 
 }
-note left of AntiAir
+note bottom of AntiAir
     Counter armored unit.
     Very weak against Ground
     and very strong against
@@ -190,19 +257,22 @@ note left of AntiAir
 end note
 
 class Artillery {
-
+    setup : bool
+    __
+    get_setup : unit -> bool
+    set_setup : unit -> bool
 }
-note left of Artillery
+note bottom of Artillery
     Armored ranged unit.
     Stronger attack strength
     but requires to be set up
     before being able to fire
 end note
 
-class Ranged {
+abstract class Ranged <<Important>> {
 
 }
-note left of Ranged
+note bottom of Ranged
     Ranged unit do not
     take damage
     when attacking
@@ -212,7 +282,7 @@ end note
 class FighterJet {
 
 }
-note left of FighterJet
+note bottom of FighterJet
     Standard air unit.
     Strong against other air units.
 end note
@@ -220,18 +290,21 @@ end note
 class Bomber {
 
 }
-note left of Bomber
+note bottom of Bomber
     Air unit.
     Slower, but
     more attack strength
     and weak defense
 end note
 
-abstract class Item {
+abstract class Item <<Important>> {
     value : int
+    current_owner : Unit
+    ___
+    get_owner : unit -> Produceable
 }
 
-note left of Item
+note bottom of Item
     Item are spread throughout
     the map and can be bicked up
     by ground units. Upon death of
@@ -243,7 +316,7 @@ end note
 class NuclearBomb {
 
 }
-note left of NuclearBomb
+note bottom of NuclearBomb
     Upon activation, will launch
     a nuclear bomb
     in a 2 tile radius from
@@ -256,33 +329,36 @@ end note
 
 
 
-class TitaniumArmor {
-
+class TitaniumArmor <<Important>>{
+    damage_reduction : int
+    ___
+    get_damage_reduction : unit -> int
 }
 
-note left of TitaniumArmor
+note bottom of TitaniumArmor
     Reduces every
     damage taken by
-    10%
+    a certain percentage
 end note
 
-class StimPacks {
-
+class StimPacks <<Important>> {
+    heal_value : int
+    ___
+    get_heal_value : unit -> int
 }
 
-note left of StimPacks
+note bottom of StimPacks
     Upon activation,
-    completely
     heals the
     unit that is
     holding it
 end note
 
-class PassiveBonusItem {
+class PassiveBonusItem <<Important>> {
 
 }
 
-note left of PassiveBonusItem
+note bottom of PassiveBonusItem
     Passive bonus item are
     item that provies passive
     bonus to the unit that
@@ -293,11 +369,11 @@ note left of PassiveBonusItem
 end note
 
 
-class ActiveBonusItem {
+class ActiveBonusItem <<Important>> {
 
 }
 
-note left of ActiveBonusItem
+note bottom of ActiveBonusItem
     Active bonus item are item
     that provides active bonus.
     When held, they do nothing,
@@ -305,15 +381,15 @@ note left of ActiveBonusItem
     order to do something
 end note
 
-class Cursor {
-    color : (int * int * int)
+class Cursor <<SuperImportant>>{
+    hidden : bool
 }
 
-abstract class Biome {
+abstract class Biome  <<Important>>{
 
 }
 
-note left of Biome
+note bottom of Biome
     Biome depicts the visual
     look of a cell.
     Some faction
@@ -322,7 +398,7 @@ note left of Biome
     biome
 end note
 
-class Grassland {
+class Grassland  <<Important>>{
 
 }
 
@@ -349,7 +425,7 @@ class NuclearFoundry {
 class TechLab {
 
 }
-note left of TechLab
+note bottom of TechLab
     Tech lab overrides
     the requirement
     for special units.
@@ -359,13 +435,15 @@ note left of TechLab
     but no airport,
     they can still
     make the orbital
-    cannon
+    cannon, but
+    they won't be able 
+    to build fighters
 end note
 
 abstract class ImpassableFeature {
 
 }
-note left of ImpassableFeature
+note bottom of ImpassableFeature
     Nothing can be on
     impassable feature
 end note
@@ -373,7 +451,7 @@ end note
 abstract class RoughFeature {
 
 }
-note left of RoughFeature
+note bottom of RoughFeature
     Rough feature takes
     all movement points
     to move to
@@ -382,14 +460,14 @@ end note
 class Mountain {
 
 }
-note left of Mountain
+note bottom of Mountain
     Block ranged attacks
 end note
 
 class Lake {
 
 }
-note left of Lake
+note bottom of Lake
     Do not block
     ranged attacks
 end note
@@ -397,7 +475,7 @@ end note
 class Forest {
 
 }
-note left of Forest
+note bottom of Forest
     Stronger attack
     if attacking from a
     Forest
@@ -406,7 +484,7 @@ end note
 class Hill {
 
 }
-note left of Hill
+note bottom of Hill
     Stronger defense
     if attacked on
     a hill
@@ -415,11 +493,11 @@ end note
 class Fallout {
 
 }
-note left of Fallout
+note bottom of Fallout
     Every unit
     take damage
     when starting
-    the turn on top of 
+    the turn on top of
     a fallout
 end note
 
@@ -436,138 +514,290 @@ interface Armored {
 
 }
 
-class Grid {
+class Grid  <<SuperImportant>>{
     cells : Cell array array
     height : int
     width : int
+    ___
+    get_cell_at : int -> int -> Cell
+    set_cell_at : int -> int -> Cell -> unit
+    get_unit_at : int -> int -> Unit
+}
+note bottom of Grid
+    Grid composed of hexagons
+end note
+
+abstract class Action  <<SuperImportant>> {
+    grid : Grid
+    cost : int
+    source : x * y * z
+    destination : x * y * z
+    ___
+    get_grid : unit -> Grid
+    {abstract} # is_valid : unit -> bool
+    {abstract} # execute : unit -> unit
+}
+note bottom of Action
+    The action class manage
+    what's happening in the game
+    They have the global view
+    of the game so that
+    they are able
+    to interact with any kind
+    of object. Each subclass 
+    determines whether the
+    action can be done,
+    from who it is done,
+    to whom it is done,
+    and what is done.
+end note
+
+Action <|-- UseItem
+abstract class UseItem <<SuperImportant>> {
 }
 
-abstract class Action {
+class Setup {
 
 }
+note bottom of Setup 
+    Action for artilerry
+    that allows them to
+    fire
+end note
 
-class Move {
-
+class Move  <<SuperImportant>>{
+    source : x * y * y
+    destination : x * y * y
 }
+note bottom of Move
+    Move a unit
+    from point A to
+    B. Distance being
+    the number of
+    mouvement point
+    the unit has left
+end note
 
 class Guard {
 
 }
+note bottom of Guard
+    If 1 move left,
+    take a guard stance:
+    stronger defense strength
+    until next
+    turn
+end note
 
-abstract class Attack {
+abstract class Attack  <<Important>>{
+}
+note bottom of Attack
+    If 1 move left,
+    attack the selected unit
+    For melee unit
+    the unit can only
+    attack if the unit
+    can move
+    to the tile of
+    the enemy
+end note
+
+class AttackGround  <<Important>>{
 
 }
-
-class AttackGround {
-
-}
+note bottom of AttackGround
+    Attack the enemy of the ground
+end note
 
 class AttackAir {
 
 }
+note bottom of AttackAir
+    Attack the enemy in the air
+end note
 
 class PickUp {
 
 }
+note bottom of PickUp
+    The unit picks up the item
+end note
 
 class Produce {
 
 }
+note bottom of Produce
+    Start production of unit
+end note
 
-abstract class Menu {
-
-}
-
-class MainMenu {
-
-}
-
-class EndMenu {
+Action <|-- Spawn
+class Spawn {
 
 }
-
-class SettingMenu {
-
-}
-
-class Behaviour {
-
-}
-
-class PlayerInput {
-
-}
-
-class AI {
-
-}
-
-abstract class Faction {
-    units : Unit list
-}
-
-class AmericanMegacorp {
-
-}
-
-class EuropeanJointTaskForce {
-
-}
-
-class RussianFederation {
-
-}
-
-class PacificCoastCoalition {
-
-}
-class Game {
-    setting : Settings
-    factions : Faction list
-    ___
-}
-
-
-class Settings {
-    speed : int
-}
-
-note left of Game 
-    iterate over each factions,
-    then iterate over each
-    available unit,
-    only the player chosen
-    faction has the cursor.
-    the game class 
-    will wait for player input
-    and when there are no more
-    available units, play the opponent(s) turn
-    when playing opponents turns,
-    compute the choices then wait
-    1s to play so that player can read
-    what the opponent is doing
+note bottom of Spawn
+    Spawn a unit
 end note
 
 
 
+
+abstract class Menu  <<SuperImportant>>{ 
+}
+
+class MainMenu  <<SuperImportant>>{
+
+}
+
+class EndMenu  <<SuperImportant>>{
+
+}
+
+class SettingMenu  <<SuperImportant>>{
+
+}
+
+class Behaviour  <<Important>>{
+    ___
+    choose_action : unit -> Action
+}
+
+note bottom of Behaviour
+    Chooses the action for the unit
+end note
+
+class PlayerInput  <<Important>>{
+    cursor : Cursor
+}
+Cursor "1" *-up- PlayerInput
+
+note bottom of PlayerInput
+    The player
+    chooses which action to do
+end note
+
+
+class AI  <<Important>>{
+
+}
+note bottom of AI
+    The computer chooses
+    which action to do
+end note
+
+abstract class Faction <<SuperImportant>> {
+    units : Unit list
+    player_faction : bool
+    defeated : bool
+    ___
+    get_number_of_infrastructure : unit -> int
+}
+Unit "0..n" -- "1" Faction 
+
+class AmericanMegacorp {
+
+}
+note bottom of AmericanMegacorp
+    Faster air units
+    production and
+    armor take 10% less damage.
+    Overall weaker defense
+end note
+
+class EuropeanJointTaskForce  <<SuperImportant>>{
+
+}
+note bottom of EuropeanJointTaskForce
+    Standard Faction
+end note
+
+class RussianFederation {
+
+}
+note bottom of RussianFederation  
+    Strong when fighting on snow.
+    Weak when fighting on desert
+    Tanks are slower but 
+    deals more damage
+end note
+
+
+class PacificCoastCoalition {
+
+}
+note bottom of PacificCoastCoalition
+    Faster infantry unit production
+    and infantry get bonus
+    attack and defense strength
+    from adjacent ally
+    infantry units.
+    Armored and air take
+    longer to produce
+end note
+
+class TRPG <<SuperImportant>> {
+    current_menu : Menu
+    game : Game
+    ___
+    start_game : unit -> unit
+    set_menu : Menu -> unit
+}
+note bottom of TRPG
+    This is the main class
+    of the game
+end note
+Game "1" *-right- TRPG
+Menu "1" *-right- TRPG
+
+class Game  <<SuperImportant>> {
+    setting : Settings
+    grid : Grid
+    factions : Faction list
+    ___
+    compute_turn : unit -> unit
+}
+
+Faction "1..n" *-up- Game
+Settings "1" *-up- Game
+Grid "1" *-up- Game
+
+note bottom of Game
+    iterate over each factions,
+    then iterate over each
+    available unit.
+    for each unit, first,
+    to them all the on start
+    action, if they are
+    any, then call upon
+    their behaviour 
+    attribute to decide which action
+    to do. If the faction is
+    controlled by the player,
+    his turn will
+    end when he hits the
+    end turn button
+    instead
+end note
+
+class Settings  <<Important>>{
+    speed : int
+}
+
 ' Implements
-Infantry <|.. Soldier
-Infantry <|.. Sniper
-Armored <|.. Tank
-Armored <|.. AntiAir
-Armored <|.. Artillery
-SpecialUnit <|.. LevitatingBattleship
-SpecialUnit <|.. HunterKillerDroneSwarm
-SpecialUnit <|.. GiantDeathRobot
-SpecialUnit <|.. OrbitalCannon
+Infantry <|.up. Soldier
+Infantry <|.up. Sniper
+Armored <|.up. Tank
+Armored <|.up. AntiAir
+Armored <|.up. Artillery
+SpecialUnit <|.up. LevitatingBattleship
+SpecialUnit <|.up. HunterKillerDroneSwarm
+SpecialUnit <|.up. GiantDeathRobot
+SpecialUnit <|.up. OrbitalCannon
 ' Inheritance
 GameObject <|-- Item
 GameObject <|-- Cell
 GameObject <|-- Unit
 GameObject <|-- Cursor
 Unit <|-- Infrastructure
-Unit <|-- Ground
-Unit <|-- Air
 Ground <|-- Melee
 Ground <|-- Ranged
 Ranged <|-- Artillery
@@ -582,7 +812,6 @@ Artillery <|-- LevitatingBattleship
 Bomber <|-- OrbitalCannon
 Melee <|-- HunterKillerDroneSwarm
 Tank <|-- GiantDeathRobot
-Infrastructure <|-- City
 Infrastructure <|-- Facility
 NaturalFeature <|-- Forest
 NaturalFeature <|-- Hill
@@ -605,7 +834,7 @@ Action <|-- Attack
 Action <|-- PickUp
 Action <|-- Produce
 Action <|-- Guard
-Action <|-- UseItem
+Action <|-- Setup
 Attack <|-- AttackAir
 Attack <|-- AttackGround
 Menu <|-- MainMenu
@@ -623,29 +852,19 @@ ActiveBonusItem <|-- NuclearBomb
 ActiveBonusItem <|-- StimPacks
 PassiveBonusItem <|-- TitaniumArmor
 
-' Contains
-TerrainType *-- Cell : contains
-Ground *-- Cell : may contains
-Air *-- Cell : may contains
-Item *-- Cell : may contains
-Item *-- Unit : may contains
-Infrastructure *-- Cell : may contains
-Biome *-- TerrainType : contains
-NaturalFeature *-- TerrainType : may contains
-Cell "many" *-- Grid : contains
-Behaviour *-- Unit : contains
+
 
 ' Faction special units
-GiantDeathRobot .. EuropeanJointTaskForce: can produce
-HunterKillerDroneSwarm .. PacificCoastCoalition: can produce
-OrbitalCannon .. AmericanMegacorp: can produce
-LevitatingBattleship .. RussianFederation: can produce
+GiantDeathRobot .. EuropeanJointTaskForce : special unit of
+HunterKillerDroneSwarm .. PacificCoastCoalition : special unit of 
+OrbitalCannon .. AmericanMegacorp : special unit of
+LevitatingBattleship .. RussianFederation : special unit of
 
 ' Facility produce type of units
-Armored .. Factory : allow production for
-Air .. Airport : allow production for
-SpecialUnit .. TechLab : allow production for
-NuclearBomb .. NuclearFoundry : allow production for
+Armored .. Factory : allow production of
+Air .. Airport  : allow production of 
+SpecialUnit .. TechLab : allow production
+NuclearBomb .. NuclearFoundry : allow production
 
 ' Package
 @enduml
