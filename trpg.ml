@@ -1,6 +1,7 @@
 (* Modules *)
 open Tsdl
 open Cell
+open Sdl_tools
 
 (* Constants *)
 let screen_width = 1920
@@ -116,11 +117,11 @@ let () =
             );
             let current_texture = manage_result (Sdl.create_texture_from_surface (deref_option renderer_p) (deref_option current_surface_p)) in
             manage_result (Sdl.render_copy (deref_option renderer_p) current_texture);
+            manage_result (draw_filled_rectangle (deref_option renderer_p) (255,0,0,0) (100, 100, 100, 100));
             Sdl.render_present (deref_option renderer_p);
             game !over
         )
         else ()
     in
-
     game false;
     close ();

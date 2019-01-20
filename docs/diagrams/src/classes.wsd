@@ -2,10 +2,10 @@
 skinparam stereotypeCBackgroundColor YellowGreen
 
 skinparam class {
-	BackgroundColor<<Important>> White
-	BackgroundColor<<SuperImportant>> White
-	BorderColor<<Important>> Blue
-	BorderColor<<SuperImportant>> Red
+    BackgroundColor<<Important>> White
+    BackgroundColor<<SuperImportant>> White
+    BorderColor<<Important>> Blue
+    BorderColor<<SuperImportant>> Red
 }
 
 abstract class GameObject <<SuperImportant>>  {
@@ -19,27 +19,14 @@ abstract class GameObject <<SuperImportant>>  {
     get_position_z : unit -> int
 }
 
-class Cell <<SuperImportant>> {
+class Tile <<SuperImportant>> {
     type : TerrainType
-    current_ground : Ground
-    current_air : Air
-    current_infrastructure : Infrastructure
-    current_item : Item
     grid : Grid
+    movement_cost : int
     ___
-    can_have_infrastructure : unit -> bool
-    can_have_ground : unit -> bool
-    can_have_item : unit -> bool
-    can_be_moved_to_by : Unit -> bool
     is_hidden : Faction -> bool
-    can_have_infrastructure_or_item : unit -> bool
 }
-TerrainType "1" *-up- Cell 
-Ground "0..1" *-up- Cell 
-Air "0..1" *-up- Cell  
-Item "0..1" *-up- Cell 
-Infrastructure "0..1" *-up- Cell 
-Grid "1" -up- "0..n" Cell
+Grid "1" -up- "0..n" Tile
 
 
 abstract class TerrainType <<Important>> {
@@ -49,8 +36,8 @@ abstract class TerrainType <<Important>> {
     get_biome : unit -> Biome
     get_natural_feature : unit -> NaturalFeature
 }
-Biome "1" *-up- TerrainType 
-NaturalFeature "0..1" *-up- TerrainType 
+Biome "1" *-up- TerrainType
+NaturalFeature "0..1" *-up- TerrainType
 
 
 abstract class Infrastructure <<Important>> {
@@ -61,7 +48,7 @@ abstract class Infrastructure <<Important>> {
 
 note bottom of Infrastructure
     Units that cannot move. Each
-    owned infrastructure allow 
+    owned infrastructure allow
     the faction to produce
     unit faster
 end note
@@ -98,18 +85,19 @@ note bottom of Facility
     different type of units or item.
 end note
 
-Unit <|-- Produceable
+Entity <|-- Produceable
 abstract class Produceable <<SuperImportant>> {
     produced_by : City
-    production_cost : int 
+    production_cost : int
 }
 
-abstract class Unit <<SuperImportant>> {
+abstract class Entity <<SuperImportant>> {
     health : int
     armor : int
     can_attack : bool
     can_move : bool
     action_point : int
+    current_action_point : int
     attack_strength : int
     defense_strength : int
     attack_range : int
@@ -127,9 +115,9 @@ abstract class Unit <<SuperImportant>> {
     execute_action_on_start : unit -> unit
     add_action_on_start : Action -> unit
 }
-Item "0..1" -up- "1" Unit  
-Behaviour "1" *-up- Unit
-Action "0..n" *-up- Unit
+Item "0..1" -up- "1" Entity
+Behaviour "1" *-up- Entity
+Action "0..n" *-up- Entity
 
 interface SpecialUnit {
 
@@ -233,7 +221,7 @@ note bottom of Tank
     Weak defense
 end note
 
-
+Infantry <.. AntiArmored
 class AntiArmored {
 
 }
@@ -299,7 +287,7 @@ end note
 
 abstract class Item <<Important>> {
     value : int
-    current_owner : Unit
+    current_owner : Produceable
     ___
     get_owner : unit -> Produceable
 }
@@ -383,7 +371,25 @@ end note
 
 class Cursor <<SuperImportant>>{
     hidden : bool
+    selected_entity : Entity
+    selected_action_type : ActionType
 }
+note bottom of Cursor
+    Example of how the cursor can be used :
+    when behaviour is called upon an entity, 
+    creates a cursor on top of it. it has
+    the same coordinates. however it is not tied to it.
+    once the cursor is over an entity,
+    the user will press enter, the entity will
+    then be binded with the cursor.
+    the user can then either select an action to do,
+    or press escape. If escape is pressed, the entity is no longer
+    binded with the cursor.
+    if an action is selected, that action is binded.
+    depending on the action then cursor
+    will have to select a tile of target,
+    or none.
+end note
 
 abstract class Biome  <<Important>>{
 
@@ -436,7 +442,7 @@ note bottom of TechLab
     they can still
     make the orbital
     cannon, but
-    they won't be able 
+    they won't be able
     to build fighters
 end note
 
@@ -449,7 +455,6 @@ note bottom of ImpassableFeature
 end note
 
 abstract class RoughFeature {
-
 }
 note bottom of RoughFeature
     Rough feature takes
@@ -515,13 +520,14 @@ interface Armored {
 }
 
 class Grid  <<SuperImportant>>{
-    cells : Cell array array
+    cells : Tile array array array
     height : int
     width : int
+    entities_status : ((int * int * int) * Entity)
     ___
-    get_cell_at : int -> int -> Cell
-    set_cell_at : int -> int -> Cell -> unit
-    get_unit_at : int -> int -> Unit
+    get_cell_at : int -> int -> Tile
+    set_cell_at : int -> int -> Tile -> unit
+    get_entity_at : int -> int -> Entity
 }
 note bottom of Grid
     Grid composed of hexagons
@@ -531,7 +537,9 @@ abstract class Action  <<SuperImportant>> {
     grid : Grid
     cost : int
     source : x * y * z
+    source_air_or_ground : bool
     destination : x * y * z
+    destination_air_or_ground : bool
     ___
     get_grid : unit -> Grid
     {abstract} # is_valid : unit -> bool
@@ -544,7 +552,7 @@ note bottom of Action
     of the game so that
     they are able
     to interact with any kind
-    of object. Each subclass 
+    of object. Each subclass
     determines whether the
     action can be done,
     from who it is done,
@@ -559,15 +567,13 @@ abstract class UseItem <<SuperImportant>> {
 class Setup {
 
 }
-note bottom of Setup 
+note bottom of Setup
     Action for artilerry
     that allows them to
     fire
 end note
 
 class Move  <<SuperImportant>>{
-    source : x * y * y
-    destination : x * y * y
 }
 note bottom of Move
     Move a unit
@@ -641,7 +647,8 @@ end note
 
 
 
-abstract class Menu  <<SuperImportant>>{ 
+abstract class Menu  <<SuperImportant>>{
+
 }
 
 class MainMenu  <<SuperImportant>>{
@@ -685,13 +692,13 @@ note bottom of AI
 end note
 
 abstract class Faction <<SuperImportant>> {
-    units : Unit list
+    units : Entity list
     player_faction : bool
     defeated : bool
     ___
     get_number_of_infrastructure : unit -> int
 }
-Unit "0..n" -- "1" Faction 
+Entity "0..n" -- "1" Faction
 
 class AmericanMegacorp {
 
@@ -713,10 +720,10 @@ end note
 class RussianFederation {
 
 }
-note bottom of RussianFederation  
+note bottom of RussianFederation
     Strong when fighting on snow.
     Weak when fighting on desert
-    Tanks are slower but 
+    Tanks are slower but
     deals more damage
 end note
 
@@ -768,7 +775,7 @@ note bottom of Game
     to them all the on start
     action, if they are
     any, then call upon
-    their behaviour 
+    their behaviour
     attribute to decide which action
     to do. If the faction is
     controlled by the player,
@@ -794,10 +801,10 @@ SpecialUnit <|.up. GiantDeathRobot
 SpecialUnit <|.up. OrbitalCannon
 ' Inheritance
 GameObject <|-- Item
-GameObject <|-- Cell
-GameObject <|-- Unit
+GameObject <|-- Tile
+GameObject <|-- Entity
 GameObject <|-- Cursor
-Unit <|-- Infrastructure
+Entity <|-- Infrastructure
 Ground <|-- Melee
 Ground <|-- Ranged
 Ranged <|-- Artillery
@@ -813,8 +820,6 @@ Bomber <|-- OrbitalCannon
 Melee <|-- HunterKillerDroneSwarm
 Tank <|-- GiantDeathRobot
 Infrastructure <|-- Facility
-NaturalFeature <|-- Forest
-NaturalFeature <|-- Hill
 NaturalFeature <|-- Fallout
 NaturalFeature <|-- ImpassableFeature
 NaturalFeature <|-- RoughFeature
@@ -856,13 +861,13 @@ PassiveBonusItem <|-- TitaniumArmor
 
 ' Faction special units
 GiantDeathRobot .. EuropeanJointTaskForce : special unit of
-HunterKillerDroneSwarm .. PacificCoastCoalition : special unit of 
+HunterKillerDroneSwarm .. PacificCoastCoalition : special unit of
 OrbitalCannon .. AmericanMegacorp : special unit of
 LevitatingBattleship .. RussianFederation : special unit of
 
 ' Facility produce type of units
 Armored .. Factory : allow production of
-Air .. Airport  : allow production of 
+Air .. Airport  : allow production of
 SpecialUnit .. TechLab : allow production
 NuclearBomb .. NuclearFoundry : allow production
 
