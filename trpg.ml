@@ -67,7 +67,9 @@ let initialization () =
 
 (* load an image at specified path*)
 let load_surface path = 
-    manage_result (Sdl.load_bmp path) "Error opening bitmap : %s"
+    let loaded_surface = manage_result (Sdl.load_bmp path) "Error opening bitmap : %s" in
+    let surface_format_enum = Sdl.get_surface_format_enum (deref_option current_surface_p)
+    let optimized_surface = Sdl.convert_surface loaded_surface
 
 (* safely close all the windows and surfaces *)
 let close () =
