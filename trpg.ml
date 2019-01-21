@@ -9,8 +9,8 @@ open Item
 
 
 (* Constants *)
-let screen_width = 1920
-let screen_height = 1920
+let screen_width = 1920 * 2
+let screen_height = 1080 * 2
 
 (* Variables *)
 (* Events *)
@@ -79,57 +79,65 @@ let load_media renderer =
 let make_rect x y w h =
     Sdl.enclose_points [
         Sdl.Point.create x y;
-        Sdl.Point.create w y;
+        Sdl.Point.create x h;
         Sdl.Point.create w h;
-        Sdl.Point.create x h
+        Sdl.Point.create w y
       ]
 
 
-let rec game renderer texture over =
+type pos_cursor = {
+    x : int;
+    y : int
+}
+
+let rec game renderer texture over pos_cursor =
     if  over then
         ()
     else
         (* Get the next event in the queue *)
-        let new_texture,new_over =
+        let new_over,new_pos_cursor=
             if not (Sdl.poll_event ev) then (
                 match ev with
                 (* If no event, nothing to do *)
                 | None ->
-                    texture,over
+                    over,pos_cursor
                 (* Otherwise, check the event *)
                 | Some e -> (
                     (* If the user clicks the red cross button, the game closes *)
-                    let over_from_input = if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                        true
-                    else if
-                        Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down 
-                        && Sdl.Event.get e Sdl.Event.keyboard_keycode = Sdl.K.escape then
-                        true
+                    if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
+                        true,pos_cursor
+                    else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then
+                            let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in
+                            if pressed_key = Sdl.K.escape then
+                                true,pos_cursor
+                            else if pressed_key = Sdl.K.down then
+                                over,{pos_cursor with y = pos_cursor.y + 50}
+                            else if pressed_key = Sdl.K.up then
+                                over,{pos_cursor with y = pos_cursor.y - 50}
+                            else if pressed_key = Sdl.K.left then
+                                over,{pos_cursor with x = pos_cursor.x - 50}
+                            else if pressed_key = Sdl.K.right then
+                                over,{pos_cursor with x = pos_cursor.x + 50}
+                            else    
+                                over,pos_cursor
                     else
-                        false
-                    in
-                    texture,over_from_input
+                        over,pos_cursor
                 )
             ) else (
-                texture, over
+                over,pos_cursor
             ) in
-
-        (* Strectching *)
-        let stretchRectOpt = make_rect 0 0 screen_width screen_height in
-        let rect = manage_option stretchRectOpt "Error creating rectangle" in
-
-        manage_result (Sdl.render_clear renderer) "Error render clear : %s";
-
-        (* Load the renderer with the texture *)
-        manage_result (
-            Sdl.render_copy renderer new_texture
-            ) "Error render copy : %s";
+        (* Clear *)
+        manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "bla %s";
+        manage_result (Sdl.render_clear renderer) "bla %s";
+        
+        (* Draw the new rect *)
+        manage_result (Sdl_tools.draw_filled_rectangle renderer (0,0,0,255) (new_pos_cursor.y - 100 , new_pos_cursor.y + 100 ,new_pos_cursor.x - 100 ,new_pos_cursor.x + 100)) "bla %s";
 
         (* Update the renderer *)
         Sdl.render_present renderer;
 
         (* Continue the game *)
-        game renderer new_texture new_over
+        game renderer texture new_over new_pos_cursor
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
@@ -138,7 +146,10 @@ let item_machin = Item.create_item 10 2 3 10 50
 let () =
     let window,renderer = initialization () in
     let current_texture = load_media renderer in
-    game renderer current_texture false;
+    game renderer current_texture false {
+        x = screen_width / 2;
+        y = screen_height / 2
+    };
     close [window] [] [renderer] [current_texture];
     Printf.printf "%d" (Item.get_x item_machin);
     ();
