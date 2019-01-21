@@ -8,22 +8,8 @@ let screen_width = 1920
 let screen_height = 1080
 
 (* Variables *)
-(* The window *)
-let window_p = ref None 
-(* The surface affiliated with the window *)
-let screen_surface_p = ref None 
-(* The renderer *)
-let renderer_p = ref None
-(* The surface that is currently being displayed *)
-let current_surface_p = ref None 
 (* Events *)
 let ev = Some (Sdl.Event.create ())
-
-(* Lists *)
-(* Windows list *)
-let windows_p = [window_p]
-(* Surfaces list not associated with window *)
-let surfaces_p = [current_surface_p]
 
 (* Types *)
 type key_pressed_surfaces_enum =
@@ -59,107 +45,101 @@ let initialization () =
     manage_result ( Sdl.init Sdl.Init.everything ) "Error init : %s";
 
     (* Open a Window *)
-    window_p := Some ( manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ) "Error create window : %s");
+    let window = manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ) "Error create window : %s" in
 
     (* Get renderer from Window *)
-    let window = deref_option window_p in
     let create_renderer_flag = (Sdl.Renderer.(+)) Sdl.Renderer.accelerated Sdl.Renderer.presentvsync in 
-    renderer_p := Some (manage_result (Sdl.create_renderer ~index:(-1) ~flags:create_renderer_flag window) "Error create renderer : %s");
+    let renderer = manage_result (Sdl.create_renderer ~index:(-1) ~flags:create_renderer_flag window) "Error create renderer : %s" in
 
     (* Get surface from Window *)
-    screen_surface_p := Some (manage_result (Sdl.get_window_surface window) "Error create surface from window : %s")
+    let screen_surface = manage_result (Sdl.get_window_surface window) "Error create surface from window : %s" in
+    window,screen_surface,renderer
 
 (* load an image at specified path*)
-let load_surface path = 
+let load_surface screen_surface path = 
     let loaded_surface = manage_result (Sdl.load_bmp path) "Error opening bitmap : %s" in
-    let surface_format_enum = Sdl.get_surface_format_enum (deref_option screen_surface_p) in
+    let surface_format_enum = Sdl.get_surface_format_enum screen_surface in
     let optimized_surface = manage_result (Sdl.convert_surface_format loaded_surface surface_format_enum) "Error convert surface : %s" in
     Sdl.free_surface loaded_surface;
     optimized_surface
 
 (* safely close all the windows and surfaces *)
-let close () =
-    List.iter ( fun x -> Sdl.destroy_window (deref_option x); x:= None) windows_p;
-    List.iter ( fun x -> Sdl.free_surface (deref_option x); x:= None) surfaces_p
+let close windows surfaces renderers =
+    List.iter ( fun x -> Sdl.destroy_window x ) windows;
+    List.iter ( fun x -> Sdl.free_surface x ) surfaces;
+    List.iter ( fun x -> Sdl.destroy_renderer x ) renderers
 
 (* Load all the images related to the game *)
-let load_media () =
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DEFAULT (load_surface "asset/image/just.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_UP (load_surface "asset/image/up.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DOWN (load_surface "asset/image/down.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_RIGHT (load_surface "asset/image/right.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_LEFT (load_surface "asset/image/left.bmp")
+let load_media screen_surface =
+    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DEFAULT (load_surface screen_surface "asset/image/just.bmp");
+    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_UP (load_surface screen_surface "asset/image/up.bmp");
+    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DOWN (load_surface screen_surface "asset/image/down.bmp");
+    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_RIGHT (load_surface screen_surface "asset/image/right.bmp");
+    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_LEFT (load_surface screen_surface "asset/image/left.bmp")
 
-
-
-(* Main  *)
-let () =
-    initialization ();
-    load_media ();
-    current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT);
-
-    (* Main function that implements the mechanism of the game *)
-    let rec game b =
-        (* Bool pointer that tells whether or not the game is over *)
-        let over = ref false in
-        if not b then (
-
-            (* Get the next event in the queue *)
-            if not (Sdl.poll_event ev) then (
-                match ev with
-
-                (* If no event, nothing to do *)
-                | None ->
-                    ()
-                (* Otherwise, check the event *)
-                | Some e ->
-
-                    (* If the user clicks the red cross button, the game closes *)
-                    if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                        over := true
-
-                    (* Else, check if it is a key down *)
-                    else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then (
-                        (* Get the key that was pressed *)
-                        let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in
-
+let rec game renderer surface over =
+    if not over then 
+    let new_surface, new_over = 
+        (* Get the next event in the queue *)
+        if not (Sdl.poll_event ev) then (
+            match ev with
+            (* If no event, nothing to do *)
+            | None ->
+                surface,over
+            (* Otherwise, check the event *)
+            | Some e ->
+                (* If the user clicks the red cross button, the game closes *)
+                if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
+                    surface, true
+                (* Else, check if it is a key down *)
+                else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then (
+                    (* Get the key that was pressed *)
+                    let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in 
+                    (* Quit in case the player presses escape *)
+                    if pressed_key = Sdl.K.escape then
+                        surface, true
+                    else
                         (* Check which key was pressed and select the image accordingly *)
-                        if pressed_key = Sdl.K.up then
-                            current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_UP)
+                        let which_surface = if pressed_key = Sdl.K.up then
+                            KEY_PRESS_SURFACE_UP
                         else if pressed_key = Sdl.K.down then
-                            current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DOWN)
+                            KEY_PRESS_SURFACE_DOWN
                         else if pressed_key = Sdl.K.left then
-                            current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_LEFT)
+                            KEY_PRESS_SURFACE_LEFT
                         else if pressed_key = Sdl.K.right then
-                            current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_RIGHT)
-
-                        (* Quit in case the player presses escape *)
-                        else if pressed_key = Sdl.K.escape then
-                            over := true
+                            KEY_PRESS_SURFACE_RIGHT
                         else
-                            current_surface_p := Some (Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT)
-                    );
-            );
+                            KEY_PRESS_SURFACE_DEFAULT
+                        in
+                        (Hashtbl.find key_press_surfaces which_surface), over
+                    ) else ( surface,over)
+            ) else (surface,over) in
 
             (* Get the texture from the surface *)
             let current_texture =
                 manage_result (
-                    Sdl.create_texture_from_surface (deref_option renderer_p) (deref_option current_surface_p) 
+                    Sdl.create_texture_from_surface renderer new_surface 
                     ) "Error create texture from surface : %s"
                     in
 
             (* Load the renderer with the texture *)
             manage_result (
-                Sdl.render_copy (deref_option renderer_p) current_texture
+                Sdl.render_copy renderer current_texture
                 ) "Error render copy : %s";
 
             (* Update the renderer *)
-            Sdl.render_present (deref_option renderer_p);
+            Sdl.render_present renderer;
+
+            (* Clear the texture *)
+            Sdl.destroy_texture current_texture;
 
             (* Continue the game *)
-            game !over
-        )
-        else ()
-    in
-    game false;
-    close ()
+            game renderer new_surface new_over
+
+(* Main  *)
+let () =
+    let window,screen_surface,renderer = initialization () in
+    load_media screen_surface;
+    let current_surface = Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT in
+    game renderer current_surface false;
+    close [window] [] []
