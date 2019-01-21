@@ -1,7 +1,11 @@
 (* Modules *)
+(* Utils *)
 open Tsdl
-open Cell
 open Sdl_tools
+(* Assets *)
+open GameObject
+open Item
+
 
 (* Constants *)
 let screen_width = 1920
@@ -136,10 +140,15 @@ let rec game renderer surface over =
             (* Continue the game *)
             game renderer new_surface new_over
 
+let machin = GameObject.create_game_object 1 2 3
+let item_machin = Item.create_item 10 2 3 10 50
+
 (* Main  *)
 let () =
     let window,screen_surface,renderer = initialization () in
     load_media screen_surface;
     let current_surface = Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT in
     game renderer current_surface false;
-    close [window] [] []
+    close [window] [] [];
+
+    Printf.printf "%d" (Item.get_x item_machin)
