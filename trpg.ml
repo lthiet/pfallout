@@ -10,6 +10,8 @@ let screen_height = 1080
 (* Variables *)
 (* The window *)
 let window_p = ref None 
+(* The surface affiliated with the window *)
+let screen_surface_p = ref None 
 (* The renderer *)
 let renderer_p = ref None
 (* The surface that is currently being displayed *)
@@ -63,13 +65,17 @@ let initialization () =
     let window = deref_option window_p in
     let create_renderer_flag = (Sdl.Renderer.(+)) Sdl.Renderer.accelerated Sdl.Renderer.presentvsync in 
     renderer_p := Some (manage_result (Sdl.create_renderer ~index:(-1) ~flags:create_renderer_flag window) "Error create renderer : %s");
-    ()
+
+    (* Get surface from Window *)
+    screen_surface_p := Some (manage_result (Sdl.get_window_surface window) "Error create surface from window : %s")
 
 (* load an image at specified path*)
 let load_surface path = 
     let loaded_surface = manage_result (Sdl.load_bmp path) "Error opening bitmap : %s" in
-    let surface_format_enum = Sdl.get_surface_format_enum (deref_option current_surface_p)
-    let optimized_surface = Sdl.convert_surface loaded_surface
+    let surface_format_enum = Sdl.get_surface_format_enum (deref_option screen_surface_p) in
+    let optimized_surface = manage_result (Sdl.convert_surface_format loaded_surface surface_format_enum) "Error convert surface : %s" in
+    Sdl.free_surface loaded_surface;
+    optimized_surface
 
 (* safely close all the windows and surfaces *)
 let close () =
@@ -156,4 +162,4 @@ let () =
         else ()
     in
     game false;
-    close ();
+    close ()
