@@ -1,6 +1,7 @@
 (* Modules *)
 (* Utils *)
 open Tsdl
+open Tsdl_image
 open Sdl_tools
 (* Assets *)
 open GameObject
@@ -9,7 +10,7 @@ open Item
 
 (* Constants *)
 let screen_width = 1920
-let screen_height = 1080
+let screen_height = 1920
 
 (* Variables *)
 (* Events *)
@@ -33,12 +34,18 @@ let manage_result r s =
     match r with
     | Ok a -> a
     | Error (`Msg e) -> Sdl.log s e;exit 1
+    
+(* Manage Option *)
+let manage_option r s =
+    match r with
+    | Some x -> x
+    | None -> Sdl.log s;exit 1
 
 (* Functions *)
 (* Initialize a window and a surface *)
 let initialization () = 
     (* Initialize SDL *)
-    manage_result ( Sdl.init Sdl.Init.everything ) "Error init : %s";
+    manage_result ( Sdl.init Sdl.Init.video ) "Error init : %s";
 
     (* Open a Window *)
     let window = manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ) "Error create window : %s" in
@@ -49,11 +56,19 @@ let initialization () =
 
     (* Get surface from Window *)
     let screen_surface = manage_result (Sdl.get_window_surface window) "Error create surface from window : %s" in
-    window,screen_surface,renderer
+
+    (* Load PNG Loading *)
+    let png_load_flags = Image.Init.png in
+    let png_init = Image.init png_load_flags in
+    if not (Image.Init.eq png_load_flags png_init) then (
+        Sdl.log "Error loader png"; exit 1
+    )
+    else
+        window,screen_surface,renderer
 
 (* load an image at specified path*)
 let load_surface screen_surface path = 
-    let loaded_surface = manage_result (Sdl.load_bmp path) "Error opening bitmap : %s" in
+    let loaded_surface = manage_result (Image.load path) "Error opening bitmap : %s" in
     let surface_format_enum = Sdl.get_surface_format_enum screen_surface in
     let optimized_surface = manage_result (Sdl.convert_surface_format loaded_surface surface_format_enum) "Error convert surface : %s" in
     Sdl.free_surface loaded_surface;
@@ -72,6 +87,15 @@ let load_media screen_surface =
     Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DOWN (load_surface screen_surface "asset/image/down.bmp");
     Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_RIGHT (load_surface screen_surface "asset/image/right.bmp");
     Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_LEFT (load_surface screen_surface "asset/image/left.bmp")
+
+let make_rect x y w h =
+    Sdl.enclose_points [
+        Sdl.Point.create x y;
+        Sdl.Point.create w y;
+        Sdl.Point.create w h;
+        Sdl.Point.create x h
+      ]
+
 
 let rec game renderer surface over =
     if  over then
@@ -120,9 +144,14 @@ let rec game renderer surface over =
                     ) "Error create texture from surface : %s"
                     in
 
+
+            (* Strectching *)
+            let stretchRectOpt = make_rect 0 0 screen_width screen_height in
+            let rect = manage_option stretchRectOpt "Error creating rectangle" in
+
             (* Load the renderer with the texture *)
             manage_result (
-                Sdl.render_copy renderer current_texture
+                Sdl.render_copy ~dst:rect renderer current_texture
                 ) "Error render copy : %s";
 
             (* Update the renderer *)
@@ -144,5 +173,6 @@ let () =
     let current_surface = Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT in
     game renderer current_surface false;
     close [window] [] [];
+
 
     Printf.printf "%d" (Item.get_x item_machin)
