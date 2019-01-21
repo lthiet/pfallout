@@ -34,14 +34,6 @@ let manage_result r s =
     | Ok a -> a
     | Error (`Msg e) -> Sdl.log s e;exit 1
 
-exception NonePointer
-
-(* Derefenrece an option variable pointed by p *)
-let deref_option p =
-    match !p with
-    | Some x -> x
-    | None -> raise NonePointer
-
 (* Functions *)
 (* Initialize a window and a surface *)
 let initialization () = 
@@ -82,7 +74,9 @@ let load_media screen_surface =
     Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_LEFT (load_surface screen_surface "asset/image/left.bmp")
 
 let rec game renderer surface over =
-    if not over then 
+    if  over then
+        ()
+    else
     let new_surface, new_over = 
         (* Get the next event in the queue *)
         if not (Sdl.poll_event ev) then (
