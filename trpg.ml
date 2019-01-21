@@ -17,16 +17,6 @@ let screen_height = 1920
 let ev = Some (Sdl.Event.create ())
 
 (* Types *)
-type key_pressed_surfaces_enum =
-    | KEY_PRESS_SURFACE_DEFAULT
-    | KEY_PRESS_SURFACE_UP
-    | KEY_PRESS_SURFACE_DOWN
-    | KEY_PRESS_SURFACE_LEFT
-    | KEY_PRESS_SURFACE_RIGHT
-    | KEY_PRESS_SURFACE_TOTAL
-
-(* Hashtbl *)
-let key_press_surfaces = Hashtbl.create 7
 
 (* Utils function *)
 (* Manage Result *)
@@ -42,7 +32,7 @@ let manage_option r s =
     | None -> Sdl.log s;exit 1
 
 (* Functions *)
-(* Initialize a window and a surface *)
+(* Initialize a window and a renderer *)
 let initialization () = 
     (* Initialize SDL *)
     manage_result ( Sdl.init Sdl.Init.video ) "Error init : %s";
@@ -54,8 +44,8 @@ let initialization () =
     let create_renderer_flag = (Sdl.Renderer.(+)) Sdl.Renderer.accelerated Sdl.Renderer.presentvsync in 
     let renderer = manage_result (Sdl.create_renderer ~index:(-1) ~flags:create_renderer_flag window) "Error create renderer : %s" in
 
-    (* Get surface from Window *)
-    let screen_surface = manage_result (Sdl.get_window_surface window) "Error create surface from window : %s" in
+    (* Set the color of the renderer *)
+    manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error set color renderer %s";
 
     (* Load PNG Loading *)
     let png_load_flags = Image.Init.png in
@@ -64,29 +54,27 @@ let initialization () =
         Sdl.log "Error loader png"; exit 1
     )
     else
-        window,screen_surface,renderer
+        window,renderer
 
-(* load an image at specified path*)
-let load_surface screen_surface path = 
-    let loaded_surface = manage_result (Image.load path) "Error opening bitmap : %s" in
-    let surface_format_enum = Sdl.get_surface_format_enum screen_surface in
-    let optimized_surface = manage_result (Sdl.convert_surface_format loaded_surface surface_format_enum) "Error convert surface : %s" in
+(* Load a texture from a path *)
+let load_texture renderer path =
+    let loaded_surface = manage_result (Image.load path) "Error opening image : %s" in
+    let new_texture = Sdl.create_texture_from_surface renderer loaded_surface in
     Sdl.free_surface loaded_surface;
-    optimized_surface
+    manage_result new_texture "Error loading texture : %s"
 
-(* safely close all the windows and surfaces *)
-let close windows surfaces renderers =
+(* safely close all the windows and renders *)
+let close windows surfaces renderers textures =
     List.iter ( fun x -> Sdl.destroy_window x ) windows;
     List.iter ( fun x -> Sdl.free_surface x ) surfaces;
-    List.iter ( fun x -> Sdl.destroy_renderer x ) renderers
+    List.iter ( fun x -> Sdl.destroy_renderer x ) renderers;
+    List.iter ( fun x -> Sdl.destroy_texture x ) textures;
+    Image.quit ();
+    Sdl.quit ()
 
 (* Load all the images related to the game *)
-let load_media screen_surface =
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DEFAULT (load_surface screen_surface "asset/image/just.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_UP (load_surface screen_surface "asset/image/up.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_DOWN (load_surface screen_surface "asset/image/down.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_RIGHT (load_surface screen_surface "asset/image/right.bmp");
-    Hashtbl.add key_press_surfaces KEY_PRESS_SURFACE_LEFT (load_surface screen_surface "asset/image/left.bmp")
+let load_media renderer =
+    load_texture renderer "asset/image/texture.png"
 
 let make_rect x y w h =
     Sdl.enclose_points [
@@ -97,82 +85,60 @@ let make_rect x y w h =
       ]
 
 
-let rec game renderer surface over =
+let rec game renderer texture over =
     if  over then
         ()
     else
-    let new_surface, new_over = 
         (* Get the next event in the queue *)
-        if not (Sdl.poll_event ev) then (
-            match ev with
-            (* If no event, nothing to do *)
-            | None ->
-                surface,over
-            (* Otherwise, check the event *)
-            | Some e ->
-                (* If the user clicks the red cross button, the game closes *)
-                if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                    surface, true
-                (* Else, check if it is a key down *)
-                else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then (
-                    (* Get the key that was pressed *)
-                    let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in 
-                    (* Quit in case the player presses escape *)
-                    if pressed_key = Sdl.K.escape then
-                        surface, true
+        let new_texture,new_over =
+            if not (Sdl.poll_event ev) then (
+                match ev with
+                (* If no event, nothing to do *)
+                | None ->
+                    texture,over
+                (* Otherwise, check the event *)
+                | Some e -> (
+                    (* If the user clicks the red cross button, the game closes *)
+                    let over_from_input = if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
+                        true
+                    else if
+                        Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down 
+                        && Sdl.Event.get e Sdl.Event.keyboard_keycode = Sdl.K.escape then
+                        true
                     else
-                        (* Check which key was pressed and select the image accordingly *)
-                        let which_surface = if pressed_key = Sdl.K.up then
-                            KEY_PRESS_SURFACE_UP
-                        else if pressed_key = Sdl.K.down then
-                            KEY_PRESS_SURFACE_DOWN
-                        else if pressed_key = Sdl.K.left then
-                            KEY_PRESS_SURFACE_LEFT
-                        else if pressed_key = Sdl.K.right then
-                            KEY_PRESS_SURFACE_RIGHT
-                        else
-                            KEY_PRESS_SURFACE_DEFAULT
-                        in
-                        (Hashtbl.find key_press_surfaces which_surface), over
-                    ) else ( surface,over)
-            ) else (surface,over) in
-
-            (* Get the texture from the surface *)
-            let current_texture =
-                manage_result (
-                    Sdl.create_texture_from_surface renderer new_surface 
-                    ) "Error create texture from surface : %s"
+                        false
                     in
+                    texture,over_from_input
+                )
+            ) else (
+                texture, over
+            ) in
 
+        (* Strectching *)
+        let stretchRectOpt = make_rect 0 0 screen_width screen_height in
+        let rect = manage_option stretchRectOpt "Error creating rectangle" in
 
-            (* Strectching *)
-            let stretchRectOpt = make_rect 0 0 screen_width screen_height in
-            let rect = manage_option stretchRectOpt "Error creating rectangle" in
+        manage_result (Sdl.render_clear renderer) "Error render clear : %s";
 
-            (* Load the renderer with the texture *)
-            manage_result (
-                Sdl.render_copy ~dst:rect renderer current_texture
-                ) "Error render copy : %s";
+        (* Load the renderer with the texture *)
+        manage_result (
+            Sdl.render_copy renderer new_texture
+            ) "Error render copy : %s";
 
-            (* Update the renderer *)
-            Sdl.render_present renderer;
+        (* Update the renderer *)
+        Sdl.render_present renderer;
 
-            (* Clear the texture *)
-            Sdl.destroy_texture current_texture;
-
-            (* Continue the game *)
-            game renderer new_surface new_over
+        (* Continue the game *)
+        game renderer new_texture new_over
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
 
 (* Main  *)
 let () =
-    let window,screen_surface,renderer = initialization () in
-    load_media screen_surface;
-    let current_surface = Hashtbl.find key_press_surfaces KEY_PRESS_SURFACE_DEFAULT in
-    game renderer current_surface false;
-    close [window] [] [];
-
-
-    Printf.printf "%d" (Item.get_x item_machin)
+    let window,renderer = initialization () in
+    let current_texture = load_media renderer in
+    game renderer current_texture false;
+    close [window] [] [renderer] [current_texture];
+    Printf.printf "%d" (Item.get_x item_machin);
+    ();
