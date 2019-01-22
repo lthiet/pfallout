@@ -13,6 +13,7 @@ open Item
 (* Constants *)
 let screen_width = 640
 let screen_height = 480 
+let walking_anim_frame = 4
 
 (* Variables *)
 (* Events *)
@@ -55,17 +56,18 @@ let close windows surfaces renderers textures lTextures =
     Image.quit ();
     Sdl.quit ()
 
-(* Load all the images related to the game *)
+(* Load all the images related to the game and returns an array *)
 let load_media renderer =
-    (* Fade in *)
     let a = LTexture.load_from_file renderer "asset/image/pepe.jpg"
     in
+    LTexture.set_blend_mode a Sdl.Blend.mode_blend;
 
-    (* Fade out *)
     let b = LTexture.load_from_file renderer "asset/image/just.bmp"
     in
-    LTexture.set_blend_mode a Sdl.Blend.mode_blend;
-    a,b
+
+    let c = LTexture.load_from_file renderer "asset/image/foo_animated.png"
+    in
+    [|a;b;c|]
 
 type pos_cursor = {
     x : int;
@@ -78,7 +80,7 @@ type rgb_offset_input = {
     b : int;
 }
 
-let rec game renderer modulated_t bg_t alpha over coord = 
+let rec game renderer t r frame alpha over coord = 
     if over then
         ()
     else
@@ -138,15 +140,33 @@ let rec game renderer modulated_t bg_t alpha over coord =
         manage_result (Sdl.render_clear renderer) "Error : %s";
         
         (* Render the textures *)
-        LTexture.render renderer None bg_t 0 0;
-        LTexture.set_alpha modulated_t new_alpha;
-        LTexture.render renderer None modulated_t new_coord.x new_coord.y;
+        LTexture.render renderer None t.(1) 0 0;
+        LTexture.set_alpha t.(0) new_alpha;
+        LTexture.render renderer None t.(0) new_coord.x new_coord.y;
+
+        (* Render the animated figure *)
+        let clip = r.(frame / 4)
+        in
+
+        LTexture.render renderer (Some clip) t.(2) (
+            (screen_width - Sdl.Rect.w clip)/2
+        ) (
+            (screen_height - Sdl.Rect.h clip)/2
+        );
 
         (* Update the renderer *)
         Sdl.render_present renderer;
 
         (* Continue the game *)
-        game renderer modulated_t bg_t new_alpha new_over new_coord
+        let new_frame =
+            let incr = frame + 1 in
+            if incr / 4 >= walking_anim_frame then
+                0
+            else
+                incr
+        in
+        Printf.printf "%d" new_frame;
+        game renderer t r new_frame new_alpha new_over new_coord
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
@@ -155,11 +175,18 @@ let item_machin = Item.create_item 10 2 3 10 50
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    let modulated_t, bg_t = load_media renderer in
-    game renderer modulated_t bg_t 0 false {
+    let t = load_media renderer in
+    let r = [|
+        make_rect 0 0 64 205;
+        make_rect 64 0 64 205;
+        make_rect 128 0 64 205;
+        make_rect 196 0 64 205;
+    |] in
+
+    game renderer t r 0 0 false {
         x = 0;
         y = 0;
     };
-    close [window] [] [renderer] [] [modulated_t;bg_t];
+    close [window] [] [renderer] [] [];
     Printf.printf "%d" (Item.get_x item_machin);
     ();
