@@ -73,4 +73,15 @@ module LTexture = struct
         manage_result (
             Sdl.set_texture_color_mod t.mTexture r g b
         ) "Error set color mod %s"
+
+
+    let set_blend_mode t m =
+        manage_result (
+            Sdl.set_texture_blend_mode t.mTexture m
+        ) "Error blend mode %s"
+
+    let set_alpha t a =
+        manage_result (
+            Sdl.set_texture_alpha_mod t.mTexture a
+        ) "Error set alpha %s"
 end

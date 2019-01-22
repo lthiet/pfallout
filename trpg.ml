@@ -45,13 +45,6 @@ let initialization () =
     else
         window,renderer
 
-(* Load a texture from a path *)
-let load_texture renderer path =
-    let loaded_surface = manage_result (Image.load path) "Error opening image : %s" in
-    let new_texture = Sdl.create_texture_from_surface renderer loaded_surface in
-    Sdl.free_surface loaded_surface;
-    manage_result new_texture "Error loading texture : %s"
-
 (* safely close all the windows and renders *)
 let close windows surfaces renderers textures lTextures =
     List.iter ( fun x -> LTexture.free x) lTextures;
@@ -64,18 +57,15 @@ let close windows surfaces renderers textures lTextures =
 
 (* Load all the images related to the game *)
 let load_media renderer =
-    (* Small character *)
-    let a = LTexture.load_from_file renderer "asset/image/foo.png"
+    (* Fade in *)
+    let a = LTexture.load_from_file renderer "asset/image/pepe.jpg"
     in
 
-    (* Background *)
-    let b = LTexture.load_from_file renderer "asset/image/background.png"
+    (* Fade out *)
+    let b = LTexture.load_from_file renderer "asset/image/just.bmp"
     in
-
-    (* Some dots *)
-    let c = LTexture.load_from_file renderer "asset/image/dots.png"
-    in
-    a,b,c
+    LTexture.set_blend_mode a Sdl.Blend.mode_blend;
+    a,b
 
 type pos_cursor = {
     x : int;
@@ -88,84 +78,62 @@ type rgb_offset_input = {
     b : int;
 }
 
-let rec game renderer foo_texture bg_texture dots_texture tl tr bl br over pos_cursor rgb_offset_input =
-    if  over then
+let rec game renderer modulated_t bg_t alpha over = 
+    if over then
         ()
     else
         (* Get the new over state and the new position of the cursor *)
-        let new_over,new_pos_cursor,new_rgb_offset_input =
+        let new_over,new_alpha =
             (* Get the next event in the queue *)
-            if not (Sdl.poll_event ev) then (
+            if not (Sdl.poll_event ev) then
                 match ev with
                 (* If no event, nothing to do *)
                 | None ->
-                    over,pos_cursor,rgb_offset_input
+                    over,alpha
                 (* Otherwise, check the event *)
-                | Some e -> (
+                | Some e ->
                     (* If the user clicks the red cross button, the game closes *)
                     if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                        true,pos_cursor,rgb_offset_input
+                        true,alpha
                     (* Else, he has clicked a key on the keyboard *)
                     else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then
 
-                            (* Check which key it is *)
-                            let offset = 10 in
-                            let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in
-                            if pressed_key = Sdl.K.escape then
-                                true,pos_cursor,rgb_offset_input
-                            else if pressed_key = Sdl.K.down then
-                                over,{pos_cursor with y = pos_cursor.y + offset},rgb_offset_input
-                            else if pressed_key = Sdl.K.up then
-                                over,{pos_cursor with y = pos_cursor.y - offset},rgb_offset_input
-                            else if pressed_key = Sdl.K.left then
-                                over,{pos_cursor with x = pos_cursor.x - offset},rgb_offset_input
-                            else if pressed_key = Sdl.K.right then
-                                over,{pos_cursor with x = pos_cursor.x + offset},rgb_offset_input
-                            else if pressed_key = Sdl.K.f1 then
-                                over,pos_cursor,{rgb_offset_input with r = rgb_offset_input.r + 2}
-                            else if pressed_key = Sdl.K.f2 then
-                                over,pos_cursor,{rgb_offset_input with r = rgb_offset_input.r - 2}
-                            else if pressed_key = Sdl.K.f3 then
-                                over,pos_cursor,{rgb_offset_input with g = rgb_offset_input.g + 2}
-                            else if pressed_key = Sdl.K.f4 then
-                                over,pos_cursor,{rgb_offset_input with g = rgb_offset_input.g - 2}
-                            else if pressed_key = Sdl.K.f5 then
-                                over,pos_cursor,{rgb_offset_input with b = rgb_offset_input.b + 2}
-                            else if pressed_key = Sdl.K.f6 then
-                                over,pos_cursor,{rgb_offset_input with b = rgb_offset_input.b - 2}
-                            else    
-                                over,pos_cursor,rgb_offset_input
+                        let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in
+                        let a =
+                            match pressed_key with
+                            | x when x = Sdl.K.up -> 
+                                if alpha + 32 > 255 then
+                                    255
+                                else
+                                    alpha + 2
+                            | x when x = Sdl.K.down -> 
+                                if alpha - 32 < 0 then
+                                    0
+                                else
+                                    alpha - 2
+                            | _ -> alpha
+                        in
+                        over,a
                     else
-                        over,pos_cursor,rgb_offset_input
-                )
-            ) else (
-                over,pos_cursor,rgb_offset_input
-            ) in
+                        over,alpha
+            else
+               over,alpha
+        in
         
         (* Clear *)
         manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
         manage_result (Sdl.render_clear renderer) "Error : %s";
         
         (* Render the textures *)
-        LTexture.set_color 
-            new_rgb_offset_input.r
-            new_rgb_offset_input.g
-            new_rgb_offset_input.b
-            bg_texture;
-        LTexture.render renderer None bg_texture 0 0;
-        LTexture.render renderer None foo_texture new_pos_cursor.x new_pos_cursor.y;
-
-        (* Render the dots *)
-        LTexture.render renderer (Some tl) dots_texture 0 0;
-        LTexture.render renderer (Some tr) dots_texture (screen_width - (Sdl.Rect.w tr)) 0;
-        LTexture.render renderer (Some bl) dots_texture 0 (screen_height - (Sdl.Rect.h bl));
-        LTexture.render renderer (Some br) dots_texture (screen_width - (Sdl.Rect.w br)) (screen_height - (Sdl.Rect.h br));
+        LTexture.render renderer None bg_t 0 0;
+        LTexture.set_alpha modulated_t new_alpha;
+        LTexture.render renderer None modulated_t 0 0;
 
         (* Update the renderer *)
         Sdl.render_present renderer;
 
         (* Continue the game *)
-        game renderer foo_texture bg_texture dots_texture tl tr bl br new_over new_pos_cursor new_rgb_offset_input
+        game renderer modulated_t bg_t new_alpha new_over
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
@@ -174,22 +142,8 @@ let item_machin = Item.create_item 10 2 3 10 50
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    let foo_texture, bg_texture, dots_texture = load_media renderer in
-
-    (* rectangles to know which dots we want *)
-    let tl = make_rect 0 0 100 100 in
-    let tr = make_rect 100 0 100 100 in
-    let bl = make_rect 0 100 100 100 in
-    let br = make_rect 100 100 100 100 in
-
-    game renderer foo_texture bg_texture dots_texture tl tr bl br false {
-        x = screen_width / 2;
-        y = screen_height / 2
-    } {
-        r = 1;
-        g = 45;
-        b = 199
-    };
-    close [window] [] [renderer] [] [foo_texture;bg_texture];
+    let modulated_t, bg_t = load_media renderer in
+    game renderer modulated_t bg_t 0 false;
+    close [window] [] [renderer] [] [modulated_t;bg_t];
     Printf.printf "%d" (Item.get_x item_machin);
     ();
