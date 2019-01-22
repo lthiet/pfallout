@@ -78,46 +78,59 @@ type rgb_offset_input = {
     b : int;
 }
 
-let rec game renderer modulated_t bg_t alpha over = 
+let rec game renderer modulated_t bg_t alpha over coord = 
     if over then
         ()
     else
         (* Get the new over state and the new position of the cursor *)
-        let new_over,new_alpha =
+        let new_over,new_alpha,new_coord =
             (* Get the next event in the queue *)
             if not (Sdl.poll_event ev) then
                 match ev with
                 (* If no event, nothing to do *)
                 | None ->
-                    over,alpha
+                    over,alpha,coord
                 (* Otherwise, check the event *)
                 | Some e ->
                     (* If the user clicks the red cross button, the game closes *)
                     if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                        true,alpha
+                        true,alpha,coord
                     (* Else, he has clicked a key on the keyboard *)
                     else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then
 
                         let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in
+                        let offset = 16 in
                         let a =
                             match pressed_key with
-                            | x when x = Sdl.K.up -> 
-                                if alpha + 32 > 255 then
+                            | x when x = Sdl.K.f1 -> 
+                                if alpha + offset > 255 then
                                     255
                                 else
-                                    alpha + 2
-                            | x when x = Sdl.K.down -> 
-                                if alpha - 32 < 0 then
+                                    alpha + offset
+                            | x when x = Sdl.K.f2 -> 
+                                if alpha - offset < 0 then
                                     0
                                 else
-                                    alpha - 2
+                                    alpha - offset
                             | _ -> alpha
                         in
-                        over,a
+                        let c =
+                            match pressed_key with
+                            | x when x = Sdl.K.down ->
+                                {coord with y = coord.y + offset}
+                            | x when x = Sdl.K.up ->
+                                {coord with y = coord.y - offset}
+                            | x when x = Sdl.K.right ->
+                                {coord with x = coord.x + offset}
+                            | x when x = Sdl.K.left ->
+                                {coord with x = coord.x - offset}
+                            | _ -> coord
+                        in
+                        over,a,c
                     else
-                        over,alpha
+                        over,alpha,coord
             else
-               over,alpha
+               over,alpha,coord
         in
         
         (* Clear *)
@@ -127,13 +140,13 @@ let rec game renderer modulated_t bg_t alpha over =
         (* Render the textures *)
         LTexture.render renderer None bg_t 0 0;
         LTexture.set_alpha modulated_t new_alpha;
-        LTexture.render renderer None modulated_t 0 0;
+        LTexture.render renderer None modulated_t new_coord.x new_coord.y;
 
         (* Update the renderer *)
         Sdl.render_present renderer;
 
         (* Continue the game *)
-        game renderer modulated_t bg_t new_alpha new_over
+        game renderer modulated_t bg_t new_alpha new_over new_coord
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
@@ -143,7 +156,10 @@ let item_machin = Item.create_item 10 2 3 10 50
 let () =
     let window,renderer = initialization () in
     let modulated_t, bg_t = load_media renderer in
-    game renderer modulated_t bg_t 0 false;
+    game renderer modulated_t bg_t 0 false {
+        x = 0;
+        y = 0;
+    };
     close [window] [] [renderer] [] [modulated_t;bg_t];
     Printf.printf "%d" (Item.get_x item_machin);
     ();
