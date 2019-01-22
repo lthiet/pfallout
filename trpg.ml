@@ -69,104 +69,148 @@ let load_media renderer =
     in
     [|a;b;c|]
 
-type pos_cursor = {
+type coord = {
     x : int;
     y : int
 }
 
-type rgb_offset_input = {
-    r : int;
-    g : int;
-    b : int;
+type param = {
+    over : bool;
+    frame : int;
+    alpha : int;
+    angle : float;
+    coord: coord;
+    flip: Sdl.flip
 }
 
-let rec game renderer t r frame alpha over coord = 
-    if over then
+let rec game renderer t r param = 
+    if param.over then
         ()
     else
         (* Get the new over state and the new position of the cursor *)
-        let new_over,new_alpha,new_coord =
+        let new_param =
             (* Get the next event in the queue *)
             if not (Sdl.poll_event ev) then
                 match ev with
                 (* If no event, nothing to do *)
                 | None ->
-                    over,alpha,coord
+                    param
                 (* Otherwise, check the event *)
                 | Some e ->
                     (* If the user clicks the red cross button, the game closes *)
                     if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                        true,alpha,coord
+                        {param with over = true}
                     (* Else, he has clicked a key on the keyboard *)
                     else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then
 
+                        (* Get the pressed key *)
                         let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in
-                        let offset = 16 in
-                        let a =
+
+                        (* Allow the change of the level of transparency for some texture *)
+                        let alpha =
+                            let offset = 16 in
+                            let old_alpha = param.alpha in
                             match pressed_key with
                             | x when x = Sdl.K.f1 -> 
-                                if alpha + offset > 255 then
+                                if old_alpha + offset > 255 then
                                     255
                                 else
-                                    alpha + offset
+                                    old_alpha + offset
                             | x when x = Sdl.K.f2 -> 
-                                if alpha - offset < 0 then
+                                if old_alpha - offset < 0 then
                                     0
                                 else
-                                    alpha - offset
-                            | _ -> alpha
+                                    old_alpha - offset
+                            | _ -> old_alpha
                         in
-                        let c =
+
+                        (* Allow input to modify X/Y coord. for some texture *)
+                        let coord =
+                            let old_coord = param.coord in
+                            let offset = 20 in
                             match pressed_key with
                             | x when x = Sdl.K.down ->
-                                {coord with y = coord.y + offset}
+                                {old_coord with y = old_coord.y + offset}
                             | x when x = Sdl.K.up ->
-                                {coord with y = coord.y - offset}
+                                {old_coord with y = old_coord.y - offset}
                             | x when x = Sdl.K.right ->
-                                {coord with x = coord.x + offset}
+                                {old_coord with x = old_coord.x + offset}
                             | x when x = Sdl.K.left ->
-                                {coord with x = coord.x - offset}
-                            | _ -> coord
+                                {old_coord with x = old_coord.x - offset}
+                            | _ -> old_coord
                         in
-                        over,a,c
+
+                        (* Allow the change of angle of rotation *)
+                        let angle =
+                            let old_angle = param.angle in
+                            let offset = 20. in
+                            match pressed_key with
+                            | x when x = Sdl.K.return ->
+                                old_angle +. offset
+                            | x when x = Sdl.K.rshift ->
+                                old_angle -. offset
+                            | _ -> old_angle
+                        in
+                        let flip =
+                            let old_flip = param.flip in
+                            match pressed_key with
+                            | x when x = Sdl.K.f12 ->
+                                Sdl.Flip.none
+                            | x when x = Sdl.K.f11 ->
+                                Sdl.Flip.horizontal
+                            | x when x = Sdl.K.f10 ->
+                                Sdl.Flip.vertical
+                            | _ -> old_flip
+                        in
+
+                        (* Return the new parameters *)
+                        {param with alpha = alpha;coord = coord;angle = angle;flip = flip}
+
                     else
-                        over,alpha,coord
+                        param
             else
-               over,alpha,coord
+                param
         in
+        
+        (* Get the newly computed params *)
+        let alpha = new_param.alpha in
+        let coord = new_param.coord in
+        let angle = new_param.angle in
+        let flip = new_param.flip in
         
         (* Clear *)
         manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
         manage_result (Sdl.render_clear renderer) "Error : %s";
         
         (* Render the textures *)
-        LTexture.render renderer None t.(1) 0 0;
-        LTexture.set_alpha t.(0) new_alpha;
-        LTexture.render renderer None t.(0) new_coord.x new_coord.y;
+        LTexture.render renderer t.(1);
+        LTexture.set_alpha t.(0) alpha;
+        LTexture.render renderer ~x:coord.x ~y:coord.y t.(0);
 
         (* Render the animated figure *)
-        let clip = r.(frame / 4)
+        let clip = r.(param.frame / 4)
         in
-
-        LTexture.render renderer (Some clip) t.(2) (
-            (screen_width - Sdl.Rect.w clip)/2
-        ) (
-            (screen_height - Sdl.Rect.h clip)/2
-        );
+        LTexture.render renderer ~clip:(Some clip)
+            ~x:((screen_width - Sdl.Rect.w clip)/2)
+            ~y:((screen_height - Sdl.Rect.h clip)/2)
+            ~angle:angle
+            ~flip:flip
+            t.(2);
 
         (* Update the renderer *)
         Sdl.render_present renderer;
 
         (* Continue the game *)
-        let new_frame =
-            let incr = frame + 1 in
+
+        (* Compute the new frame *)
+        let frame =
+            let incr = param.frame + 1 in
             if incr / 4 >= walking_anim_frame then
                 0
             else
                 incr
         in
-        Printf.printf "%d" new_frame;
-        game renderer t r new_frame new_alpha new_over new_coord
+        game renderer t r {new_param with frame = frame}
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
@@ -183,10 +227,16 @@ let () =
         make_rect 196 0 64 205;
     |] in
 
-    game renderer t r 0 0 false {
-        x = 0;
-        y = 0;
+    game renderer t r {
+        over = false;
+        frame = 0;
+        alpha = 0;
+        angle = 0.;
+        flip = Sdl.Flip.none;
+        coord = {
+            x = 0;
+            y = 0
+        }
     };
     close [window] [] [renderer] [] [];
-    Printf.printf "%d" (Item.get_x item_machin);
     ();

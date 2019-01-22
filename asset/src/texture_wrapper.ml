@@ -44,7 +44,15 @@ module LTexture = struct
         Sdl.destroy_texture t.mTexture
 
     (* Render the texture t with renderer at position x and y on the rectangle clip *)
-    let render renderer clip t x y =
+    let render
+        renderer
+        ?(clip: Sdl.rect option = None)
+        ?(x:int = 0)
+        ?(y:int = 0)
+        ?(angle:float = 0.)
+        ?(center:Sdl.point option = None)
+        ?(flip:Sdl.flip = Sdl.Flip.none)
+        t =
         (* Get the width and height of the portion of the texture if it exists *)
         let w,h =
             match clip with
@@ -62,11 +70,11 @@ module LTexture = struct
         match clip with 
         | None ->
             manage_result (
-                Sdl.render_copy renderer t.mTexture ~dst:renderQuad 
+                Sdl.render_copy_ex renderer t.mTexture angle center flip ~dst:renderQuad 
             ) "Error render copy : %s"
         | Some r ->
             manage_result (
-                Sdl.render_copy renderer t.mTexture ~dst:renderQuad ~src:r
+                Sdl.render_copy_ex renderer t.mTexture angle center flip ~dst:renderQuad ~src:r
             ) "Error render copy : %s"
 
     let set_color r g b t =
