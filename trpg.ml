@@ -64,19 +64,25 @@ let close windows surfaces renderers textures lTextures =
 
 (* Load all the images related to the game *)
 let load_media renderer =
+    (* Small character *)
     let a = LTexture.load_from_file renderer "asset/image/foo.png"
     in
 
+    (* Background *)
     let b = LTexture.load_from_file renderer "asset/image/background.png"
     in
-    a,b
+
+    (* Some dots *)
+    let c = LTexture.load_from_file renderer "asset/image/dots.png"
+    in
+    a,b,c
 
 type pos_cursor = {
     x : int;
     y : int
 }
 
-let rec game renderer foo_texture bg_texture over pos_cursor =
+let rec game renderer foo_texture bg_texture dots_texture tl tr bl br over pos_cursor =
     if  over then
         ()
     else
@@ -123,15 +129,20 @@ let rec game renderer foo_texture bg_texture over pos_cursor =
         manage_result (Sdl.render_clear renderer) "Error : %s";
         
         (* Render the textures *)
-        LTexture.render renderer bg_texture 0 0;
-        LTexture.render renderer foo_texture new_pos_cursor.x new_pos_cursor.y;
-        (* LTexture.render renderer foo_texture 240 190; *)
+        LTexture.render renderer None bg_texture 0 0;
+        LTexture.render renderer None foo_texture new_pos_cursor.x new_pos_cursor.y;
+
+        (* Render the dots *)
+        LTexture.render renderer (Some tl) dots_texture 0 0;
+        LTexture.render renderer (Some tr) dots_texture (screen_width - (Sdl.Rect.w tr)) 0;
+        LTexture.render renderer (Some bl) dots_texture 0 (screen_height - (Sdl.Rect.h bl));
+        LTexture.render renderer (Some br) dots_texture (screen_width - (Sdl.Rect.w br)) (screen_height - (Sdl.Rect.h br));
 
         (* Update the renderer *)
         Sdl.render_present renderer;
 
         (* Continue the game *)
-        game renderer foo_texture bg_texture new_over new_pos_cursor
+        game renderer foo_texture bg_texture dots_texture tl tr bl br new_over new_pos_cursor
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
@@ -140,9 +151,15 @@ let item_machin = Item.create_item 10 2 3 10 50
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    let foo_texture, bg_texture = load_media renderer in
+    let foo_texture, bg_texture, dots_texture = load_media renderer in
 
-    game renderer foo_texture bg_texture false {
+    (* rectangles to know which dots we want *)
+    let tl = make_rect 0 0 100 100 in
+    let tr = make_rect 100 0 100 100 in
+    let bl = make_rect 0 100 100 100 in
+    let br = make_rect 100 100 100 100 in
+
+    game renderer foo_texture bg_texture dots_texture tl tr bl br false {
         x = screen_width / 2;
         y = screen_height / 2
     };

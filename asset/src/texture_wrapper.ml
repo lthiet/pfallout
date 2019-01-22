@@ -43,10 +43,31 @@ module LTexture = struct
     let free t =
         Sdl.destroy_texture t.mTexture
 
-    let render renderer t x y =
+    (* Render the texture t with renderer at position x and y on the rectangle clip *)
+    let render renderer clip t x y =
+        (* Get the width and height of the portion of the texture if it exists *)
+        let w,h =
+            match clip with
+            | None ->
+                t.mWidth, t.mHeight
+            | Some r ->
+                (Sdl.Rect.w r),(Sdl.Rect.h r)
+        in
+
+
         (* Set rendering space and render to screen *)
-        let renderQuad = make_rect x y t.mWidth t.mHeight in
-        manage_result (
-            Sdl.render_copy renderer t.mTexture ~dst:renderQuad
-        ) "Error render copy : %s"
+        let renderQuad = make_rect x y w h in
+
+        (* Render *)
+        match clip with 
+        | None ->
+            manage_result (
+                Sdl.render_copy renderer t.mTexture ~dst:renderQuad 
+            ) "Error render copy : %s"
+        | Some r ->
+            manage_result (
+                Sdl.render_copy renderer t.mTexture ~dst:renderQuad ~src:r
+            ) "Error render copy : %s"
+
+
 end
