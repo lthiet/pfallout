@@ -3,7 +3,7 @@ open Tsdl_image
 open Utils
 
 module LTexture = struct
-    type lTexture = {
+    type t = {
         mTexture : Sdl.texture;
         mWidth : int;
         mHeight : int
@@ -69,5 +69,8 @@ module LTexture = struct
                 Sdl.render_copy renderer t.mTexture ~dst:renderQuad ~src:r
             ) "Error render copy : %s"
 
-
+    let set_color r g b t =
+        manage_result (
+            Sdl.set_texture_color_mod t.mTexture r g b
+        ) "Error set color mod %s"
 end
