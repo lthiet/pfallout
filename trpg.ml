@@ -9,6 +9,7 @@ open Utils
 open GameObject
 open Texture_wrapper
 open Item
+open Button
 
 
 (* Constants *)
@@ -84,8 +85,23 @@ let load_media renderer =
     let color = Sdl.Color.create 0 0 0 255 in
 
     let d = LTexture.load_from_rendered_text renderer font "jme presenete je mappelle henri" color in
-    [|a;b;c;d|]
 
+    let e = LTexture.load_from_file renderer "asset/image/button.png" in
+    [|a;b;c;d;e|]
+
+let load_clip () = 
+    Array.init 4 ( fun i -> 
+        Sdl.Rect.create 0 (i*200) LButton.button_width LButton.button_height
+    )
+
+let load_buttons () =
+    let t = LButton.default in
+    [|
+        LButton.set_pos t 0 0;
+        LButton.set_pos t (screen_width - LButton.button_width) 0;
+        LButton.set_pos t 0 (screen_height - LButton.button_height);
+        LButton.set_pos t (screen_width - LButton.button_width) (screen_height - LButton.button_height)
+    |]
 
 type coord = {
     x : int;
@@ -101,7 +117,7 @@ type param = {
     flip: Sdl.flip
 }
 
-let rec game renderer t r param = 
+let rec game renderer t r btns param = 
     if param.over then
         ()
     else
@@ -109,12 +125,17 @@ let rec game renderer t r param =
         let new_param =
             (* Get the next event in the queue *)
             if not (Sdl.poll_event ev) then
-                match ev with
+                 match ev with
                 (* If no event, nothing to do *)
                 | None ->
                     param
                 (* Otherwise, check the event *)
                 | Some e ->
+                    (* Manage events for buttons *)
+                    Array.iteri (
+                        fun i x -> btns.(i) <- LButton.handle_event x e
+                    ) btns;
+
                     (* If the user clicks the red cross button, the game closes *)
                     if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
                         {param with over = true}
@@ -189,6 +210,7 @@ let rec game renderer t r param =
             else
                 param
         in
+
         
         (* Get the newly computed params *)
         let alpha = new_param.alpha in
@@ -199,6 +221,13 @@ let rec game renderer t r param =
         (* Clear *)
         manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
         manage_result (Sdl.render_clear renderer) "Error : %s";
+
+        (* Render Buttons *)
+        Array.iter ( 
+            fun x ->
+                LButton.render renderer x t.(4) r.(1)
+            )
+            btns;
         
         (* Render the textures *)
         LTexture.render renderer t.(1);
@@ -206,7 +235,7 @@ let rec game renderer t r param =
         LTexture.render renderer ~x:coord.x ~y:coord.y t.(0);
 
         (* Render the animated figure *)
-        let clip = r.(param.frame / 4)
+        let clip = r.(0).(param.frame / 4)
         in
         LTexture.render renderer
             ~clip:(Some clip)
@@ -222,6 +251,7 @@ let rec game renderer t r param =
             ~y:((screen_height - (LTexture.get_h t.(3)))/2)
             t.(3);
 
+
         (* Update the renderer *)
         Sdl.render_present renderer;
 
@@ -235,7 +265,7 @@ let rec game renderer t r param =
             else
                 incr
         in
-        game renderer t r {new_param with frame = frame}
+        game renderer t r btns {new_param with frame = frame}
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
@@ -245,14 +275,18 @@ let item_machin = Item.create_item 10 2 3 10 50
 let () =
     let window,renderer = initialization () in
     let t = load_media renderer in
-    let r = [|
+    let r1 = [|
         make_rect 0 0 64 205;
         make_rect 64 0 64 205;
         make_rect 128 0 64 205;
         make_rect 196 0 64 205;
     |] in
 
-    game renderer t r {
+    let r2 = load_clip () in
+    let btns = load_buttons () in
+
+    game renderer t [|r1;r2|] btns
+    {
         over = false;
         frame = 0;
         alpha = 0;
