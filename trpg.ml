@@ -2,6 +2,7 @@
 (* Utils *)
 open Tsdl
 open Tsdl_image
+open Tsdl_ttf
 open Sdl_tools
 open Utils
 (* Assets *)
@@ -40,21 +41,29 @@ let initialization () =
     (* Load PNG Loading *)
     let png_load_flags = Image.Init.png in
     let png_init = Image.init png_load_flags in
+    (* Init the true text font *)
+    manage_result (Ttf.init ()) "Error ttf init %s";
     if not (Image.Init.eq png_load_flags png_init) then (
-        Sdl.log "Error loader png"; exit 1
+        Sdl.log "Error loader png or ttf"; exit 1
     )
     else
         window,renderer
 
 (* safely close all the windows and renders *)
-let close windows surfaces renderers textures lTextures =
+let close windows surfaces renderers textures lTextures  =
     List.iter ( fun x -> LTexture.free x) lTextures;
     List.iter ( fun x -> Sdl.destroy_window x ) windows;
     List.iter ( fun x -> Sdl.free_surface x ) surfaces;
     List.iter ( fun x -> Sdl.destroy_renderer x ) renderers;
     List.iter ( fun x -> Sdl.destroy_texture x ) textures;
     Image.quit ();
-    Sdl.quit ()
+    Sdl.quit ();
+    Ttf.quit ()
+
+let load_font () = 
+    manage_result (
+        Ttf.open_font "asset/image/lazy.ttf" 28
+    ) "Error loading font %s"
 
 (* Load all the images related to the game and returns an array *)
 let load_media renderer =
@@ -67,7 +76,16 @@ let load_media renderer =
 
     let c = LTexture.load_from_file renderer "asset/image/foo_animated.png"
     in
-    [|a;b;c|]
+
+    let font = manage_result (
+        Ttf.open_font "asset/image/lazy.ttf" 28
+    ) "Error font %s" in
+
+    let color = Sdl.Color.create 0 0 0 255 in
+
+    let d = LTexture.load_from_rendered_text renderer font "jme presenete je mappelle henri" color in
+    [|a;b;c;d|]
+
 
 type coord = {
     x : int;
@@ -190,12 +208,19 @@ let rec game renderer t r param =
         (* Render the animated figure *)
         let clip = r.(param.frame / 4)
         in
-        LTexture.render renderer ~clip:(Some clip)
+        LTexture.render renderer
+            ~clip:(Some clip)
             ~x:((screen_width - Sdl.Rect.w clip)/2)
             ~y:((screen_height - Sdl.Rect.h clip)/2)
             ~angle:angle
             ~flip:flip
             t.(2);
+
+        (* Render some text *)
+        LTexture.render renderer 
+            ~x:((screen_width - (LTexture.get_w t.(3)))/2)
+            ~y:((screen_height - (LTexture.get_h t.(3)))/2)
+            t.(3);
 
         (* Update the renderer *)
         Sdl.render_present renderer;

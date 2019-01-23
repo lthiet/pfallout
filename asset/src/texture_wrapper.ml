@@ -1,5 +1,6 @@
 open Tsdl
 open Tsdl_image
+open Tsdl_ttf
 open Utils
 
 module LTexture = struct
@@ -38,6 +39,27 @@ module LTexture = struct
             mTexture =  new_texture;
             mWidth = width;
             mHeight = height
+        }
+
+    let load_from_rendered_text renderer font text color =
+        let text_surface = manage_result (
+            Ttf.render_text_solid font text color
+        ) "error render text solid %s"
+        in
+
+        let mTexture = manage_result (
+            Sdl.create_texture_from_surface renderer text_surface
+        ) "error create texture from surface %s"
+        in
+
+        let w,h = Sdl.get_surface_size text_surface
+        in
+
+        Sdl.free_surface text_surface;
+        {
+            mTexture = mTexture;
+            mWidth = w;
+            mHeight = h
         }
 
     let free t =
@@ -92,4 +114,10 @@ module LTexture = struct
         manage_result (
             Sdl.set_texture_alpha_mod t.mTexture a
         ) "Error set alpha %s"
+
+    let get_w t =
+        t.mWidth
+
+    let get_h t =
+        t.mHeight
 end
