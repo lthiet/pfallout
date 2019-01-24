@@ -3,6 +3,7 @@
 open Tsdl
 open Tsdl_image
 open Tsdl_ttf
+open Tsdl_mixer
 open Sdl_tools
 open Utils
 (* Assets *)
@@ -27,7 +28,8 @@ let ev = Some (Sdl.Event.create ())
 (* Initialize a window and a renderer *)
 let initialization () = 
     (* Initialize SDL *)
-    manage_result ( Sdl.init Sdl.Init.video ) "Error init : %s";
+    let init_flag = Sdl.Init.(+) Sdl.Init.video Sdl.Init.audio in
+    manage_result ( Sdl.init init_flag) "Error init : %s";
 
     (* Open a Window *)
     let window = manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ) "Error create window : %s" in
@@ -38,6 +40,11 @@ let initialization () =
 
     (* Set the color of the renderer *)
     manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error set color renderer %s";
+
+    (* Initialize the mixer *)
+    manage_result (
+        Mixer.open_audio 44100 Mixer.default_format 2 2048
+    ) "Error init mixer %s";
 
     (* Load PNG Loading *)
     let png_load_flags = Image.Init.png in
@@ -51,15 +58,18 @@ let initialization () =
         window,renderer
 
 (* safely close all the windows and renders *)
-let close windows surfaces renderers textures lTextures  =
+let close windows surfaces renderers textures lTextures musics sounds =
     List.iter ( fun x -> LTexture.free x) lTextures;
     List.iter ( fun x -> Sdl.destroy_window x ) windows;
     List.iter ( fun x -> Sdl.free_surface x ) surfaces;
     List.iter ( fun x -> Sdl.destroy_renderer x ) renderers;
     List.iter ( fun x -> Sdl.destroy_texture x ) textures;
+    Array.iter ( fun x -> Mixer.free_music x ) musics;
+    Array.iter ( fun x -> Mixer.free_chunk x ) sounds;
     Image.quit ();
     Sdl.quit ();
-    Ttf.quit ()
+    Ttf.quit ();
+    Mixer.quit ()
 
 let load_font () = 
     manage_result (
@@ -103,6 +113,36 @@ let load_buttons () =
         LButton.set_pos t (screen_width - LButton.button_width) (screen_height - LButton.button_height)
     |]
 
+let load_music () =
+    let a = manage_result (
+        Mixer.load_mus "asset/sound/beat.wav"
+        ) "Error loading music %s";
+    in
+    [|a|]
+
+let load_sound () =
+    let a = manage_result (
+        Mixer.load_wav "asset/sound/scratch.wav"
+        ) "Error loading sound %s"
+    in
+
+    let b = manage_result (
+        Mixer.load_wav "asset/sound/high.wav"
+        ) "Error loading sound %s"
+    in
+
+    let c = manage_result (
+        Mixer.load_wav "asset/sound/medium.wav"
+        ) "Error loading sound %s"
+    in
+
+    let d = manage_result (
+        Mixer.load_wav "asset/sound/low.wav"
+        ) "Error loading sound %s"
+    in
+
+    [|a;b;c;d|]
+
 type coord = {
     x : int;
     y : int
@@ -117,7 +157,7 @@ type param = {
     flip: Sdl.flip
 }
 
-let rec game renderer t r btns param = 
+let rec game renderer t r m s btns param = 
     if param.over then
         ()
     else
@@ -202,6 +242,52 @@ let rec game renderer t r btns param =
                 old_flip
         in
 
+        let n = if (key_state.{Sdl.Scancode.c} = 1) then
+            manage_result (
+                Mixer.play_channel (-1) s.(0) 0
+            ) "Error play channel %s"
+        else if (key_state.{Sdl.Scancode.v} = 1) then
+            manage_result (
+                Mixer.play_channel (-1) s.(1) 0
+            ) "Error play channel %s"
+        else if (key_state.{Sdl.Scancode.b} = 1) then
+            manage_result (
+                Mixer.play_channel (-1) s.(2) 0
+            ) "Error play channel %s"
+        else if (key_state.{Sdl.Scancode.n} = 1) then
+            manage_result (
+                Mixer.play_channel (-1) s.(3) 0
+            ) "Error play channel %s"
+        else if (key_state.{Sdl.Scancode.x} = 1) then 
+            (* No music player : we play music *)
+            if not (Mixer.playing_music ()) then
+                (* Play music *)
+                manage_result (
+                    Mixer.play_music m.(0) (-1)
+                    ) "Error play music %s"
+
+            (* The music is played *)
+            else 
+                let () =
+                (* If the music is paused *)
+                if Mixer.paused_music () then
+                    Mixer.resume_music ()
+                else
+                    Mixer.pause_music ()
+                in
+                0
+
+        else if (key_state.{Sdl.Scancode.z} = 1) then
+            let () =manage_result (
+                Mixer.halt_music ()
+            ) "Error halt music %s"
+            in
+            0
+        else
+            0
+        in
+
+
         (* Clear *)
         manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
         manage_result (Sdl.render_clear renderer) "Error : %s";
@@ -249,7 +335,7 @@ let rec game renderer t r btns param =
             else
                 incr
         in
-        game renderer t r btns
+        game renderer t r m s btns
         {
             over = over;
             frame = frame;
@@ -276,8 +362,10 @@ let () =
 
     let r2 = load_clip () in
     let btns = load_buttons () in
+    let musics = load_music () in
+    let sounds = load_sound () in
 
-    game renderer t [|r1;r2|] btns
+    game renderer t [|r1;r2|] musics sounds btns
     {
         over = false;
         frame = 0;
@@ -289,5 +377,5 @@ let () =
             y = 0
         }
     };
-    close [window] [] [renderer] [] [];
+    close [window] [] [renderer] [] [] musics sounds;
     ();
