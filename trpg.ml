@@ -78,26 +78,10 @@ let load_font () =
 
 (* Load all the images related to the game and returns an array *)
 let load_media renderer =
-    let a = LTexture.load_from_file renderer "asset/image/pepe.jpg"
-    in
-    LTexture.set_blend_mode a Sdl.Blend.mode_blend;
-
-    let b = LTexture.load_from_file renderer "asset/image/just.bmp"
-    in
-
-    let c = LTexture.load_from_file renderer "asset/image/foo_animated.png"
-    in
-
-    let font = manage_result (
-        Ttf.open_font "asset/image/lazy.ttf" 28
-    ) "Error font %s" in
-
+    let font = load_font () in
     let color = Sdl.Color.create 0 0 0 255 in
-
-    let d = LTexture.load_from_rendered_text renderer font "jme presenete je mappelle henri" color in
-
-    let e = LTexture.load_from_file renderer "asset/image/button.png" in
-    [|a;b;c;d;e|]
+    let a = LTexture.load_from_rendered_text renderer font "Appuyez sur entree pour commencer" color in
+    [|a|]
 
 let load_clip () = 
     Array.init 4 ( fun i -> 
@@ -114,34 +98,10 @@ let load_buttons () =
     |]
 
 let load_music () =
-    let a = manage_result (
-        Mixer.load_mus "asset/sound/beat.wav"
-        ) "Error loading music %s";
-    in
-    [|a|]
+    [||]
 
 let load_sound () =
-    let a = manage_result (
-        Mixer.load_wav "asset/sound/scratch.wav"
-        ) "Error loading sound %s"
-    in
-
-    let b = manage_result (
-        Mixer.load_wav "asset/sound/high.wav"
-        ) "Error loading sound %s"
-    in
-
-    let c = manage_result (
-        Mixer.load_wav "asset/sound/medium.wav"
-        ) "Error loading sound %s"
-    in
-
-    let d = manage_result (
-        Mixer.load_wav "asset/sound/low.wav"
-        ) "Error loading sound %s"
-    in
-
-    [|a;b;c;d|]
+    [||]
 
 type coord = {
     x : int;
@@ -150,14 +110,25 @@ type coord = {
 
 type param = {
     over : bool;
-    frame : int;
-    alpha : int;
-    angle : float;
-    coord: coord;
-    flip: Sdl.flip
+    start : Sdl.uint32;
 }
 
-let rec game renderer t r m s btns param = 
+type media = {
+    font : Ttf.font;
+    textures : LTexture.t array;
+    color : Sdl.color
+}
+
+let check_key_scan ks i =
+    (ks.{i} = 1)
+
+let manage_key ks =
+    if check_key_scan ks Sdl.Scancode.return then
+        Some (Sdl.get_ticks ())
+    else
+        None
+
+let rec game renderer media param = 
     if param.over then
         ()
     else
@@ -170,11 +141,6 @@ let rec game renderer t r m s btns param =
                     false
                 (* Otherwise, check the event *)
                 | Some e ->
-                    (* Manage events for buttons *)
-                    Array.iteri (
-                        fun i x -> btns.(i) <- LButton.handle_event x e
-                    ) btns;
-
                     (* If the user clicks the red cross button, the game closes *)
                     if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
                         true
@@ -186,163 +152,37 @@ let rec game renderer t r m s btns param =
 
         (* Get the keystate *)
         let key_state = Sdl.get_keyboard_state () in
-        let coord = 
-            let offset = 20 in
-            if (key_state.{Sdl.Scancode.w} = 1) then
-                {param.coord with y = param.coord.y - offset}
-            else if (key_state.{Sdl.Scancode.s} = 1)  then
-                {param.coord with y = param.coord.y + offset}
-            else if (key_state.{Sdl.Scancode.a} = 1)  then
-                {param.coord with x = param.coord.x - offset}
-            else if (key_state.{Sdl.Scancode.d} = 1)  then
-                {param.coord with x = param.coord.x + offset}
-            else
-                param.coord
-        in
-
-        (* Allow the change of the level of transparency for some texture *)
-        let alpha =
-            let offset = 16 in
-            let old_alpha = param.alpha in
-            if (key_state.{Sdl.Scancode.e} = 1) then
-                if old_alpha + offset > 255 then
-                    255
-                else
-                    old_alpha + offset
-            else if (key_state.{Sdl.Scancode.q} = 1) then
-                if old_alpha - offset < 0 then
-                    0
-                else
-                    old_alpha - offset
-            else
-                old_alpha
-        in
-
-        (* Allow the change of angle of rotation *)
-        let angle =
-            let old_angle = param.angle in
-            let offset = 20. in
-            if (key_state.{Sdl.Scancode.o} = 1) then
-                old_angle +. offset
-            else if (key_state.{Sdl.Scancode.p} = 1) then
-                old_angle -. offset
-            else
-                old_angle
-        in
-
-        let flip =
-            let old_flip = param.flip in
-            if (key_state.{Sdl.Scancode.j} = 1) then
-                Sdl.Flip.none
-            else if (key_state.{Sdl.Scancode.k} = 1) then
-                Sdl.Flip.horizontal
-            else if (key_state.{Sdl.Scancode.l} = 1) then
-                Sdl.Flip.vertical
-            else
-                old_flip
-        in
-
-        let n = if (key_state.{Sdl.Scancode.c} = 1) then
-            manage_result (
-                Mixer.play_channel (-1) s.(0) 0
-            ) "Error play channel %s"
-        else if (key_state.{Sdl.Scancode.v} = 1) then
-            manage_result (
-                Mixer.play_channel (-1) s.(1) 0
-            ) "Error play channel %s"
-        else if (key_state.{Sdl.Scancode.b} = 1) then
-            manage_result (
-                Mixer.play_channel (-1) s.(2) 0
-            ) "Error play channel %s"
-        else if (key_state.{Sdl.Scancode.n} = 1) then
-            manage_result (
-                Mixer.play_channel (-1) s.(3) 0
-            ) "Error play channel %s"
-        else if (key_state.{Sdl.Scancode.x} = 1) then 
-            (* No music player : we play music *)
-            if not (Mixer.playing_music ()) then
-                (* Play music *)
-                manage_result (
-                    Mixer.play_music m.(0) (-1)
-                    ) "Error play music %s"
-
-            (* The music is played *)
-            else 
-                let () =
-                (* If the music is paused *)
-                if Mixer.paused_music () then
-                    Mixer.resume_music ()
-                else
-                    Mixer.pause_music ()
-                in
-                0
-
-        else if (key_state.{Sdl.Scancode.z} = 1) then
-            let () =manage_result (
-                Mixer.halt_music ()
-            ) "Error halt music %s"
-            in
-            0
-        else
-            0
-        in
-
+        let start = match manage_key key_state with
+        | Some x -> x
+        | None -> param.start
+        in 
 
         (* Clear *)
         manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
         manage_result (Sdl.render_clear renderer) "Error : %s";
 
-        (* Render Buttons *)
-        Array.iter ( 
-            fun x ->
-                LButton.render renderer x t.(4) r.(1)
-            )
-            btns;
-        
-        (* Render the textures *)
-        LTexture.render renderer t.(1);
-        LTexture.set_alpha t.(0) alpha;
-        LTexture.render renderer ~x:coord.x ~y:coord.y t.(0);
+        let time_passed = (Int32.sub (Sdl.get_ticks ()) param.start) in
+        let txt = "Millisecondes depuis le debut : " ^ (Int32.to_string time_passed) ^ "ms" in
 
-        (* Render the animated figure *)
-        let clip = r.(0).(param.frame / 4)
-        in
-        LTexture.render renderer
-            ~clip:(Some clip)
-            ~x:((screen_width - Sdl.Rect.w clip)/2)
-            ~y:((screen_height - Sdl.Rect.h clip)/2)
-            ~angle:angle
-            ~flip:flip
-            t.(2);
-
-        (* Render some text *)
+        let txt_t = LTexture.load_from_rendered_text renderer media.font txt media.color in
         LTexture.render renderer 
-            ~x:((screen_width - (LTexture.get_w t.(3)))/2)
-            ~y:((screen_height - (LTexture.get_h t.(3)))/2)
-            t.(3);
+        ~x:((screen_width - (LTexture.get_w media.textures.(0)))/2)
+        media.textures.(0);
+
+        LTexture.render renderer
+        ~x:((screen_width - (LTexture.get_w txt_t))/2)
+        ~y:((screen_height - (LTexture.get_h txt_t))/2)
+        txt_t;
 
 
         (* Update the renderer *)
         Sdl.render_present renderer;
 
         (* Continue the game *)
-
-        (* Compute the new frame *)
-        let frame =
-            let incr = param.frame + 1 in
-            if incr / 4 >= walking_anim_frame then
-                0
-            else
-                incr
-        in
-        game renderer t r m s btns
+        game renderer media 
         {
+            start = start;
             over = over;
-            frame = frame;
-            alpha = alpha;
-            coord = coord;
-            angle = angle;
-            flip = flip
         }
 
 let machin = GameObject.create_game_object 1 2 3
@@ -352,30 +192,20 @@ let item_machin = Item.create_item 10 2 3 10 50
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    let t = load_media renderer in
-    let r1 = [|
-        make_rect 0 0 64 205;
-        make_rect 64 0 64 205;
-        make_rect 128 0 64 205;
-        make_rect 196 0 64 205;
-    |] in
+    let textures = load_media renderer in
+    let font = load_font () in
+    let color = Sdl.Color.create 0 0 0 255 in
 
-    let r2 = load_clip () in
-    let btns = load_buttons () in
-    let musics = load_music () in
-    let sounds = load_sound () in
 
-    game renderer t [|r1;r2|] musics sounds btns
+    game renderer
+    {
+        font = font;
+        textures = textures;
+        color = color
+    } 
     {
         over = false;
-        frame = 0;
-        alpha = 0;
-        angle = 0.;
-        flip = Sdl.Flip.none;
-        coord = {
-            x = 0;
-            y = 0
-        }
+        start = Int32.zero
     };
-    close [window] [] [renderer] [] [] musics sounds;
+    close [window] [] [renderer] [] [] [||] [||];
     ();
