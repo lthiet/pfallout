@@ -10,12 +10,12 @@ open Utils
 open GameObject
 open Texture_wrapper
 open Item
-open Button
+open Dot
 
 
 (* Constants *)
-let screen_width = 640
-let screen_height = 480 
+let screen_width = 1920
+let screen_height = 1080
 let walking_anim_frame = 4
 
 (* Variables *)
@@ -78,24 +78,8 @@ let load_font () =
 
 (* Load all the images related to the game and returns an array *)
 let load_media renderer =
-    let font = load_font () in
-    let color = Sdl.Color.create 0 0 0 255 in
-    let a = LTexture.load_from_rendered_text renderer font "Appuyez sur entree pour commencer" color in
+    let a = LTexture.load_from_file renderer "asset/image/just.bmp"; in
     [|a|]
-
-let load_clip () = 
-    Array.init 4 ( fun i -> 
-        Sdl.Rect.create 0 (i*200) LButton.button_width LButton.button_height
-    )
-
-let load_buttons () =
-    let t = LButton.default in
-    [|
-        LButton.set_pos t 0 0;
-        LButton.set_pos t (screen_width - LButton.button_width) 0;
-        LButton.set_pos t 0 (screen_height - LButton.button_height);
-        LButton.set_pos t (screen_width - LButton.button_width) (screen_height - LButton.button_height)
-    |]
 
 let load_music () =
     [||]
@@ -110,102 +94,73 @@ type coord = {
 
 type param = {
     over : bool;
-    start : Sdl.uint32;
 }
 
 type media = {
-    font : Ttf.font;
     textures : LTexture.t array;
-    color : Sdl.color
 }
 
-let check_key_scan ks i =
-    (ks.{i} = 1)
+(* Provide context for game *)
+let game_main renderer media param =
+    let dot = LDot.create () in
 
-let manage_key ks =
-    if check_key_scan ks Sdl.Scancode.return then
-        Some (Sdl.get_ticks ())
-    else
-        None
-
-let rec game renderer media param = 
-    if param.over then
-        ()
-    else
-        let over =
-            (* Get the next event in the queue *)
-            if not (Sdl.poll_event ev) then
-                 match ev with
-                (* If no event, nothing to do *)
-                | None ->
-                    false
-                (* Otherwise, check the event *)
-                | Some e ->
-                    (* If the user clicks the red cross button, the game closes *)
-                    if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                        true
-                    else
+    let rec game renderer media param = 
+        if param.over then
+            ()
+        else
+            let over =
+                (* Get the next event in the queue *)
+                if not (Sdl.poll_event ev) then
+                    match ev with
+                    (* If no event, nothing to do *)
+                    | None ->
                         false
-            else
-                false
-        in
-
-        (* Get the keystate *)
-        let key_state = Sdl.get_keyboard_state () in
-        let start = match manage_key key_state with
-        | Some x -> x
-        | None -> param.start
-        in 
-
-        (* Clear *)
-        manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
-        manage_result (Sdl.render_clear renderer) "Error : %s";
-
-        let time_passed = (Int32.sub (Sdl.get_ticks ()) param.start) in
-        let txt = "Millisecondes depuis le debut : " ^ (Int32.to_string time_passed) ^ "ms" in
-
-        let txt_t = LTexture.load_from_rendered_text renderer media.font txt media.color in
-        LTexture.render renderer 
-        ~x:((screen_width - (LTexture.get_w media.textures.(0)))/2)
-        media.textures.(0);
-
-        LTexture.render renderer
-        ~x:((screen_width - (LTexture.get_w txt_t))/2)
-        ~y:((screen_height - (LTexture.get_h txt_t))/2)
-        txt_t;
+                    (* Otherwise, check the event *)
+                    | Some e ->
+                        LDot.handle_event dot e;
+                        (* If the user clicks the red cross button, the game closes *)
+                        if check_ev_type e Sdl.Event.quit then
+                            true
+                        else
+                            false
+                else
+                    false
+            in
 
 
-        (* Update the renderer *)
-        Sdl.render_present renderer;
+            (* Clear *)
+            manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
+            manage_result (Sdl.render_clear renderer) "Error : %s";
 
-        (* Continue the game *)
-        game renderer media 
-        {
-            start = start;
-            over = over;
-        }
+            (* Move the dot *)
+            LDot.move dot screen_width screen_height;
 
-let machin = GameObject.create_game_object 1 2 3
-let item_machin = Item.create_item 10 2 3 10 50
+            (* Render the dot *)
+            LDot.render dot renderer media.textures.(0);
 
+            (* Update the renderer *)
+            Sdl.render_present renderer;
+
+            (* Continue the game *)
+            game renderer media 
+            {
+                over = over
+            }
+    in
+    game renderer media param
 
 (* Main  *)
 let () =
     let window,renderer = initialization () in
     let textures = load_media renderer in
-    let font = load_font () in
-    let color = Sdl.Color.create 0 0 0 255 in
 
 
-    game renderer
+    game_main renderer
     {
-        font = font;
         textures = textures;
-        color = color
     } 
     {
         over = false;
-        start = Int32.zero
     };
     close [window] [] [renderer] [] [] [||] [||];
     ();

@@ -24,3 +24,20 @@ let get_format_from_surface surface =
 let make_rect x y w h =
     Sdl.Rect.create x y w h 
 
+(* Check if key 'i' has been pressed *)
+let check_key_scan ks i =
+    (ks.{i} = 1)
+
+(* Check event type *)
+let check_ev_type e t =
+    Sdl.Event.get e Sdl.Event.typ = t
+
+let check_ev_key_repeat e =
+    Sdl.Event.get e Sdl.Event.keyboard_repeat = 0
+
+let get_scancode e =
+    Sdl.Event.get e Sdl.Event.keyboard_scancode
+
+
+
+
