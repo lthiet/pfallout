@@ -7,10 +7,7 @@ open Tsdl_mixer
 open Sdl_tools
 open Utils
 (* Assets *)
-open GameObject
 open Texture_wrapper
-open Item
-open Dot
 
 
 (* Constants *)
@@ -102,8 +99,6 @@ type media = {
 
 (* Provide context for game *)
 let game_main renderer media param =
-    let dot = LDot.create () in
-
     let rec game renderer media param = 
         if param.over then
             ()
@@ -117,7 +112,6 @@ let game_main renderer media param =
                         false
                     (* Otherwise, check the event *)
                     | Some e ->
-                        LDot.handle_event dot e;
                         (* If the user clicks the red cross button, the game closes *)
                         if check_ev_type e Sdl.Event.quit then
                             true
@@ -132,12 +126,6 @@ let game_main renderer media param =
             manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
             manage_result (Sdl.render_clear renderer) "Error : %s";
 
-            (* Move the dot *)
-            LDot.move dot screen_width screen_height;
-
-            (* Render the dot *)
-            LDot.render dot renderer media.textures.(0);
-
             (* Update the renderer *)
             Sdl.render_present renderer;
 
@@ -148,6 +136,39 @@ let game_main renderer media param =
             }
     in
     game renderer media param
+
+class oui x y =
+object
+    val x : int = x
+    val y : int = y
+    method bidule =
+        x + y
+
+    method get_x = x
+    method get_y = y
+end
+;;
+
+module type Oui = sig
+    val truc : oui
+end
+;;
+
+module Incr (M : Oui) : Oui = struct
+    let truc = 
+        let x = (M.truc#get_x) + 1 in
+        let y = (M.truc#get_y) + 1 in
+        new oui x y
+end
+;;
+
+module OuiOui = struct
+    let truc = new oui 0 0
+end
+;;
+
+module OuiOuiOui = Incr(OuiOui)
+module OuiOuiOuiOui = Incr(OuiOuiOui)
 
 (* Main  *)
 let () =
@@ -164,3 +185,6 @@ let () =
     };
     close [window] [] [renderer] [] [] [||] [||];
     ();
+    Printf.printf "%d" OuiOui.truc#bidule;
+    Printf.printf "%d" OuiOuiOui.truc#bidule;
+    Printf.printf "%d" OuiOuiOuiOui.truc#bidule;
