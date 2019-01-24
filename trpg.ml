@@ -121,14 +121,13 @@ let rec game renderer t r btns param =
     if param.over then
         ()
     else
-        (* Get the new over state and the new position of the cursor *)
-        let new_param =
+        let over =
             (* Get the next event in the queue *)
             if not (Sdl.poll_event ev) then
                  match ev with
                 (* If no event, nothing to do *)
                 | None ->
-                    param
+                    false
                 (* Otherwise, check the event *)
                 | Some e ->
                     (* Manage events for buttons *)
@@ -138,86 +137,71 @@ let rec game renderer t r btns param =
 
                     (* If the user clicks the red cross button, the game closes *)
                     if (Sdl.Event.get e Sdl.Event.typ) = Sdl.Event.quit then
-                        {param with over = true}
-                    (* Else, he has clicked a key on the keyboard *)
-                    else if Sdl.Event.get e Sdl.Event.typ = Sdl.Event.key_down then
-
-                        (* Get the pressed key *)
-                        let pressed_key = Sdl.Event.get e Sdl.Event.keyboard_keycode in
-
-                        (* Allow the change of the level of transparency for some texture *)
-                        let alpha =
-                            let offset = 16 in
-                            let old_alpha = param.alpha in
-                            match pressed_key with
-                            | x when x = Sdl.K.f1 -> 
-                                if old_alpha + offset > 255 then
-                                    255
-                                else
-                                    old_alpha + offset
-                            | x when x = Sdl.K.f2 -> 
-                                if old_alpha - offset < 0 then
-                                    0
-                                else
-                                    old_alpha - offset
-                            | _ -> old_alpha
-                        in
-
-                        (* Allow input to modify X/Y coord. for some texture *)
-                        let coord =
-                            let old_coord = param.coord in
-                            let offset = 20 in
-                            match pressed_key with
-                            | x when x = Sdl.K.down ->
-                                {old_coord with y = old_coord.y + offset}
-                            | x when x = Sdl.K.up ->
-                                {old_coord with y = old_coord.y - offset}
-                            | x when x = Sdl.K.right ->
-                                {old_coord with x = old_coord.x + offset}
-                            | x when x = Sdl.K.left ->
-                                {old_coord with x = old_coord.x - offset}
-                            | _ -> old_coord
-                        in
-
-                        (* Allow the change of angle of rotation *)
-                        let angle =
-                            let old_angle = param.angle in
-                            let offset = 20. in
-                            match pressed_key with
-                            | x when x = Sdl.K.return ->
-                                old_angle +. offset
-                            | x when x = Sdl.K.rshift ->
-                                old_angle -. offset
-                            | _ -> old_angle
-                        in
-                        let flip =
-                            let old_flip = param.flip in
-                            match pressed_key with
-                            | x when x = Sdl.K.f12 ->
-                                Sdl.Flip.none
-                            | x when x = Sdl.K.f11 ->
-                                Sdl.Flip.horizontal
-                            | x when x = Sdl.K.f10 ->
-                                Sdl.Flip.vertical
-                            | _ -> old_flip
-                        in
-
-                        (* Return the new parameters *)
-                        {param with alpha = alpha;coord = coord;angle = angle;flip = flip}
-
+                        true
                     else
-                        param
+                        false
             else
-                param
+                false
         in
 
-        
-        (* Get the newly computed params *)
-        let alpha = new_param.alpha in
-        let coord = new_param.coord in
-        let angle = new_param.angle in
-        let flip = new_param.flip in
-        
+        (* Get the keystate *)
+        let key_state = Sdl.get_keyboard_state () in
+        let coord = 
+            let offset = 20 in
+            if (key_state.{Sdl.Scancode.w} = 1) then
+                {param.coord with y = param.coord.y - offset}
+            else if (key_state.{Sdl.Scancode.s} = 1)  then
+                {param.coord with y = param.coord.y + offset}
+            else if (key_state.{Sdl.Scancode.a} = 1)  then
+                {param.coord with x = param.coord.x - offset}
+            else if (key_state.{Sdl.Scancode.d} = 1)  then
+                {param.coord with x = param.coord.x + offset}
+            else
+                param.coord
+        in
+
+        (* Allow the change of the level of transparency for some texture *)
+        let alpha =
+            let offset = 16 in
+            let old_alpha = param.alpha in
+            if (key_state.{Sdl.Scancode.e} = 1) then
+                if old_alpha + offset > 255 then
+                    255
+                else
+                    old_alpha + offset
+            else if (key_state.{Sdl.Scancode.q} = 1) then
+                if old_alpha - offset < 0 then
+                    0
+                else
+                    old_alpha - offset
+            else
+                old_alpha
+        in
+
+        (* Allow the change of angle of rotation *)
+        let angle =
+            let old_angle = param.angle in
+            let offset = 20. in
+            if (key_state.{Sdl.Scancode.o} = 1) then
+                old_angle +. offset
+            else if (key_state.{Sdl.Scancode.p} = 1) then
+                old_angle -. offset
+            else
+                old_angle
+        in
+
+        let flip =
+            let old_flip = param.flip in
+            if (key_state.{Sdl.Scancode.j} = 1) then
+                Sdl.Flip.none
+            else if (key_state.{Sdl.Scancode.k} = 1) then
+                Sdl.Flip.horizontal
+            else if (key_state.{Sdl.Scancode.l} = 1) then
+                Sdl.Flip.vertical
+            else
+                old_flip
+        in
+
         (* Clear *)
         manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
         manage_result (Sdl.render_clear renderer) "Error : %s";
@@ -265,7 +249,15 @@ let rec game renderer t r btns param =
             else
                 incr
         in
-        game renderer t r btns {new_param with frame = frame}
+        game renderer t r btns
+        {
+            over = over;
+            frame = frame;
+            alpha = alpha;
+            coord = coord;
+            angle = angle;
+            flip = flip
+        }
 
 let machin = GameObject.create_game_object 1 2 3
 let item_machin = Item.create_item 10 2 3 10 50
