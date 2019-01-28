@@ -8,6 +8,8 @@ open Sdl_tools
 open Utils
 (* Assets *)
 open Texture_wrapper
+open Binder
+open Grid
 
 
 (* Constants *)
@@ -56,7 +58,7 @@ let initialization () =
 
 (* safely close all the windows and renders *)
 let close windows surfaces renderers textures lTextures musics sounds =
-    List.iter ( fun x -> LTexture.free x) lTextures;
+    List.iter ( fun x -> MTexture.free x) lTextures;
     List.iter ( fun x -> Sdl.destroy_window x ) windows;
     List.iter ( fun x -> Sdl.free_surface x ) surfaces;
     List.iter ( fun x -> Sdl.destroy_renderer x ) renderers;
@@ -75,7 +77,7 @@ let load_font () =
 
 (* Load all the images related to the game and returns an array *)
 let load_media renderer =
-    let a = LTexture.load_from_file renderer "asset/image/just.bmp"; in
+    let a = MTexture.load_from_file renderer "asset/image/just.bmp"; in
     [|a|]
 
 let load_music () =
@@ -94,7 +96,7 @@ type param = {
 }
 
 type media = {
-    textures : LTexture.t array;
+    textures : MTexture.t array;
 }
 
 (* Provide context for game *)
@@ -137,39 +139,6 @@ let game_main renderer media param =
     in
     game renderer media param
 
-class oui x y =
-object
-    val x : int = x
-    val y : int = y
-    method bidule =
-        x + y
-
-    method get_x = x
-    method get_y = y
-end
-;;
-
-module type Oui = sig
-    val truc : oui
-end
-;;
-
-module Incr (M : Oui) : Oui = struct
-    let truc = 
-        let x = (M.truc#get_x) + 1 in
-        let y = (M.truc#get_y) + 1 in
-        new oui x y
-end
-;;
-
-module OuiOui = struct
-    let truc = new oui 0 0
-end
-;;
-
-module OuiOuiOui = Incr(OuiOui)
-module OuiOuiOuiOui = Incr(OuiOuiOui)
-
 (* Main  *)
 let () =
     let window,renderer = initialization () in
@@ -185,6 +154,3 @@ let () =
     };
     close [window] [] [renderer] [] [] [||] [||];
     ();
-    Printf.printf "%d" OuiOui.truc#bidule;
-    Printf.printf "%d" OuiOuiOui.truc#bidule;
-    Printf.printf "%d" OuiOuiOuiOui.truc#bidule;
