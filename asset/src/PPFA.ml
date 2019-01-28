@@ -50,18 +50,3 @@ class virtual produceable producer p_cost =
 	end;;
 
 		  
-class tile id_init x y z t_type g m_cost =
-	object (self)
-		inherit game_object
-		val id = id_init
-		val pos_x = x
-		val pos_y = y
-		val pos_z = z
-		val type_ = t_type
-		val grid = g
-		val mvmt_cost = m_cost
-	end;;
-	
-(*
-		method is_hidden = pas encore possible
-*)
