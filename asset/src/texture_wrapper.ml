@@ -3,7 +3,7 @@ open Tsdl_image
 open Tsdl_ttf
 open Utils
 
-module LTexture = struct
+module MTexture = struct
     type t = {
         mTexture : Sdl.texture;
         mWidth : int;
@@ -121,3 +121,4 @@ module LTexture = struct
     let get_h t =
         t.mHeight
 end
+;;

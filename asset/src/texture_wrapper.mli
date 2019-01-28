@@ -2,7 +2,7 @@ open Tsdl
 open Tsdl_image
 open Tsdl_ttf
 
-module LTexture : sig
+module MTexture : sig
     type t
     val load_from_file : Sdl.renderer -> string -> t
     val load_from_rendered_text : Sdl.renderer -> Ttf.font -> string -> Sdl.color -> t
@@ -22,3 +22,4 @@ module LTexture : sig
     val get_w : t -> int
     val get_h : t -> int
 end
+
