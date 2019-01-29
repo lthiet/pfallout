@@ -4,18 +4,17 @@ open Tsdl
 open Tsdl_image
 open Tsdl_ttf
 open Tsdl_mixer
-open Sdl_tools
 open Utils
 (* Assets *)
 open Texture_wrapper
 open Binder
 open Grid
+open Tile
 
 
 (* Constants *)
 let screen_width = 1920
 let screen_height = 1080
-let walking_anim_frame = 4
 
 (* Variables *)
 (* Events *)
@@ -75,11 +74,6 @@ let load_font () =
         Ttf.open_font "asset/image/lazy.ttf" 28
     ) "Error loading font %s"
 
-(* Load all the images related to the game and returns an array *)
-let load_media renderer =
-    let a = MTexture.load_from_file renderer "asset/image/just.bmp"; in
-    [|a|]
-
 let load_music () =
     [||]
 
@@ -95,13 +89,16 @@ type param = {
     over : bool;
 }
 
-type media = {
-    textures : MTexture.t array;
+type context = {
+    tiles : MTile.tile list
 }
 
 (* Provide context for game *)
-let game_main renderer media param =
-    let rec game renderer media param = 
+let game_main renderer context param =
+    let camera = Sdl.Rect.create 0 0 (screen_height/2) (screen_width/2) in
+
+    (* Loop the game *)
+    let rec game renderer context param = 
         if param.over then
             ()
         else
@@ -128,29 +125,30 @@ let game_main renderer media param =
             manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
             manage_result (Sdl.render_clear renderer) "Error : %s";
 
+            (* Render the tiles *)
+            List.iter (fun x -> print_int x#get_x) context.tiles;
+
             (* Update the renderer *)
             Sdl.render_present renderer;
 
             (* Continue the game *)
-            game renderer media 
+            game renderer context
             {
                 over = over
             }
     in
-    game renderer media param
+    game renderer context param
 
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    let textures = load_media renderer in
-
-
+    TileGraphics.init renderer;
+    let tiles = !(TileGraphics.tiles) in
     game_main renderer
     {
-        textures = textures;
-    } 
+        tiles = tiles
+    }
     {
         over = false;
     };
     close [window] [] [renderer] [] [] [||] [||];
-    ();

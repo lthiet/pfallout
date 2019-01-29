@@ -1,14 +1,4 @@
-class virtual game_object =
-	object (self)
-		val virtual id : int
-		val virtual pos_x : int
-		val virtual pos_y : int
-		val virtual pos_z : int
-		method get_pos_x () = pos_x
-		method get_pos_y () = pos_y
-		method get_pos_z () = pos_z
-	end;;
-	
+
 
 class virtual entity =
 	object (self)

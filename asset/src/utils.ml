@@ -38,6 +38,30 @@ let check_ev_key_repeat e =
 let get_scancode e =
     Sdl.Event.get e Sdl.Event.keyboard_scancode
 
+let check_collision a b =
+    let la = Sdl.Rect.x a in
+    let lb = Sdl.Rect.x b in
+    let ra = la + Sdl.Rect.w a in
+    let rb = lb + Sdl.Rect.w b in
+    let ta = Sdl.Rect.y a in
+    let tb = Sdl.Rect.y b in
+    let ba = ta + Sdl.Rect.h a in
+    let bb = tb + Sdl.Rect.h b in
+    if ba <= tb || ta >= bb || ra <= lb || la >= rb then
+        false
+    else
+        true
 
-
-
+let char_is_number c =
+    match c with
+    | '0'
+    | '1'
+    | '2'
+    | '3'
+    | '4'
+    | '5'
+    | '6'
+    | '7'
+    | '8'
+    | '9' -> true
+    | _ -> false
