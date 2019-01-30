@@ -72,7 +72,6 @@ module TileGraphics = struct
     (* Modules variables *)
     let texture_path = [|"asset/image/tiles.png"|]
     let textures = ref [||]
-    let clips = [||]
     let tiles : MTile.tile list ref = ref []
     let level_width = 1280
     let level_height = 960
@@ -108,9 +107,10 @@ module TileGraphics = struct
     let char_list_into_tile_list l =
         let x = ref 0 in
         let y = ref 0 in
+        let l =
         List.fold_left ( fun acc (a,b) -> 
-            let a_bis = 10 * (int_of_char a) in
-            let b_bis = int_of_char b in
+            let a_bis = 10 * ((int_of_char a)-48) in
+            let b_bis = (int_of_char b) - 48 in
             let tile_type_n = a_bis + b_bis in
             let tile_type = MTile.int_to_tile_type tile_type_n in
             let tile = new MTile.tile 0 !x !y 0 tile_type in
@@ -126,6 +126,8 @@ module TileGraphics = struct
             );
             tile :: acc
         ) [] l
+        in
+        List.rev l
 
 
     (* Match a tile type to a clip to get the texture from *)
@@ -160,13 +162,14 @@ module TileGraphics = struct
 
     (* Render a tile *)
     let render renderer tile camera =
-        let clip_n = MTile.tile_type_to_int (tile#get_tile_type ()) in
         if check_collision tile#get_box camera then
             MTexture.render renderer
-            ~clip:( Some (clips.(clip_n)))
+            ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))
             ~x:(tile#get_x)
             ~y:(tile#get_y)
             (!textures).(0)
+        else
+            ()
 
 end
 ;;

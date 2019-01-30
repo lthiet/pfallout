@@ -126,7 +126,9 @@ let game_main renderer context param =
             manage_result (Sdl.render_clear renderer) "Error : %s";
 
             (* Render the tiles *)
-            List.iter (fun x -> print_int x#get_x) context.tiles;
+            List.iter (fun x -> 
+                TileGraphics.render renderer x camera
+            ) context.tiles;
 
             (* Update the renderer *)
             Sdl.render_present renderer;
