@@ -89,7 +89,6 @@ type coord = {
 type context = {
     over : bool;
     camera : Sdl.rect;
-    tiles : MTile.tile list
 }
 
 (* Update the new context of the game *)
@@ -106,7 +105,6 @@ let update_context context =
             let over = check_ev_type e Sdl.Event.quit in
             let camera = MKeyboard.get_camera e context.camera in
             {
-                context with
                 over = over;
                 camera = camera
             }
@@ -126,9 +124,10 @@ let rec game renderer context =
         manage_result (Sdl.render_clear renderer) "Error : %s";
 
         (* Render the tiles *)
-        List.iter (fun x -> 
+        (* List.iter (fun x -> 
             TileGraphics.render renderer x context.camera
-        ) context.tiles;
+        ) context.tiles; *)
+        GridGraphics.render renderer context.camera;
 
         (* Update the renderer *)
         Sdl.render_present renderer;
@@ -139,11 +138,9 @@ let rec game renderer context =
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    TileGraphics.init renderer;
-    let tiles = !(TileGraphics.tiles) in
+    GridGraphics.init renderer;
     game renderer
     {
-        tiles = tiles;
         over = false;
         camera = Sdl.Rect.create 0 0 (screen_width) (screen_width);
     };

@@ -4,6 +4,13 @@ open Binder
 open Tile
 
 (* Constants *)
-module Mgrid = struct
+module GridGraphics = struct
+    let init renderer =
+        TileGraphics.init renderer
+
+    let render renderer camera = 
+        List.iter (fun x ->
+            TileGraphics.render renderer x camera
+        ) !(TileGraphics.tiles)
 end
 ;;
