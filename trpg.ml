@@ -7,14 +7,16 @@ open Tsdl_mixer
 open Utils
 (* Assets *)
 open Texture_wrapper
+open Keyboard_wrapper
 open Binder
 open Grid
 open Tile
+open Camera
 
 
 (* Constants *)
-let screen_width = 1920
-let screen_height = 1080
+let screen_width = 640
+let screen_height = 480
 
 (* Variables *)
 (* Events *)
@@ -85,72 +87,66 @@ type coord = {
     y : int
 }
 
-type param = {
-    over : bool;
-}
 
 type context = {
+    over : bool;
+    camera : Sdl.rect;
     tiles : MTile.tile list
 }
 
-(* Provide context for game *)
-let game_main renderer context param =
-    let camera = Sdl.Rect.create 0 0 (screen_height/2) (screen_width/2) in
-
-    (* Loop the game *)
-    let rec game renderer context param = 
-        if param.over then
-            ()
-        else
-            let over =
-                (* Get the next event in the queue *)
-                if not (Sdl.poll_event ev) then
-                    match ev with
-                    (* If no event, nothing to do *)
-                    | None ->
-                        false
-                    (* Otherwise, check the event *)
-                    | Some e ->
-                        (* If the user clicks the red cross button, the game closes *)
-                        if check_ev_type e Sdl.Event.quit then
-                            true
-                        else
-                            false
-                else
-                    false
-            in
-
-
-            (* Clear *)
-            manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
-            manage_result (Sdl.render_clear renderer) "Error : %s";
-
-            (* Render the tiles *)
-            List.iter (fun x -> 
-                TileGraphics.render renderer x camera
-            ) context.tiles;
-
-            (* Update the renderer *)
-            Sdl.render_present renderer;
-
-            (* Continue the game *)
-            game renderer context
+(* Update the new context of the game *)
+let update_context context =
+    (* Get the next event in the queue *)
+    if not (Sdl.poll_event ev) then
+        match ev with
+        (* If no event, nothing to do *)
+        | None ->
+            context
+        (* Otherwise, check the event *)
+        | Some e ->
+            (* If the user clicks the red cross button, the game closes *)
+            let over = check_ev_type e Sdl.Event.quit in
+            let camera = MKeyboard.get_camera e context.camera in
             {
-                over = over
+                context with
+                over = over;
+                camera = camera
             }
-    in
-    game renderer context param
+    else
+        context
+
+
+(* Loop the game *)
+let rec game renderer context = 
+    if context.over then
+        ()
+    else
+        let new_context = update_context context in
+
+        (* Clear *)
+        manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
+        manage_result (Sdl.render_clear renderer) "Error : %s";
+
+        (* Render the tiles *)
+        List.iter (fun x -> 
+            TileGraphics.render renderer x context.camera
+        ) context.tiles;
+
+        (* Update the renderer *)
+        Sdl.render_present renderer;
+
+        (* Continue the game *)
+        game renderer new_context
 
 (* Main  *)
 let () =
     let window,renderer = initialization () in
     TileGraphics.init renderer;
     let tiles = !(TileGraphics.tiles) in
-    game_main renderer
+    game renderer
     {
-        tiles = tiles
-    }
-    {
+        tiles = tiles;
         over = false;
+        camera = Sdl.Rect.create 0 0 (screen_width) (screen_width);
     };
     close [window] [] [renderer] [] [] [||] [||];

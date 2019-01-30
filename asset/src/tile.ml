@@ -139,7 +139,7 @@ module TileGraphics = struct
         | MTile.TILE_TOPLEFT -> 80, 0, MTile.tile_width, MTile.tile_height
         | MTile.TILE_LEFT -> 80, 80, MTile.tile_width, MTile.tile_height
         | MTile.TILE_BOTTOMLEFT -> 80, 160, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_TOP -> 80, 0, MTile.tile_width, MTile.tile_height
+        | MTile.TILE_TOP -> 160, 0, MTile.tile_width, MTile.tile_height
         | MTile.TILE_CENTER -> 160, 80, MTile.tile_width, MTile.tile_height
         | MTile.TILE_BOTTOM -> 160, 160, MTile.tile_width, MTile.tile_height
         | MTile.TILE_TOPRIGHT -> 240, 0, MTile.tile_width, MTile.tile_height
@@ -165,8 +165,8 @@ module TileGraphics = struct
         if check_collision tile#get_box camera then
             MTexture.render renderer
             ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))
-            ~x:(tile#get_x)
-            ~y:(tile#get_y)
+            ~x:(tile#get_x - Sdl.Rect.x camera)
+            ~y:(tile#get_y - Sdl.Rect.y camera)
             (!textures).(0)
         else
             ()
