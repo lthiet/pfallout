@@ -1,2 +1,6 @@
 /_build
 *.byte
+*.pdf
+*.out
+*.log
+*.aux
