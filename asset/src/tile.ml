@@ -52,18 +52,12 @@ module MTile = struct
         | 11 -> TILE_TOPLEFT
         | _ -> TILE_RED
 
-    let tile_height = 80
-    let tile_width = tile_height
 
     class tile id x y z tile_type =
     object(self)
-        val box = Sdl.Rect.create x y tile_height tile_width
         inherit game_object id x y z as super
         val tile_type : tile_type = tile_type
-        val h = tile_height
-        val w = tile_width
         method get_tile_type = tile_type
-        method get_box = box
     end
 end
 ;;
@@ -73,12 +67,18 @@ module TileGraphics = struct
     let texture_path = [|"asset/image/tiles.png"|]
     let textures = ref [||]
     let tiles : MTile.tile list ref = ref []
-    let level_width = 1280
-    let level_height = 960
+    let level_width = 16
+    let level_height = 12
+    let tile_height = 80
+    let tile_width = tile_height
+
 
     exception InvalidMap
 
     (* Functions *)
+    let get_screen_x t = t#get_x * tile_width
+    let get_screen_y t = t#get_y * tile_height
+    let get_box t = Sdl.Rect.create (get_screen_x t) (get_screen_y t) tile_width tile_height
 
     (* Format the map file into workable data *)
     let rec map_into_char_list inc acc =
@@ -115,10 +115,10 @@ module TileGraphics = struct
             let tile_type = MTile.int_to_tile_type tile_type_n in
             let tile = new MTile.tile 0 !x !y 0 tile_type in
 
-            x := !x + MTile.tile_width;
+            x := !x + 1;
             if !x >= level_width then (
                 x := 0;
-                y := !y + MTile.tile_height;
+                y := !y + 1;
             )
             else
             (
@@ -132,19 +132,20 @@ module TileGraphics = struct
 
     (* Match a tile type to a clip to get the texture from *)
     let match_tile_type_to_clip t =
+        let tw,th = tile_height,tile_height in
         let x,y,w,h = match t with
-        | MTile.TILE_RED -> 0, 0, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_GREEN -> 0, 80, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_BLUE -> 0, 160, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_TOPLEFT -> 80, 0, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_LEFT -> 80, 80, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_BOTTOMLEFT -> 80, 160, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_TOP -> 160, 0, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_CENTER -> 160, 80, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_BOTTOM -> 160, 160, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_TOPRIGHT -> 240, 0, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_RIGHT -> 240, 80, MTile.tile_width, MTile.tile_height
-        | MTile.TILE_BOTTOMRIGHT -> 240, 160, MTile.tile_width, MTile.tile_height
+        | MTile.TILE_RED -> 0, 0, tw,th 
+        | MTile.TILE_GREEN -> 0, 80,  tw,th
+        | MTile.TILE_BLUE -> 0, 160,  tw,th
+        | MTile.TILE_TOPLEFT -> 80, 0,  tw,th
+        | MTile.TILE_LEFT -> 80, 80,  tw,th
+        | MTile.TILE_BOTTOMLEFT -> 80, 160,  tw,th
+        | MTile.TILE_TOP -> 160, 0,  tw,th
+        | MTile.TILE_CENTER -> 160, 80,  tw,th
+        | MTile.TILE_BOTTOM -> 160, 160,  tw,th
+        | MTile.TILE_TOPRIGHT -> 240, 0,  tw,th
+        | MTile.TILE_RIGHT -> 240, 80,  tw,th
+        | MTile.TILE_BOTTOMRIGHT -> 240, 160,  tw,th
         in
         Sdl.Rect.create x y w h
 
@@ -162,11 +163,11 @@ module TileGraphics = struct
 
     (* Render a tile *)
     let render renderer tile camera =
-        if check_collision tile#get_box camera then
+        if check_collision (get_box tile) camera then
             MTexture.render renderer
             ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))
-            ~x:(tile#get_x - Sdl.Rect.x camera)
-            ~y:(tile#get_y - Sdl.Rect.y camera)
+            ~x:((get_screen_x tile)- Sdl.Rect.x camera)
+            ~y:((get_screen_y tile)- Sdl.Rect.y camera)
             (!textures).(0)
         else
             ()

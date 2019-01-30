@@ -11,13 +11,11 @@ open Keyboard_wrapper
 open Binder
 open Grid
 open Tile
-open Camera
 
 
 (* Constants *)
 let screen_width = 640
 let screen_height = 480
-
 (* Variables *)
 (* Events *)
 let ev = Some (Sdl.Event.create ())

@@ -1,3 +1,0 @@
-module MCamera = struct
-end
-;;
