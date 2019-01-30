@@ -5,6 +5,7 @@ open Tsdl_ttf
 module MTexture : sig
     type t
     val load_from_file : Sdl.renderer -> string -> t
+    val load_textures : Sdl.renderer -> string array -> t array
     val load_from_rendered_text : Sdl.renderer -> Ttf.font -> string -> Sdl.color -> t
     val free : t -> unit
     val render : Sdl.renderer 

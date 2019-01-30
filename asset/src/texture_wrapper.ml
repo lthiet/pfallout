@@ -10,6 +10,7 @@ module MTexture = struct
         mHeight : int
     }
 
+ 
     let load_from_file renderer path =
         (* Load the image as a surface *)
         let loaded_surface = manage_result (
@@ -40,6 +41,12 @@ module MTexture = struct
             mWidth = width;
             mHeight = height
         }
+
+    let load_textures renderer paths =
+        Array.init (Array.length paths) ( fun i -> 
+            load_from_file renderer (paths.(i))
+        )
+
 
     let load_from_rendered_text renderer font text color =
         let text_surface = manage_result (
