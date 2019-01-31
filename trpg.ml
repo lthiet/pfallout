@@ -14,8 +14,8 @@ open Tile
 
 
 (* Constants *)
-let screen_width = 1920
-let screen_height = 1080
+let screen_width = 920
+let screen_height = 680
 (* Variables *)
 (* Events *)
 let ev = Some (Sdl.Event.create ())

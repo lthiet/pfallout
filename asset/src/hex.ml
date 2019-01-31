@@ -34,7 +34,10 @@ struct
 ;;
 
 module HexGraphics = struct
-    let size = 40
+    let size = 80
+    let width = truncate ((sqrt 3.) *. float (size))
+    let height = 2 * size
+
     let axial_to_screen_coord (axial : MHex.axial_coord) =
         let x = truncate ((float size) *. ((sqrt 3.) *. (float axial.q) +. ((sqrt 3.) /. 2.) *. (float axial.r))) in
         let y = truncate ((float size) *. ((3. /. 2.) *. ( float axial.r) ) ) in

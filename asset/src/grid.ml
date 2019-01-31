@@ -6,8 +6,8 @@ open Utils
 
 (* Constants *)
 module MGrid = struct
-    let level_width = 16
-    let level_height = 12
+    let level_width = 18
+    let level_height = 14
     let tiles : MTile.tile list ref = ref []
     let hex_tiles : MTile.tile array array ref = ref [||]
 
@@ -47,7 +47,6 @@ module MGrid = struct
             let tile_type_n = a_bis + b_bis in
             let tile_type = MTile.int_to_tile_type tile_type_n in
             let tile = new MTile.tile 0 !x !y tile_type in
-
             x := !x + 1;
             if !x >= level_width then (
                 x := 0;
@@ -63,9 +62,9 @@ module MGrid = struct
         List.rev l
 
         let create_map () =
-            Array.init 6 ( fun q ->
-                Array.init 6 ( fun r ->
-                    let n = Random.int 3 in
+            Array.init level_width ( fun q ->
+                Array.init level_height ( fun r ->
+                    let n = Random.int 5 in
                     new MTile.tile 0 q r (MTile.int_to_tile_type n)
                 )
             )
@@ -83,8 +82,10 @@ end
 
 module GridGraphics = struct
     let init renderer =
+        Random.self_init ();
         TileGraphics.init renderer;
         MGrid.init ()
+
        
 
     let render renderer camera = 

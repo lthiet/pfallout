@@ -21,9 +21,9 @@ module MTile = struct
 
     let int_to_tile_type n =
         match n with
-        | 0 -> TILE_GRASSLAND
         | 1 -> TILE_DESERT
-        | 2 | _ -> TILE_SNOW
+        | 2  -> TILE_SNOW
+        | 0 | _ -> TILE_GRASSLAND
 
     class tile id q r tile_type =
     object(self)
@@ -38,22 +38,20 @@ module TileGraphics = struct
     (* Modules variables *)
     let texture_path = [|"asset/image/tiles.png"|]
     let textures = ref [||]
-    let tile_height = 80
-    let tile_width = tile_height
 
 
     (* Functions *)
     let get_screen_x t = let x,_ = HexGraphics.axial_to_screen_coord t#get_axial in x 
     let get_screen_y t = let _,y = HexGraphics.axial_to_screen_coord t#get_axial in y
-    let get_box t = Sdl.Rect.create (get_screen_x t) (get_screen_y t) tile_width tile_height
+    let get_box t = Sdl.Rect.create (get_screen_x t) (get_screen_y t) HexGraphics.width HexGraphics.height
 
     (* Match a tile type to a clip to get the texture from *)
     let match_tile_type_to_clip t =
-        let tw,th = tile_height,tile_height in
+        let tw,th = HexGraphics.width,HexGraphics.height in
         let x,y,w,h = match t with
         | MTile.TILE_GRASSLAND -> 0, 0, tw,th 
-        | MTile.TILE_DESERT -> 80, 0,  tw,th
-        | MTile.TILE_SNOW -> 160, 0,  tw,th
+        | MTile.TILE_DESERT -> 138, 0,  tw,th
+        | MTile.TILE_SNOW -> 276, 0,  tw,th
         in
         Sdl.Rect.create x y w h
 
