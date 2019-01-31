@@ -1,6 +1,7 @@
 open Tsdl
 open Binder
 open Game_object
+open Hex
 open Texture_wrapper
 open Utils
 
@@ -8,54 +9,25 @@ module MTile = struct
     exception UnknownTiletype
 
     type tile_type =
-        | TILE_RED
-        | TILE_GREEN 
-        | TILE_BLUE 
-        | TILE_CENTER 
-        | TILE_TOP 
-        | TILE_TOPRIGHT 
-        | TILE_RIGHT 
-        | TILE_BOTTOMRIGHT 
-        | TILE_BOTTOM 
-        | TILE_BOTTOMLEFT 
-        | TILE_LEFT 
-        | TILE_TOPLEFT 
+        | TILE_GRASSLAND
+        | TILE_DESERT 
+        | TILE_SNOW 
 
     let tile_type_to_int t =
         match t with
-        | TILE_RED -> 0
-        | TILE_GREEN  -> 1
-        | TILE_BLUE  -> 2
-        | TILE_CENTER  -> 3
-        | TILE_TOP  -> 4
-        | TILE_TOPRIGHT  -> 5
-        | TILE_RIGHT  -> 6
-        | TILE_BOTTOMRIGHT  -> 7
-        | TILE_BOTTOM  -> 8
-        | TILE_BOTTOMLEFT  -> 9
-        | TILE_LEFT  -> 10
-        | TILE_TOPLEFT  -> 11
+        | TILE_GRASSLAND -> 0
+        | TILE_DESERT  -> 1
+        | TILE_SNOW  -> 2
 
     let int_to_tile_type n =
         match n with
-        | 0 -> TILE_RED
-        | 1 -> TILE_GREEN
-        | 2 -> TILE_BLUE
-        | 3 -> TILE_CENTER
-        | 4 -> TILE_TOP
-        | 5 -> TILE_TOPRIGHT
-        | 6 -> TILE_RIGHT
-        | 7 -> TILE_BOTTOMRIGHT
-        | 8 -> TILE_BOTTOM
-        | 9 -> TILE_BOTTOMLEFT
-        | 10 -> TILE_LEFT
-        | 11 -> TILE_TOPLEFT
-        | _ -> TILE_RED
+        | 0 -> TILE_GRASSLAND
+        | 1 -> TILE_DESERT
+        | 2 | _ -> TILE_SNOW
 
-
-    class tile id x y z tile_type =
+    class tile id q r tile_type =
     object(self)
-        inherit game_object id x y z as super
+        inherit game_object id q r as super
         val tile_type : tile_type = tile_type
         method get_tile_type = tile_type
     end
@@ -71,26 +43,17 @@ module TileGraphics = struct
 
 
     (* Functions *)
-    let get_screen_x t = t#get_x * tile_width
-    let get_screen_y t = t#get_y * tile_height
+    let get_screen_x t = let x,_ = HexGraphics.axial_to_screen_coord t#get_axial in x 
+    let get_screen_y t = let _,y = HexGraphics.axial_to_screen_coord t#get_axial in y
     let get_box t = Sdl.Rect.create (get_screen_x t) (get_screen_y t) tile_width tile_height
 
     (* Match a tile type to a clip to get the texture from *)
     let match_tile_type_to_clip t =
         let tw,th = tile_height,tile_height in
         let x,y,w,h = match t with
-        | MTile.TILE_RED -> 0, 0, tw,th 
-        | MTile.TILE_GREEN -> 0, 80,  tw,th
-        | MTile.TILE_BLUE -> 0, 160,  tw,th
-        | MTile.TILE_TOPLEFT -> 80, 0,  tw,th
-        | MTile.TILE_LEFT -> 80, 80,  tw,th
-        | MTile.TILE_BOTTOMLEFT -> 80, 160,  tw,th
-        | MTile.TILE_TOP -> 160, 0,  tw,th
-        | MTile.TILE_CENTER -> 160, 80,  tw,th
-        | MTile.TILE_BOTTOM -> 160, 160,  tw,th
-        | MTile.TILE_TOPRIGHT -> 240, 0,  tw,th
-        | MTile.TILE_RIGHT -> 240, 80,  tw,th
-        | MTile.TILE_BOTTOMRIGHT -> 240, 160,  tw,th
+        | MTile.TILE_GRASSLAND -> 0, 0, tw,th 
+        | MTile.TILE_DESERT -> 80, 0,  tw,th
+        | MTile.TILE_SNOW -> 160, 0,  tw,th
         in
         Sdl.Rect.create x y w h
 
@@ -109,6 +72,5 @@ module TileGraphics = struct
             (!textures).(0)
         else
             ()
-
 end
 ;;

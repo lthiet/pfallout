@@ -9,6 +9,7 @@ module MGrid = struct
     let level_width = 16
     let level_height = 12
     let tiles : MTile.tile list ref = ref []
+    let hex_tiles : MTile.tile array array ref = ref [||]
 
     exception InvalidMap
 
@@ -45,7 +46,7 @@ module MGrid = struct
             let b_bis = (int_of_char b) - 48 in
             let tile_type_n = a_bis + b_bis in
             let tile_type = MTile.int_to_tile_type tile_type_n in
-            let tile = new MTile.tile 0 !x !y 0 tile_type in
+            let tile = new MTile.tile 0 !x !y tile_type in
 
             x := !x + 1;
             if !x >= level_width then (
@@ -61,6 +62,14 @@ module MGrid = struct
         in
         List.rev l
 
+        let create_map () =
+            Array.init 6 ( fun q ->
+                Array.init 6 ( fun r ->
+                    let n = Random.int 3 in
+                    new MTile.tile 0 q r (MTile.int_to_tile_type n)
+                )
+            )
+
         let init () =
             (* Load the map *)
             let map = open_in "asset/map/lazy.map" in
@@ -68,7 +77,8 @@ module MGrid = struct
             let tmp = List.rev (map_into_char_list map []) in
             tiles := char_list_into_tile_list tmp;
             (* Close the flux *)
-            close_in map
+            close_in map;
+            hex_tiles := create_map ();
 end
 
 module GridGraphics = struct
@@ -78,8 +88,10 @@ module GridGraphics = struct
        
 
     let render renderer camera = 
-        List.iter (fun x ->
-            TileGraphics.render renderer x camera
-        ) !(MGrid.tiles)
+        Array.iter (fun x ->
+            Array.iter (fun y ->
+                TileGraphics.render renderer y camera
+            ) x
+        ) !(MGrid.hex_tiles)
 end
 ;;
