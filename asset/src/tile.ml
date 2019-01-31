@@ -25,9 +25,9 @@ module MTile = struct
         | 2  -> TILE_SNOW
         | 0 | _ -> TILE_GRASSLAND
 
-    class tile id q r tile_type =
+    class tile id r q tile_type =
     object(self)
-        inherit game_object id q r as super
+        inherit game_object id r q as super
         val tile_type : tile_type = tile_type
         method get_tile_type = tile_type
     end

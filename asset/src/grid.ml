@@ -6,10 +6,8 @@ open Utils
 
 (* Constants *)
 module MGrid = struct
-    let level_width = 18
-    let level_height = 14
-    let tiles : MTile.tile list ref = ref []
-    let hex_tiles : MTile.tile array array ref = ref [||]
+    let level_radius = 2
+    let hex_tiles : (MTile.tile option)array array ref = ref [||]
 
     exception InvalidMap
 
@@ -48,7 +46,7 @@ module MGrid = struct
             let tile_type = MTile.int_to_tile_type tile_type_n in
             let tile = new MTile.tile 0 !x !y tile_type in
             x := !x + 1;
-            if !x >= level_width then (
+            if !x >= level_radius then (
                 x := 0;
                 y := !y + 1;
             )
@@ -62,22 +60,22 @@ module MGrid = struct
         List.rev l
 
         let create_map () =
-            Array.init level_width ( fun q ->
-                Array.init level_height ( fun r ->
+            let size = level_radius * 2 + 1 in
+            Array.init size ( fun r ->
+                Array.init size ( fun q ->
                     let n = Random.int 5 in
-                    new MTile.tile 0 q r (MTile.int_to_tile_type n)
+                    let tmp1 = level_radius - r in
+                    let tmp2 = q - tmp1 in
+
+                    if tmp2 < 0 || q >= size + tmp1 then
+                        None
+                    else
+                        Some (new MTile.tile 0 r q (MTile.int_to_tile_type n))
                 )
             )
 
         let init () =
-            (* Load the map *)
-            let map = open_in "asset/map/lazy.map" in
-            (* Load the tiles *)
-            let tmp = List.rev (map_into_char_list map []) in
-            tiles := char_list_into_tile_list tmp;
-            (* Close the flux *)
-            close_in map;
-            hex_tiles := create_map ();
+            hex_tiles := create_map ()
 end
 
 module GridGraphics = struct
@@ -86,12 +84,14 @@ module GridGraphics = struct
         TileGraphics.init renderer;
         MGrid.init ()
 
-       
-
     let render renderer camera = 
         Array.iter (fun x ->
             Array.iter (fun y ->
-                TileGraphics.render renderer y camera
+                match y with
+                | Some e ->
+                    TileGraphics.render renderer e camera
+                | None ->
+                    ()
             ) x
         ) !(MGrid.hex_tiles)
 end

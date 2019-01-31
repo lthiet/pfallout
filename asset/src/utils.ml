@@ -59,3 +59,6 @@ let char_is_number c =
     | '8'
     | '9' -> true
     | _ -> false
+
+let round f = 
+    truncate (floor (f +. 0.5))

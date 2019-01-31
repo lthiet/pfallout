@@ -1,3 +1,5 @@
+open Utils
+
 (* Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
 module MHex =
 struct
@@ -35,7 +37,7 @@ struct
 
 module HexGraphics = struct
     let size = 80
-    let width = truncate ((sqrt 3.) *. float (size))
+    let width = round ((sqrt 3.) *. float (size))
     let height = 2 * size
 
     let axial_to_screen_coord (axial : MHex.axial_coord) =

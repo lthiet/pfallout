@@ -10,12 +10,13 @@ open Texture_wrapper
 open Keyboard_wrapper
 open Binder
 open Grid
+open Background
 open Tile
 
 
 (* Constants *)
-let screen_width = 920
-let screen_height = 680
+let screen_width = 1920
+let screen_height = 1080
 (* Variables *)
 (* Events *)
 let ev = Some (Sdl.Event.create ())
@@ -123,10 +124,10 @@ let rec game renderer context =
         manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
         manage_result (Sdl.render_clear renderer) "Error : %s";
 
+        (* Render the background *)
+        BackgroundGraphics.render renderer context.camera;
+
         (* Render the tiles *)
-        (* List.iter (fun x -> 
-            TileGraphics.render renderer x context.camera
-        ) context.tiles; *)
         GridGraphics.render renderer context.camera;
 
         (* Update the renderer *)
@@ -139,6 +140,7 @@ let rec game renderer context =
 let () =
     let window,renderer = initialization () in
     GridGraphics.init renderer;
+    BackgroundGraphics.init renderer;
     game renderer
     {
         over = false;
