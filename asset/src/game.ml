@@ -24,6 +24,30 @@ module MGame = struct
         curs : MTexture.t
     }
 
+    (* Return a new camera based on user input *)
+    let get_camera e c =
+        (* The distance at which the camera will move *)
+        let offset = 10 in
+        (* Check if event is a keydown *)
+        if check_ev_type e Sdl.Event.key_down then
+            (* If yes, check which key has been pressed *)
+            let pressed_key = MKeyboard.get_scancode e in
+            let x = new_int pressed_key Sdl.Scancode.d Sdl.Scancode.a  offset (Sdl.Rect.x c) in
+            let y = new_int pressed_key Sdl.Scancode.s Sdl.Scancode.w  offset (Sdl.Rect.y c) in
+            Sdl.Rect.create x y (Sdl.Rect.w c) (Sdl.Rect.h c)
+        else
+            c
+
+    let get_cursor_selector e c_s =
+        let offset = 1 in
+        if check_ev_type e Sdl.Event.key_down then
+            let pk = MKeyboard.get_scancode e in
+            let r = new_int pk Sdl.Scancode.down Sdl.Scancode.up  offset c_s#get_r in
+            let q = new_int pk Sdl.Scancode.right Sdl.Scancode.left  offset c_s#get_q in
+            MCursor.move c_s r q
+        else
+            c_s
+
     (* Update the new context of the game *)
     let update_context context =
         (* Get the next event in the queue *)
@@ -37,10 +61,13 @@ module MGame = struct
                 (* If the user clicks the red cross button, the game closes *)
                 let over = check_ev_type e Sdl.Event.quit in
                 let camera = MKeyboard.get_camera e context.camera in
+                let cursor_selector = get_cursor_selector e context.cursor_selector in
+                Printf.printf "%d %d\n" cursor_selector#get_r cursor_selector#get_q;
                 {
                     context with
                     over = over;
-                    camera = camera
+                    camera = camera;
+                    cursor_selector = cursor_selector
                 }
         else
             context

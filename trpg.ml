@@ -23,7 +23,7 @@ let initialization () =
     manage_result ( Sdl.init init_flag) "Error init : %s";
 
     (* Open a Window *)
-    let window = manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.windowed ) "Error create window : %s" in
+    let window = manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height Sdl.Window.fullscreen ) "Error create window : %s" in
 
     (* Get renderer from Window *)
     let create_renderer_flag = (Sdl.Renderer.(+)) Sdl.Renderer.accelerated Sdl.Renderer.presentvsync in 

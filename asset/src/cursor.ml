@@ -32,6 +32,10 @@ module MCursor = struct
     let create r q =
         new cursor r q SELECTING
 
+    let move cursor r q =
+        let status = cursor#get_status in
+        new cursor r q status
+
     (* Functions *)
     let get_screen_x c = let x,_ = MHex.axial_to_screen_coord c#get_axial in x 
     let get_screen_y c = let _,y = MHex.axial_to_screen_coord c#get_axial in y
