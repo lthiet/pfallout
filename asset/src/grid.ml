@@ -6,7 +6,7 @@ open Utils
 
 (* Constants *)
 module MGrid = struct
-    let level_radius = 2
+    let level_radius = 5
     let hex_tiles : (MTile.tile option)array array ref = ref [||]
 
     exception InvalidMap

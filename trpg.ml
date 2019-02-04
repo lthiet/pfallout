@@ -12,6 +12,7 @@ open Binder
 open Grid
 open Background
 open Tile
+open Menu
 
 
 (* Constants *)
