@@ -4,6 +4,7 @@ open Tsdl
 open Grid
 open Background
 open Utils
+open Menu
 
 
 module MGame = struct
@@ -23,7 +24,7 @@ module MGame = struct
     (* Update the new context of the game *)
     let update_context context =
         (* Get the next event in the queue *)
-        if not (Sdl.poll_event ev) then
+        if  (Sdl.poll_event ev) then
             match ev with
             (* If no event, nothing to do *)
             | None ->
@@ -69,18 +70,18 @@ module MGame = struct
     let bg_path = "asset/image/bg.png"
 
     (* Run the game with the correct paths and context *)
-    let run renderer screen_width screen_height= 
-        let ctx = {
-            over = false;
-            camera = Sdl.Rect.create 0 0 (screen_width) (screen_height);
-            grid = MGrid.create 3
-        } in
+    let run (menu_result:MMenu.result) renderer screen_width screen_height = 
+        if menu_result.start_game then
+            let ctx = {
+                over = false;
+                camera = Sdl.Rect.create 0 0 (screen_width) (screen_height);
+                grid = MGrid.create 3
+            } in
 
-        let txt = {
-            tile = MTexture.load_from_file renderer tile_path;
-            bg = MTexture.load_from_file renderer bg_path
-        } in
-
-        loop renderer ctx txt
+            let txt = {
+                tile = MTexture.load_from_file renderer tile_path;
+                bg = MTexture.load_from_file renderer bg_path
+            } in
+            loop renderer ctx txt
 end
 ;;

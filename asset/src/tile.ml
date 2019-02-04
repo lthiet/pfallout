@@ -30,22 +30,19 @@ module MTile = struct
         val tile_type : tile_type = tile_type
         method get_tile_type = tile_type
     end
-end
-;;
 
-module TileGraphics = struct
     (* Functions *)
-    let get_screen_x t = let x,_ = HexGraphics.axial_to_screen_coord t#get_axial in x 
-    let get_screen_y t = let _,y = HexGraphics.axial_to_screen_coord t#get_axial in y
-    let get_box t = Sdl.Rect.create (get_screen_x t) (get_screen_y t) HexGraphics.width HexGraphics.height
+    let get_screen_x t = let x,_ = MHex.axial_to_screen_coord t#get_axial in x 
+    let get_screen_y t = let _,y = MHex.axial_to_screen_coord t#get_axial in y
+    let get_box t = Sdl.Rect.create (get_screen_x t) (get_screen_y t) MHex.width MHex.height
 
     (* Match a tile type to a clip to get the texture from *)
     let match_tile_type_to_clip t =
-        let tw,th = HexGraphics.width,HexGraphics.height in
+        let tw,th = MHex.width,MHex.height in
         let x,y,w,h = match t with
-        | MTile.TILE_GRASSLAND -> 0, 0, tw,th 
-        | MTile.TILE_DESERT -> 138, 0,  tw,th
-        | MTile.TILE_SNOW -> 276, 0,  tw,th
+        | TILE_GRASSLAND -> 0, 0, tw,th 
+        | TILE_DESERT -> 138, 0,  tw,th
+        | TILE_SNOW -> 276, 0,  tw,th
         in
         Sdl.Rect.create x y w h
 

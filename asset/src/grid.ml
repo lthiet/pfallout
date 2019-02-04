@@ -40,7 +40,7 @@ module MGrid = struct
             Array.iter (fun y ->
                 match y with
                 | Some e ->
-                    TileGraphics.render renderer e tile_texture camera
+                    MTile.render renderer e tile_texture camera
                 | None ->
                     ()
             ) x

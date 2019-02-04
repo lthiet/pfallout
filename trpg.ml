@@ -40,8 +40,10 @@ let initialization () =
     (* Load PNG Loading *)
     let png_load_flags = Image.Init.png in
     let png_init = Image.init png_load_flags in
+
     (* Init the true text font *)
     manage_result (Ttf.init ()) "Error ttf init %s";
+
     if not (Image.Init.eq png_load_flags png_init) then (
         Sdl.log "Error loader png or ttf"; exit 1
     )
@@ -62,9 +64,10 @@ let close windows surfaces renderers textures lTextures musics sounds =
     Ttf.quit ();
     Mixer.quit ()
 
+
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    MMenu.run renderer;
-    MGame.run renderer screen_width screen_height;
+    let menu_result = MMenu.run renderer in
+    MGame.run menu_result renderer screen_width screen_height;
     close [window] [] [renderer] [] [] [||] [||];

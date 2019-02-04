@@ -8,7 +8,6 @@ module MKeyboard = struct
     let check_ev_key_repeat e =
         Sdl.Event.get e Sdl.Event.keyboard_repeat = 0
 
-
     (* Compute a new coordinates,
         pk : pressed_key
         ekp : expected key positive
@@ -30,8 +29,8 @@ module MKeyboard = struct
         if check_ev_type e Sdl.Event.key_down then
             (* If yes, check which key has been pressed *)
             let pressed_key = get_scancode e in
-            let x = new_int pressed_key Sdl.Scancode.right Sdl.Scancode.left  offset (Sdl.Rect.x c) in
-            let y = new_int pressed_key Sdl.Scancode.down Sdl.Scancode.up  offset (Sdl.Rect.y c) in
+            let x = new_int pressed_key Sdl.Scancode.d Sdl.Scancode.a  offset (Sdl.Rect.x c) in
+            let y = new_int pressed_key Sdl.Scancode.s Sdl.Scancode.w  offset (Sdl.Rect.y c) in
             Sdl.Rect.create x y (Sdl.Rect.w c) (Sdl.Rect.h c)
         else
             c

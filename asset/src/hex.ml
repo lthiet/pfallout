@@ -3,6 +3,10 @@ open Utils
 (* Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
 module MHex =
 struct
+    let size = 80
+    let width = round ((sqrt 3.) *. float (size))
+    let height = 2 * size
+
     type axial_coord = {
         q : int;
         r : int
@@ -32,15 +36,7 @@ struct
             r = r
         }
 
-   end
-;;
-
-module HexGraphics = struct
-    let size = 80
-    let width = round ((sqrt 3.) *. float (size))
-    let height = 2 * size
-
-    let axial_to_screen_coord (axial : MHex.axial_coord) =
+    let axial_to_screen_coord (axial : axial_coord) =
         let x = truncate ((float size) *. ((sqrt 3.) *. (float axial.q) +. ((sqrt 3.) /. 2.) *. (float axial.r))) in
         let y = truncate ((float size) *. ((3. /. 2.) *. ( float axial.r) ) ) in
         x,y
