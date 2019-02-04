@@ -17,11 +17,13 @@ module MBtn = struct
     type status =
     | IDLE
     | PRESSED
+    | RELEASED
 
     let status_to_clip s =
         match s with
         | IDLE -> idle
         | PRESSED -> pressed
+        | _ -> idle
 
     type t = {
         x : int;
@@ -42,6 +44,12 @@ module MBtn = struct
         | PRESSED -> true
         | _ -> false
 
+    let is_released btn = 
+        match btn.status with
+        | RELEASED -> true
+        | _ -> false
+
+
 
     let get_coord btn =
         btn.x,btn.y,width,height
@@ -59,9 +67,18 @@ module MBtn = struct
         texture
 
     let render_text renderer btn texture = 
+        let offset_base = 10 in 
+        let offset_pressed = if is_pressed btn then
+                10
+            else if is_released btn then
+                -100
+            else
+                0
+        in
+        let final_offset = offset_base + offset_pressed in
         MTexture.render renderer
-        ~x:(btn.x + 10)
-        ~y:(btn.y + 10)
+        ~x:(btn.x + final_offset)
+        ~y:(btn.y + offset_base)
         texture
 end
 ;;

@@ -21,30 +21,38 @@ module MMenu = struct
     }
 
     let update_context context = 
-        if not (Sdl.poll_event ev) then
+        if Sdl.poll_event ev then
             match ev with
             (* If no event, nothing to do *)
             | None ->
                 context
             (* Otherwise, check the event *)
             | Some e ->
-                (* If the user clicks the red cross button, the game closes *)
-                let over = check_ev_type e Sdl.Event.quit || MBtn.is_pressed context.btn_start in
 
                 (* Check if user mouse is above start button *)
                 let x,y,w,h = MBtn.get_coord context.btn_start in
                 let btn_start =
-                    if MMouse.is_inside e x y w h && check_ev_type e Sdl.Event.mouse_button_down then
+                    if MMouse.is_inside e x y w h then 
+                        if check_ev_type e Sdl.Event.mouse_button_down then
                         {
                             context.btn_start with
                             status = MBtn.PRESSED
                         }
+                        else if check_ev_type e Sdl.Event.mouse_button_up then
+                        {
+                            context.btn_start with
+                            status = MBtn.RELEASED
+                        }
+                        else
+                        context.btn_start
                     else
                         {
                             context.btn_start with
                             status = MBtn.IDLE
                         }
                 in
+                (* If the user clicks the red cross button, the game closes *)
+                let over = check_ev_type e Sdl.Event.quit || MBtn.is_released btn_start in
                 {
                     over = over;
                     btn_start = btn_start
@@ -58,14 +66,14 @@ module MMenu = struct
 
     let compute_result ctx =
         {
-            start_game = MBtn.is_pressed ctx.btn_start
+            start_game = MBtn.is_released ctx.btn_start
         }
 
 
     let rec loop renderer context textures = 
-        if not context.over then
+        let new_ctx = update_context context in
+        if not new_ctx.over then (
             (* Update the context *)
-            let new_context = update_context context in
             (* Clear *)
             manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
             manage_result (Sdl.render_clear renderer) "Error : %s";
@@ -74,17 +82,18 @@ module MMenu = struct
             MTexture.render renderer textures.bg;
 
             (* Display the start button *)
-            MBtn.render renderer context.btn_start textures.btn;
+            MBtn.render renderer new_ctx.btn_start textures.btn;
             (* Display the start button text *)
-            MBtn.render_text renderer context.btn_start textures.btn_start_text;
+            MBtn.render_text renderer new_ctx.btn_start textures.btn_start_text;
 
             (* Update the renderer *)
             Sdl.render_present renderer;
 
             (* Continue the game *)
-            loop  renderer new_context textures
+            loop renderer new_ctx textures
+        )
         else
-            compute_result context
+            compute_result new_ctx
 
     let menu_bg_path = "asset/image/menu_bg.png"
     let btn_path = "asset/image/btns.png"
