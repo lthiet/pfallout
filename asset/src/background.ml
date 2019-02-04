@@ -3,15 +3,10 @@ open Texture_wrapper
 open Utils
 
 (* Constants *)
-module BackgroundGraphics = struct
-    let texture_path = "asset/image/bg.png"
-    let textures = ref [||]
-
-    let init renderer =
-        textures := MTexture.load_textures renderer [|texture_path|]
-
-    let render renderer camera = 
-        let t = (!textures).(0) in
+module MBackground = struct
+    
+    let render renderer texture camera = 
+        let t = texture in
         let t_w = MTexture.get_w t in
         let t_h = MTexture.get_h t in
         let c_x = (Sdl.Rect.x camera) in
@@ -24,7 +19,7 @@ module BackgroundGraphics = struct
                 MTexture.render renderer
                 ~x:(i*t_w - c_x)
                 ~y:(j*t_h - c_y)
-                (!textures).(0)
+                texture
             done;
         done;
 end
