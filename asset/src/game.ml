@@ -3,6 +3,7 @@ open Keyboard_wrapper
 open Tsdl
 open Grid
 open Background
+open Cursor
 open Utils
 open Menu
 
@@ -13,12 +14,14 @@ module MGame = struct
     type context = {
         over : bool;
         camera : Sdl.rect;
-        grid : MGrid.t
+        grid : MGrid.t;
+        cursor_selector : MCursor.cursor
     }
 
     type textures = {
         tile : MTexture.t;
-        bg : MTexture.t
+        bg : MTexture.t;
+        curs : MTexture.t
     }
 
     (* Update the new context of the game *)
@@ -60,6 +63,9 @@ module MGame = struct
             (* Render the tiles *)
             MGrid.render renderer textures.tile context.grid context.camera;
 
+            (* Render the selector ( cursor ) *)
+            MCursor.render renderer textures.curs context.cursor_selector context.camera;
+
             (* Update the renderer *)
             Sdl.render_present renderer;
 
@@ -68,6 +74,7 @@ module MGame = struct
 
     let tile_path = "asset/image/tiles.png"
     let bg_path = "asset/image/bg.png"
+    let cursor_path = "asset/image/cursors.png"
 
     (* Run the game with the correct paths and context *)
     let run (menu_result:MMenu.result) renderer screen_width screen_height = 
@@ -75,12 +82,14 @@ module MGame = struct
             let ctx = {
                 over = false;
                 camera = Sdl.Rect.create 0 0 (screen_width) (screen_height);
-                grid = MGrid.create 3
+                grid = MGrid.create 5;
+                cursor_selector = MCursor.create 4 4
             } in
 
             let txt = {
                 tile = MTexture.load_from_file renderer tile_path;
-                bg = MTexture.load_from_file renderer bg_path
+                bg = MTexture.load_from_file renderer bg_path;
+                curs = MTexture.load_from_file renderer cursor_path
             } in
             loop renderer ctx txt
 end

@@ -1,8 +1,7 @@
 open Hex
 
-class virtual game_object id r q =
+class virtual game_object r q =
 	object (self)
-		val id : int = id
 		val axial_coord : MHex.axial_coord = {
 			q = q;
 			r = r;
