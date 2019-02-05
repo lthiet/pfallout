@@ -17,6 +17,7 @@ module MGame = struct
         camera : Sdl.rect;
         grid : MGrid.t;
         cursor_selector : MCursor.cursor;
+        cursor_selector_dst : MCursor.cursor;
         player_turn : bool;
         range : int
     }
@@ -51,6 +52,17 @@ module MGame = struct
         else
             c_s
 
+    let get_cursor_selector_dst e c_s_d =
+        let offset = 1 in
+        if check_ev_type e Sdl.Event.key_down then
+            let pk = MKeyboard.get_scancode e in
+            let r = new_int pk Sdl.Scancode.j Sdl.Scancode.u  offset c_s_d#get_r in
+            let q = new_int pk Sdl.Scancode.k Sdl.Scancode.h  offset c_s_d#get_q in
+            MCursor.move c_s_d r q
+        else
+            c_s_d
+
+
     let get_player_turn e pt =
         if check_ev_type e Sdl.Event.key_down then
             let pk = MKeyboard.get_scancode e in
@@ -83,6 +95,7 @@ module MGame = struct
                 let over = check_ev_type e Sdl.Event.quit in
                 let camera = get_camera e context.camera in
                 let cursor_selector = get_cursor_selector e context.cursor_selector in
+                let cursor_selector_dst = get_cursor_selector_dst e context.cursor_selector_dst in
                 let player_turn = get_player_turn e context.player_turn in
                 let range = get_range e context.range in
                 {
@@ -90,8 +103,9 @@ module MGame = struct
                     over = over;
                     camera = camera;
                     cursor_selector = cursor_selector;
+                    cursor_selector_dst = cursor_selector_dst;
                     player_turn = player_turn;
-                    range = range
+                    range = range;
                 }
         else
             context
@@ -117,7 +131,9 @@ module MGame = struct
             (* Render the selector ( cursor ) *)
             (
                 if context.player_turn then
-                    MCursor.render renderer textures.curs context.cursor_selector context.camera
+                    MCursor.render renderer textures.curs context.cursor_selector context.camera;
+                    MCursor.render renderer textures.curs context.cursor_selector_dst context.camera;
+
             );
 
             let ranged_cursor_coords = MHex.range_ax context.range context.cursor_selector#get_axial in
@@ -126,6 +142,14 @@ module MGame = struct
                 let ranged_cursor = MCursor.create e.r e.q MCursor.POSSIBLE in
                 MCursor.render renderer textures.curs ranged_cursor context.camera
             ) ranged_cursor_coords;
+
+            let line = MHex.cube_linedraw (context.cursor_selector#get_cube) (context.cursor_selector_dst#get_cube) in
+            List.iter ( fun e ->
+                let e = MHex.cube_to_axial e in
+                let x = MCursor.create e.r e.q MCursor.IMPOSSIBLE in
+                MCursor.render renderer textures.curs x context.camera
+            ) line;
+
 
             (* Update the renderer *)
             Sdl.render_present renderer;
@@ -145,6 +169,7 @@ module MGame = struct
                 camera = Sdl.Rect.create 0 0 (screen_width) (screen_height);
                 grid = MGrid.create 5;
                 cursor_selector = MCursor.create 4 4 MCursor.SELECTING;
+                cursor_selector_dst = MCursor.create 6 6 MCursor.SELECTING;
                 player_turn = true;
                 range = 1
             } in

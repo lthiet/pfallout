@@ -111,13 +111,60 @@ struct
         in
         aux1 (-n) []
 
-
-
     let range_ax n ax =
         let cu = axial_to_cube ax in
         range_cu n cu
 
+    let distance_cu c1 c2 =
+        (abs (c1.x - c2.x) + abs (c1.y - c2.y) + abs (c1.z - c2.z))/2
 
+    let distance_ax a1 a2 =
+        let c1 = axial_to_cube a1 in
+        let c2 = axial_to_cube a2 in
+        distance_cu c1 c2
 
+    let lerp a b t =
+        a +. (b -. a) *. t
+
+    let cube_round x y z =
+        let rx = round x in
+        let ry = round y in
+        let rz = round z in
+
+        let x_diff = abs_float ((float_of_int rx) -. x) in
+        let y_diff = abs_float ((float_of_int ry) -. y) in
+        let z_diff = abs_float ((float_of_int rz) -. z) in
+
+        let x,y,z = if x_diff > y_diff && x_diff > z_diff then
+            (-ry-rz),ry,rz
+        else if y_diff > z_diff then
+            rx,(-rx-rz),rz
+        else
+            rx,ry,(-rx-ry)
+        in
+
+        {
+            x = x;
+            y = y;
+            z = z;
+        }
+
+    let cube_lerp a b t =
+        let x = lerp (float_of_int a.x) (float_of_int b.x) t in
+        let y = lerp (float_of_int a.y) (float_of_int b.y) t in
+        let z = lerp (float_of_int a.z) (float_of_int b.z) t in
+        cube_round x y z
+
+    let cube_linedraw a b =
+        let n = distance_cu a b in
+        let n_f = float_of_int n in
+        let rec aux acc i =
+            if i = 0 then
+                acc
+            else
+                let res = cube_lerp a b ((1. /. n_f) *. (float_of_int i )) in
+                aux (res::acc) (i-1)
+        in
+        aux [] n
 end
 ;;
