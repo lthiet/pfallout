@@ -40,5 +40,84 @@ struct
         let x = truncate ((float size) *. ((sqrt 3.) *. (float axial.q) +. ((sqrt 3.) /. 2.) *. (float axial.r))) in
         let y = truncate ((float size) *. ((3. /. 2.) *. ( float axial.r) ) ) in
         x,y
+
+   
+    let right = {
+            x = 1;
+            y = -1;
+            z = 0;
+        }
+
+    let top_right = {
+            x = 1;
+            y = 0;
+            z = -1;
+        }
+
+    let top_left = {
+            x = 0;
+            y = 1;
+            z = -1;
+        }
+
+    let left = {
+            x = -1;
+            y = 1;
+            z = 0;
+        }
+
+    let bot_left = {
+            x = -1;
+            y = 0;
+            z = 1;
+        }
+
+    let bot_right = {
+            x = 0;
+            y = -1;
+            z = 1;
+        }
+
+    let directions = [
+        left;top_right;top_left;right;bot_right;bot_left
+    ]
+
+    let rec range_cu n cu =
+        if n < 0 then
+            []
+        else
+        let rec aux1 x acc1 = 
+            if x > n then
+                acc1
+            else
+                let bound_bot = max (-n) (-x-n) in
+                let bound_top = min n (-x+n) in
+                let rec aux2 y acc2 = 
+                    if y > bound_top then
+                        acc2
+                    else
+                        let z = -x-y in
+                        if x = 0 && y = 0 && z = 0 then
+                            aux2 (y+1) acc2
+                        else
+                            aux2 (y+1) ({
+                                x = cu.x + x;
+                                y = cu.y + y;
+                                z = cu.z + z
+                            } :: acc2)
+                in
+                let tmp = aux2 bound_bot [] in
+                aux1 (x+1) (tmp @ acc1)
+        in
+        aux1 (-n) []
+
+
+
+    let range_ax n ax =
+        let cu = axial_to_cube ax in
+        range_cu n cu
+
+
+
 end
 ;;

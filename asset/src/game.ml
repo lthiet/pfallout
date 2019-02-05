@@ -6,6 +6,7 @@ open Background
 open Cursor
 open Utils
 open Menu
+open Hex
 
 
 module MGame = struct
@@ -15,7 +16,9 @@ module MGame = struct
         over : bool;
         camera : Sdl.rect;
         grid : MGrid.t;
-        cursor_selector : MCursor.cursor
+        cursor_selector : MCursor.cursor;
+        player_turn : bool;
+        range : int
     }
 
     type textures = {
@@ -48,6 +51,24 @@ module MGame = struct
         else
             c_s
 
+    let get_player_turn e pt =
+        if check_ev_type e Sdl.Event.key_down then
+            let pk = MKeyboard.get_scancode e in
+            if pk = Sdl.Scancode.return then
+                not pt
+            else
+                pt
+        else
+            pt
+
+    let get_range e r =
+        if check_ev_type e Sdl.Event.key_down then
+            let pk = MKeyboard.get_scancode e in
+            new_int pk Sdl.Scancode.o Sdl.Scancode.l 1 r
+        else
+            r
+
+        
     (* Update the new context of the game *)
     let update_context context =
         (* Get the next event in the queue *)
@@ -60,14 +81,17 @@ module MGame = struct
             | Some e ->
                 (* If the user clicks the red cross button, the game closes *)
                 let over = check_ev_type e Sdl.Event.quit in
-                let camera = MKeyboard.get_camera e context.camera in
+                let camera = get_camera e context.camera in
                 let cursor_selector = get_cursor_selector e context.cursor_selector in
-                Printf.printf "%d %d\n" cursor_selector#get_r cursor_selector#get_q;
+                let player_turn = get_player_turn e context.player_turn in
+                let range = get_range e context.range in
                 {
                     context with
                     over = over;
                     camera = camera;
-                    cursor_selector = cursor_selector
+                    cursor_selector = cursor_selector;
+                    player_turn = player_turn;
+                    range = range
                 }
         else
             context
@@ -91,7 +115,17 @@ module MGame = struct
             MGrid.render renderer textures.tile context.grid context.camera;
 
             (* Render the selector ( cursor ) *)
-            MCursor.render renderer textures.curs context.cursor_selector context.camera;
+            (
+                if context.player_turn then
+                    MCursor.render renderer textures.curs context.cursor_selector context.camera
+            );
+
+            let ranged_cursor_coords = MHex.range_ax context.range context.cursor_selector#get_axial in
+            List.iter ( fun e ->
+                let e = MHex.cube_to_axial e in
+                let ranged_cursor = MCursor.create e.r e.q MCursor.POSSIBLE in
+                MCursor.render renderer textures.curs ranged_cursor context.camera
+            ) ranged_cursor_coords;
 
             (* Update the renderer *)
             Sdl.render_present renderer;
@@ -110,7 +144,9 @@ module MGame = struct
                 over = false;
                 camera = Sdl.Rect.create 0 0 (screen_width) (screen_height);
                 grid = MGrid.create 5;
-                cursor_selector = MCursor.create 4 4
+                cursor_selector = MCursor.create 4 4 MCursor.SELECTING;
+                player_turn = true;
+                range = 1
             } in
 
             let txt = {
