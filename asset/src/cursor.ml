@@ -3,6 +3,7 @@ open Hex
 open Game_object
 open Texture_wrapper
 open Utils
+open Grid
 
 module MCursor = struct
     type status = 
@@ -41,8 +42,11 @@ module MCursor = struct
     let get_screen_y c = let _,y = MHex.axial_to_screen_coord c#get_axial in y
    
     (* Render a tile *)
-    let render renderer texture cursor camera =
-        if not cursor#is_hidden then
+    let render renderer texture cursor camera grid =
+        let tile_below = MGrid.get_tile cursor#get_r cursor#get_q grid in
+        match tile_below with
+        | None -> ()
+        | _ ->
             MTexture.render renderer
             ~clip:( Some (match_status_to_clip cursor#get_status))
             ~x:((get_screen_x cursor)- Sdl.Rect.x camera)

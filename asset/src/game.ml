@@ -42,26 +42,32 @@ module MGame = struct
         else
             c
 
-    let get_cursor_selector e c_s =
+    type keyset = {
+        up : Sdl.scancode;
+        down : Sdl.scancode;
+        left : Sdl.scancode;
+        right : Sdl.scancode;
+    }
+
+    (*
+        e : event
+        c : cursor
+        ks : key_set
+        g : grid
+    *)
+    let move_cursor_io e c ks (g:MGrid.t) =
         let offset = 1 in
         if check_ev_type e Sdl.Event.key_down then
             let pk = MKeyboard.get_scancode e in
-            let r = new_int pk Sdl.Scancode.down Sdl.Scancode.up  offset c_s#get_r in
-            let q = new_int pk Sdl.Scancode.right Sdl.Scancode.left  offset c_s#get_q in
-            MCursor.move c_s r q
+            let r = new_int pk ks.down ks.up  offset c#get_r in
+            let q = new_int pk ks.right ks.left  offset c#get_q in
+            let tile_below = MGrid.get_tile r q g in
+            match tile_below with
+            | None -> c
+            | _ ->
+                MCursor.move c r q
         else
-            c_s
-
-    let get_cursor_selector_dst e c_s_d =
-        let offset = 1 in
-        if check_ev_type e Sdl.Event.key_down then
-            let pk = MKeyboard.get_scancode e in
-            let r = new_int pk Sdl.Scancode.j Sdl.Scancode.u  offset c_s_d#get_r in
-            let q = new_int pk Sdl.Scancode.k Sdl.Scancode.h  offset c_s_d#get_q in
-            MCursor.move c_s_d r q
-        else
-            c_s_d
-
+            c
 
     let get_player_turn e pt =
         if check_ev_type e Sdl.Event.key_down then
@@ -94,8 +100,21 @@ module MGame = struct
                 (* If the user clicks the red cross button, the game closes *)
                 let over = check_ev_type e Sdl.Event.quit in
                 let camera = get_camera e context.camera in
-                let cursor_selector = get_cursor_selector e context.cursor_selector in
-                let cursor_selector_dst = get_cursor_selector_dst e context.cursor_selector_dst in
+                let cursor_selector_ks = {
+                    up = Sdl.Scancode.up;
+                    down = Sdl.Scancode.down;
+                    right = Sdl.Scancode.right;
+                    left = Sdl.Scancode.left;
+                } in
+                let cursor_selector_dst_ks = {
+                    up = Sdl.Scancode.y;
+                    down = Sdl.Scancode.h;
+                    right = Sdl.Scancode.j;
+                    left = Sdl.Scancode.g;
+                } in
+
+                let cursor_selector = move_cursor_io e context.cursor_selector cursor_selector_ks context.grid in
+                let cursor_selector_dst = move_cursor_io e context.cursor_selector_dst cursor_selector_dst_ks context.grid in
                 let player_turn = get_player_turn e context.player_turn in
                 let range = get_range e context.range in
                 {
@@ -131,8 +150,8 @@ module MGame = struct
             (* Render the selector ( cursor ) *)
             (
                 if context.player_turn then
-                    MCursor.render renderer textures.curs context.cursor_selector context.camera;
-                    MCursor.render renderer textures.curs context.cursor_selector_dst context.camera;
+                    MCursor.render renderer textures.curs context.cursor_selector context.camera context.grid;
+                    MCursor.render renderer textures.curs context.cursor_selector_dst context.camera context.grid;
 
             );
 
@@ -140,14 +159,14 @@ module MGame = struct
             List.iter ( fun e ->
                 let e = MHex.cube_to_axial e in
                 let ranged_cursor = MCursor.create e.r e.q MCursor.POSSIBLE in
-                MCursor.render renderer textures.curs ranged_cursor context.camera
+                MCursor.render renderer textures.curs ranged_cursor context.camera context.grid
             ) ranged_cursor_coords;
 
             let line = MHex.cube_linedraw (context.cursor_selector#get_cube) (context.cursor_selector_dst#get_cube) in
             List.iter ( fun e ->
                 let e = MHex.cube_to_axial e in
                 let x = MCursor.create e.r e.q MCursor.IMPOSSIBLE in
-                MCursor.render renderer textures.curs x context.camera
+                MCursor.render renderer textures.curs x context.camera context.grid
             ) line;
 
 

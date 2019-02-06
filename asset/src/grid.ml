@@ -29,6 +29,13 @@ module MGrid = struct
             )
         )
 
+    let get_tile r q t =
+        let t = t.grid in
+        try
+            t.(r).(q)
+        with Invalid_argument e ->
+            None
+
     let create level_radius = 
     {
         level_radius = level_radius;
