@@ -82,6 +82,8 @@ struct
         left;top_right;top_left;right;bot_right;bot_left
     ]
 
+    
+
     let rec range_cu n cu =
         if n < 0 then
             []

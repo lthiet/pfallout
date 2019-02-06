@@ -19,13 +19,14 @@ module MGrid = struct
         Array.init size ( fun r ->
             Array.init size ( fun q ->
                 let n = Random.int 5 in
+                let m = Random.int 5 in
                 let tmp1 = level_radius - r in
                 let tmp2 = q - tmp1 in
 
                 if tmp2 < 0 || q >= size + tmp1 then
                     None
                 else
-                    Some (new MTile.tile 0 r q (MTile.int_to_tile_type n))
+                    Some (new MTile.tile 0 r q (MTile.int_to_tile_type n) (MTile.int_to_terrain_feature m))
             )
         )
 
