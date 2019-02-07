@@ -7,6 +7,7 @@ open Cursor
 open Utils
 open Menu
 open Hex
+open A_star
 
 
 module MGame = struct
@@ -150,24 +151,30 @@ module MGame = struct
             (* Render the selector ( cursor ) *)
             (
                 if context.player_turn then
-                    MCursor.render renderer textures.curs context.cursor_selector context.camera context.grid;
+                (
                     MCursor.render renderer textures.curs context.cursor_selector_dst context.camera context.grid;
+                    MCursor.render renderer textures.curs context.cursor_selector context.camera context.grid;
+                    let ranged_cursor_coords = MHex.range_ax context.range context.cursor_selector#get_axial in
+                    List.iter ( fun e ->
+                        let e = MHex.cube_to_axial e in
+                        let ranged_cursor = MCursor.create e.r e.q MCursor.POSSIBLE in
+                        MCursor.render renderer textures.curs ranged_cursor context.camera context.grid
+                    ) ranged_cursor_coords;
 
-            );
+                    let line = MHex.cube_linedraw (context.cursor_selector#get_cube) (context.cursor_selector_dst#get_cube) in
+                    List.iter ( fun e ->
+                        let e = MHex.cube_to_axial e in
+                        let x = MCursor.create e.r e.q MCursor.IMPOSSIBLE in
+                        MCursor.render renderer textures.curs x context.camera context.grid
+                    ) line;
 
-            let ranged_cursor_coords = MHex.range_ax context.range context.cursor_selector#get_axial in
-            List.iter ( fun e ->
-                let e = MHex.cube_to_axial e in
-                let ranged_cursor = MCursor.create e.r e.q MCursor.POSSIBLE in
-                MCursor.render renderer textures.curs ranged_cursor context.camera context.grid
-            ) ranged_cursor_coords;
 
-            let line = MHex.cube_linedraw (context.cursor_selector#get_cube) (context.cursor_selector_dst#get_cube) in
-            List.iter ( fun e ->
-                let e = MHex.cube_to_axial e in
-                let x = MCursor.create e.r e.q MCursor.IMPOSSIBLE in
-                MCursor.render renderer textures.curs x context.camera context.grid
-            ) line;
+                    match MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid with
+                    | None -> ()
+                    | Some e -> 
+                        MA_star.breadth_first_search (e) (context.grid)
+                )
+             );
 
 
             (* Update the renderer *)
@@ -183,12 +190,13 @@ module MGame = struct
     (* Run the game with the correct paths and context *)
     let run (menu_result:MMenu.result) renderer screen_width screen_height = 
         if menu_result.start_game then
+            let start = 10 in
             let ctx = {
                 over = false;
-                camera = Sdl.Rect.create 0 0 (screen_width) (screen_height);
-                grid = MGrid.create 5;
-                cursor_selector = MCursor.create 4 4 MCursor.SELECTING;
-                cursor_selector_dst = MCursor.create 6 6 MCursor.SELECTING;
+                camera = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height);
+                grid = MGrid.create start;
+                cursor_selector = MCursor.create start start MCursor.SELECTING;
+                cursor_selector_dst = MCursor.create (start+2) (start+2) MCursor.SELECTING;
                 player_turn = true;
                 range = 1
             } in

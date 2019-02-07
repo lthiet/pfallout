@@ -78,11 +78,35 @@ struct
             z = 1;
         }
 
+    let cube_add c1 c2 = 
+    {
+        x = c1.x + c2.x;
+        y = c1.y + c2.y;
+        z = c1.z + c2.z
+    }
+
+    type neighbours_t = {
+        left : cube_coord;
+        right : cube_coord;
+        top_left : cube_coord;
+        top_right : cube_coord;
+        bot_left : cube_coord;
+        bot_right : cube_coord;
+    }
+
+    let neighbours c = 
+    {
+        left = cube_add c left;
+        right = cube_add c right;
+        top_right = cube_add c top_right;
+        top_left = cube_add c top_left;
+        bot_right = cube_add c bot_right;
+        bot_left = cube_add c bot_left
+    }
+
     let directions = [
         left;top_right;top_left;right;bot_right;bot_left
     ]
-
-    
 
     let rec range_cu n cu =
         if n < 0 then
@@ -168,5 +192,6 @@ struct
                 aux (res::acc) (i-1)
         in
         aux [] n
-end
+
+   end
 ;;
