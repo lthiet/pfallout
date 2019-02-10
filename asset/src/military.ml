@@ -35,7 +35,7 @@ module MMilitary = struct
         if check_collision m#get_box camera then
             let x,y = 
                 let tmp1,tmp2 = MHex.axial_to_screen_coord m#get_axial in
-                tmp1 - Sdl.Rect.y camera,tmp2 - Sdl.Rect.x camera
+                tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
             in
             MTexture.render renderer
             ~x:x

@@ -12,6 +12,7 @@ struct
         r : int
     }
 
+   
     type cube_coord = {
         x : int;
         y : int;
@@ -20,6 +21,9 @@ struct
 
     let get_r ax = ax.r
     let get_q ax = ax.q
+
+    let print_ax ax = 
+        Printf.printf "%d %d" (get_r ax) (get_q ax)
 
     let axial_to_cube axial =
         let x = axial.q in

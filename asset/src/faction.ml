@@ -29,6 +29,26 @@ struct
 
     let get_military t = t.military_list
 
+    let update_military t added deleted =
+        let rec aux l acc added deleted =
+            match l with
+            | [] ->
+                added @ acc
+            | x :: s ->
+                let new_acc =
+                if List.exists (fun y -> x = y ) deleted then
+                    acc
+                else
+                    x :: acc
+                in
+                aux s new_acc added deleted
+        in
+        let new_ml = aux t.military_list [] added deleted in
+        {
+            t with
+            military_list = new_ml
+        }
+
     let add_infrastructure t i =
     {
         t with

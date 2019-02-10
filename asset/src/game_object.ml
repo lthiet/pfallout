@@ -29,4 +29,10 @@ class virtual game_object r q =
 			let ax = self#get_axial in 
 			let x,y = MHex.axial_to_screen_coord ax in
 			Sdl.Rect.create x y MHex.width MHex.height
+
+		method move r q = 
+			{< axial_coord = {
+					q = q;
+					r = r
+				} >}
 	end;;

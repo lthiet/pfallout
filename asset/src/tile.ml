@@ -92,7 +92,7 @@ module MTile = struct
         if check_collision tile#get_box camera && (not tile#is_lake) then
             let x,y = 
                 let tmp1,tmp2 = MHex.axial_to_screen_coord tile#get_axial in
-                tmp1 - Sdl.Rect.y camera,tmp2 - Sdl.Rect.x camera
+                tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
             in
             MTexture.render renderer
             ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))

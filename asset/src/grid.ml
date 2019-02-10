@@ -1,6 +1,9 @@
 open Tsdl
 open Texture_wrapper
 open Tile
+open Military
+open Infrastructure
+open Tile
 open Utils
 open Hex
 
@@ -13,8 +16,33 @@ module MGrid = struct
 
     type t = {
         level_radius : int;
-        grid : (MTile.tile) array array
+        grid : (MTile.tile) array array;
+        military_grid : (MMilitary.t option) array array;
+        infrastructure_grid : (MInfrastructure.t option) array array;
     }
+
+    let get_military_grid t = t.military_grid
+
+    let remove_mg_at t r q =
+        let tmg = t.military_grid in
+        tmg.(r).(q) <- None
+
+    exception Grid_cell_not_empty
+
+    let get_mg_at t r q =
+        let tmg = t.military_grid in
+        tmg.(r).(q)
+
+    let set_mg_at t r q m =
+        let tmg = t.military_grid in
+        match get_mg_at t r q with
+        | None ->
+            tmg.(r).(q) <- Some m
+        | _ ->
+            raise Grid_cell_not_empty
+
+    let get_infrastructure_grid t = t.infrastructure_grid
+
 
     let create_grid level_radius =
         let size = level_radius * 2 + 1 in
@@ -32,6 +60,14 @@ module MGrid = struct
             )
         )
 
+    let create_none_grid level_radius =
+        let size = level_radius * 2 + 1 in
+        Array.init size ( fun r ->
+            Array.init size ( fun q ->
+                None
+            )
+        )
+
     let get_tile r q t =
         let t = t.grid in
         try
@@ -46,7 +82,9 @@ module MGrid = struct
     let create level_radius = 
     {
         level_radius = level_radius;
-        grid = create_grid level_radius
+        grid = create_grid level_radius;
+        military_grid = create_none_grid level_radius;
+        infrastructure_grid = create_none_grid level_radius;
     }
 
     let render renderer tile_texture terrain_feature_texture grid camera = 
