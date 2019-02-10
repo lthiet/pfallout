@@ -9,6 +9,7 @@ open Menu
 open Hex
 open Pathfinder
 open Faction
+open Action
 
 
 module MGame = struct
