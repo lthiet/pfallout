@@ -7,20 +7,13 @@ open Tsdl_mixer
 open Utils
 (* Assets *)
 open Texture_wrapper
-open Keyboard_wrapper
-open Binder
-open Grid
-open Tile
+open Menu
+open Game
 
 
 (* Constants *)
-let screen_width = 640
-let screen_height = 480
-(* Variables *)
-(* Events *)
-let ev = Some (Sdl.Event.create ())
-
-(* Types *)
+let screen_width = 1920
+let screen_height = 1080
 
 (* Functions *)
 (* Initialize a window and a renderer *)
@@ -47,8 +40,10 @@ let initialization () =
     (* Load PNG Loading *)
     let png_load_flags = Image.Init.png in
     let png_init = Image.init png_load_flags in
+
     (* Init the true text font *)
     manage_result (Ttf.init ()) "Error ttf init %s";
+
     if not (Image.Init.eq png_load_flags png_init) then (
         Sdl.log "Error loader png or ttf"; exit 1
     )
@@ -69,79 +64,10 @@ let close windows surfaces renderers textures lTextures musics sounds =
     Ttf.quit ();
     Mixer.quit ()
 
-let load_font () = 
-    manage_result (
-        Ttf.open_font "asset/image/lazy.ttf" 28
-    ) "Error loading font %s"
-
-let load_music () =
-    [||]
-
-let load_sound () =
-    [||]
-
-type coord = {
-    x : int;
-    y : int
-}
-
-
-type context = {
-    over : bool;
-    camera : Sdl.rect;
-}
-
-(* Update the new context of the game *)
-let update_context context =
-    (* Get the next event in the queue *)
-    if not (Sdl.poll_event ev) then
-        match ev with
-        (* If no event, nothing to do *)
-        | None ->
-            context
-        (* Otherwise, check the event *)
-        | Some e ->
-            (* If the user clicks the red cross button, the game closes *)
-            let over = check_ev_type e Sdl.Event.quit in
-            let camera = MKeyboard.get_camera e context.camera in
-            {
-                over = over;
-                camera = camera
-            }
-    else
-        context
-
-
-(* Loop the game *)
-let rec game renderer context = 
-    if context.over then
-        ()
-    else
-        let new_context = update_context context in
-
-        (* Clear *)
-        manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
-        manage_result (Sdl.render_clear renderer) "Error : %s";
-
-        (* Render the tiles *)
-        (* List.iter (fun x -> 
-            TileGraphics.render renderer x context.camera
-        ) context.tiles; *)
-        GridGraphics.render renderer context.camera;
-
-        (* Update the renderer *)
-        Sdl.render_present renderer;
-
-        (* Continue the game *)
-        game renderer new_context
 
 (* Main  *)
 let () =
     let window,renderer = initialization () in
-    GridGraphics.init renderer;
-    game renderer
-    {
-        over = false;
-        camera = Sdl.Rect.create 0 0 (screen_width) (screen_width);
-    };
+    let menu_result = MMenu.run renderer in
+    MGame.run menu_result renderer screen_width screen_height;
     close [window] [] [renderer] [] [] [||] [||];

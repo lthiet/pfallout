@@ -59,3 +59,19 @@ let char_is_number c =
     | '8'
     | '9' -> true
     | _ -> false
+
+let round f = 
+    truncate (floor (f +. 0.5))
+
+(* Compute a new coordinates,
+    pk : pressed_key
+    ekp : expected key positive
+    ekn : expected key negative
+    *)
+let new_int pk ekp ekn offset old =
+    if pk = ekp then
+        old + offset
+    else if pk = ekn then
+        old - offset
+    else
+        old
