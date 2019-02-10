@@ -71,10 +71,6 @@ module MTile = struct
         method is_impassable = terrain_feature = MOUNTAIN || terrain_feature = LAKE
     end
 
-    (* Functions *)
-    let get_screen_x t = let x,_ = MHex.axial_to_screen_coord t#get_axial in x 
-    let get_screen_y t = let _,y = MHex.axial_to_screen_coord t#get_axial in y
-    let get_box t = Sdl.Rect.create (get_screen_x t) (get_screen_y t) MHex.width MHex.height
 
     (* Match a tile type to a clip to get the texture from *)
     let match_tile_type_to_clip t =
@@ -93,9 +89,11 @@ module MTile = struct
 
     (* Render a tile *)
     let render renderer tile tile_texture terrain_feature_texture camera =
-        if check_collision (get_box tile) camera && (not tile#is_lake) then
-            let x = (get_screen_x tile)- Sdl.Rect.x camera in
-            let y = (get_screen_y tile)- Sdl.Rect.y camera in
+        if check_collision tile#get_box camera && (not tile#is_lake) then
+            let x,y = 
+                let tmp1,tmp2 = MHex.axial_to_screen_coord tile#get_axial in
+                tmp1 - Sdl.Rect.y camera,tmp2 - Sdl.Rect.x camera
+            in
             MTexture.render renderer
             ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))
             ~x:x

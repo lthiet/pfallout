@@ -33,7 +33,8 @@ module MGame = struct
         tile : MTexture.t;
         terrain_feature : MTexture.t;
         bg : MTexture.t;
-        curs : MTexture.t
+        curs : MTexture.t;
+        military : MTexture.t
     }
 
     (* Return a new camera based on user input *)
@@ -162,20 +163,6 @@ module MGame = struct
 
                 if context.player_turn then
                 (
-                                       (* let ranged_cursor_coords = MHex.range_ax context.range context.cursor_selector#get_axial in
-                    List.iter ( fun e ->
-                        let e = MHex.cube_to_axial e in
-                        let ranged_cursor = MCursor.create e.r e.q MCursor.POSSIBLE in
-                        MCursor.render renderer textures.curs ranged_cursor context.camera context.grid
-                    ) ranged_cursor_coords; *)
-
-                    (* let line = MHex.cube_linedraw (context.cursor_selector#get_cube) (context.cursor_selector_dst#get_cube) in
-                    List.iter ( fun e ->
-                        let e = MHex.cube_to_axial e in
-                        let x = MCursor.create e.r e.q MCursor.IMPOSSIBLE in
-                        MCursor.render renderer textures.curs x context.camera context.grid
-                    ) line; *)
-
                     let tile_below_src = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
                     let tile_below_dst = MGrid.get_tile context.cursor_selector_dst#get_r context.cursor_selector_dst#get_q context.grid in
                     if not (tile_below_src#is_impassable || tile_below_dst#is_impassable)then
@@ -200,6 +187,16 @@ module MGame = struct
                 )
              );
 
+            List.iter (
+                fun x ->
+                    List.iter (
+                        fun y ->
+                            MMilitary.render renderer y textures.military context.camera
+                    )
+                    (MFaction.get_military x)
+            ) 
+            context.faction_list;
+
 
 
             (* Update the renderer *)
@@ -212,6 +209,7 @@ module MGame = struct
     let terrain_feature_path = "asset/image/features.png"
     let bg_path = "asset/image/bg.png"
     let cursor_path = "asset/image/cursors.png"
+    let military_path = "asset/image/soldier.png"
 
     (* Run the game with the correct paths and context *)
     let run (menu_result:MMenu.result) renderer screen_width screen_height = 
@@ -246,7 +244,8 @@ module MGame = struct
                 tile = MTexture.load_from_file renderer tile_path;
                 terrain_feature = MTexture.load_from_file renderer terrain_feature_path;
                 bg = MTexture.load_from_file renderer bg_path;
-                curs = MTexture.load_from_file renderer cursor_path
+                curs = MTexture.load_from_file renderer cursor_path;
+                military = MTexture.load_from_file renderer military_path;
             } in
             loop renderer ctx txt
 end

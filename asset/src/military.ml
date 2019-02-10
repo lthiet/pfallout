@@ -1,5 +1,9 @@
 open Action_enum
 open Entity
+open Texture_wrapper
+open Utils
+open Hex
+open Tsdl
 
 module MMilitary = struct
     type military_type = SOLDIER | SNIPER
@@ -26,5 +30,19 @@ module MMilitary = struct
 
     let military_to_entity m =
         (m : military :> MEntity.entity)
+
+    let render renderer m military_texture camera =
+        if check_collision m#get_box camera then
+            let x,y = 
+                let tmp1,tmp2 = MHex.axial_to_screen_coord m#get_axial in
+                tmp1 - Sdl.Rect.y camera,tmp2 - Sdl.Rect.x camera
+            in
+            MTexture.render renderer
+            ~x:x
+            ~y:y
+            military_texture
+
+
+
 end
 ;;

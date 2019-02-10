@@ -1,4 +1,5 @@
 open Hex
+open Tsdl
 
 class virtual game_object r q =
 	object (self)
@@ -23,4 +24,9 @@ class virtual game_object r q =
 		method get_q = axial_coord.q
 
 		method get_r = axial_coord.r
+
+		method get_box = 
+			let ax = self#get_axial in 
+			let x,y = MHex.axial_to_screen_coord ax in
+			Sdl.Rect.create x y MHex.width MHex.height
 	end;;
