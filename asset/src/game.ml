@@ -16,7 +16,6 @@ open Infrastructure
 
 
 module MGame = struct
-
     type textures = {
         tile : MTexture.t;
         terrain_feature : MTexture.t;
@@ -43,8 +42,27 @@ module MGame = struct
             MGrid.render renderer textures.tile textures.terrain_feature context.grid context.camera;
 
             (* Render the selector ( cursor ) *)
-            MCursor.render renderer textures.curs context.cursor_selector context.camera context.grid;
+            MCursor.render renderer textures.curs context.cursor_selector context.camera;
 
+            (* If a src is selected, display a cursor *)
+            let () =
+                match context.action_src with
+                | None -> ()
+                | Some x ->
+                    let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.POSSIBLE
+                    in
+                    MCursor.render renderer textures.curs c context.camera;
+                    let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
+                    let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
+                    let path = MPathfinder.a_star tile_below_src tile_below_current context.grid in
+                    List.iter (
+                        fun x -> let c = MCursor.create x#get_r x#get_q MCursor.POSSIBLE in
+                        MCursor.render renderer textures.curs c context.camera
+                    )
+                    path
+            in
+
+            (* Render the soldiers *)
             List.iter (
                 fun x ->
                     List.iter (
@@ -73,15 +91,18 @@ module MGame = struct
             let start = 7 in
 
             let soldier1 = MMilitary.create_soldier start start in
+            let soldier2 = MMilitary.create_soldier (start+1) start in
             let faction1 =
                 let f = MFaction.create_faction MFaction_enum.EU true in
-                MFaction.add_military f soldier1
+                let tmp = MFaction.add_military f soldier1 in
+                MFaction.add_military tmp soldier2
             in
 
             let grid = MGrid.create start in
 
             let () =
-                MGrid.set_mg_at grid soldier1#get_r soldier1#get_q soldier1
+                MGrid.set_mg_at grid soldier1#get_r soldier1#get_q soldier1;
+                MGrid.set_mg_at grid soldier2#get_r soldier2#get_q soldier2
             in
 
             let ctx : MGameContext.t = {

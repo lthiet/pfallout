@@ -42,7 +42,7 @@ module MCursor = struct
     let get_screen_y c = let _,y = MHex.axial_to_screen_coord c#get_axial in y
    
     (* Render a cursor *)
-    let render renderer texture cursor camera grid =
+    let render renderer texture cursor camera =
         MTexture.render renderer
         ~clip:( Some (match_status_to_clip cursor#get_status))
         ~x:((get_screen_x cursor)- Sdl.Rect.x camera)
