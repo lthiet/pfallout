@@ -1,24 +1,40 @@
 open Entity
 open Military
 open Infrastructure
+open Faction_enum
 
 module MFaction =
 struct
-    type code = USA | EU | ASIA | RUSSIA | NEUTRAL
 
     type t = {
-        code : code;
-        entity_list :  MEntity.t list
+        code : MFaction_enum.t;
+        military_list : MMilitary.t list;
+        infrastructure_list : MInfrastructure.t list;
+        controlled_by_player : bool
     }
 
-    let code_to_string c =
-        match c with 
-        | USA -> "American Megacorp."
-        | EU -> "European Union Joint Task Force"
-        | ASIA -> "Pacific Coast Coalition"
-        | RUSSIA -> "Tsar's Army"
-        | NEUTRAL -> "Neutral"
+    let create_faction code cbp =
+        {
+            code = code;
+            military_list = [];
+            infrastructure_list = [];
+            controlled_by_player = cbp
+        }
 
-    let get_entity_list t = t.entity_list
+    let add_military t m =
+        {
+            t with
+            military_list = m :: t.military_list
+        }
+
+    let get_military t = t.military_list
+
+    let add_infrastructure t i =
+    {
+        t with
+        infrastructure_list = i :: t.infrastructure_list
+    }
+
+    let get_infrastructure t = t.infrastructure_list
 end
 ;;

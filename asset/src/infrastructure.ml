@@ -11,6 +11,8 @@ module MInfrastructure = struct
         method get_type = t
     end
 
+    type t = infrastructure
+
     let create_city r q =
         new infrastructure r q 300 100 0 0 80 100 2 [MAction_enum.PRODUCE] [] CITY
 end

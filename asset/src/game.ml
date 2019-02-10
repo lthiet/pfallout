@@ -9,7 +9,10 @@ open Menu
 open Hex
 open Pathfinder
 open Faction
+open Faction_enum
 open Action
+open Military
+open Infrastructure
 
 
 module MGame = struct
@@ -22,7 +25,8 @@ module MGame = struct
         cursor_selector : MCursor.cursor;
         cursor_selector_dst : MCursor.cursor;
         player_turn : bool;
-        range : int
+        range : int;
+        faction_list : MFaction.t list;
     }
 
     type textures = {
@@ -213,6 +217,20 @@ module MGame = struct
     let run (menu_result:MMenu.result) renderer screen_width screen_height = 
         if menu_result.start_game then
             let start = 7 in
+
+            let faction1 =
+                let f = MFaction.create_faction MFaction_enum.EU true in
+                let m = MMilitary.create_soldier start start in
+                MFaction.add_military f m
+            in
+
+            let () =
+                let tmp = MFaction.get_military faction1 in
+                match tmp with
+                | [] -> Printf.printf "%s" "ok";
+                | x :: s -> Printf.printf "%d" x#get_pc
+            in
+
             let ctx = {
                 over = false;
                 camera = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height);
@@ -220,7 +238,8 @@ module MGame = struct
                 cursor_selector = MCursor.create start start MCursor.SELECTING;
                 cursor_selector_dst = MCursor.create (start+2) (start+2) MCursor.SELECTING;
                 player_turn = true;
-                range = 1
+                range = 1;
+                faction_list = [faction1]
             } in
 
             let txt = {
