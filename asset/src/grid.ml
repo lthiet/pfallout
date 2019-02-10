@@ -4,6 +4,7 @@ open Tile
 open Utils
 open Hex
 
+(* Some functions are Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
 (* Constants *)
 module MGrid = struct
     let () =  Random.self_init ()
@@ -12,7 +13,7 @@ module MGrid = struct
 
     type t = {
         level_radius : int;
-        grid : (MTile.tile option) array array
+        grid : (MTile.tile) array array
     }
 
     let create_grid level_radius =
@@ -20,14 +21,14 @@ module MGrid = struct
         Array.init size ( fun r ->
             Array.init size ( fun q ->
                 let n = Random.int 5 in
-                let m = Random.int 5 in
+                let m = Random.int 7 in
                 let tmp1 = level_radius - r in
                 let tmp2 = q - tmp1 in
 
                 if tmp2 < 0 || q >= size + tmp1 then
-                    None
+                    new MTile.tile r q (MTile.int_to_tile_type n) (MTile.LAKE)
                 else
-                    Some (new MTile.tile 0 r q (MTile.int_to_tile_type n) (MTile.int_to_terrain_feature m))
+                    new MTile.tile r q (MTile.int_to_tile_type n) (MTile.int_to_terrain_feature m)
             )
         )
 
@@ -36,7 +37,7 @@ module MGrid = struct
         try
             t.(r).(q)
         with Invalid_argument e ->
-            None
+            new MTile.tile r q (MTile.TILE_GRASSLAND) (MTile.LAKE)
 
     let get_tile_cube cu t =
         let ax = MHex.cube_to_axial cu in
@@ -48,24 +49,20 @@ module MGrid = struct
         grid = create_grid level_radius
     }
 
-    let render renderer tile_texture grid camera = 
+    let render renderer tile_texture terrain_feature_texture grid camera = 
         Array.iter (fun x ->
             Array.iter (fun y ->
-                match y with
-                | Some e ->
-                    MTile.render renderer e tile_texture camera
-                | None ->
-                    ()
+                MTile.render renderer y tile_texture terrain_feature_texture camera
             ) x
         ) grid.grid
 
     type neighbours_t = {
-        right : MTile.tile option;
-        top_right : MTile.tile option;
-        top_left : MTile.tile option;
-        left : MTile.tile option;
-        bot_right : MTile.tile option;
-        bot_left : MTile.tile option;
+        right : MTile.tile;
+        top_right : MTile.tile;
+        top_left : MTile.tile;
+        left : MTile.tile;
+        bot_right : MTile.tile;
+        bot_left : MTile.tile;
     }
 
     let neighbours tile grid =
@@ -80,48 +77,24 @@ module MGrid = struct
         }
 
     let neighbours_to_list neighbours =
-        let l1 = 
-            match neighbours.right with
-            | None ->
-                []
-            | Some t ->
-                [t]
-        in
-        let l2 =
-            match neighbours.top_right with
-            | None ->
-                l1
-            | Some t ->
-                t :: l1
-        in
-        let l3 =
-            match neighbours.top_left with
-            | None ->
-                l2
-            | Some t ->
-                t :: l2
-        in
+        [
+            neighbours.right;
+            neighbours.top_right;
+            neighbours.top_left;
+            neighbours.left;
+            neighbours.bot_left;
+            neighbours.bot_right
+        ]
 
-        let l4 =
-            match neighbours.left with
-            | None ->
-                l3
-            | Some t ->
-                t :: l3
-        in
+    let neighbours_list tile grid = 
+        let tmp = neighbours tile grid in
+        neighbours_to_list tmp
 
-        let l5 =
-            match neighbours.bot_left with
-            | None ->
-                l4
-            | Some t ->
-                t :: l4
-        in
+   
+        (* let dikstra start goal grid =
+            let frontier = MPriority_queue.insert MPriority_queue.empty 0 start in
+            let came_from = Hashtbl.create 23 in
+            let cost_so_far = Hashtbl.create 23 in *)
 
-        match neighbours.bot_right with
-        | None ->
-            l5
-        | Some t ->
-            t :: l5
 end
 ;;

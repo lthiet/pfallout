@@ -41,16 +41,12 @@ module MCursor = struct
     let get_screen_x c = let x,_ = MHex.axial_to_screen_coord c#get_axial in x 
     let get_screen_y c = let _,y = MHex.axial_to_screen_coord c#get_axial in y
    
-    (* Render a tile *)
+    (* Render a cursor *)
     let render renderer texture cursor camera grid =
-        let tile_below = MGrid.get_tile cursor#get_r cursor#get_q grid in
-        match tile_below with
-        | None -> ()
-        | _ ->
-            MTexture.render renderer
-            ~clip:( Some (match_status_to_clip cursor#get_status))
-            ~x:((get_screen_x cursor)- Sdl.Rect.x camera)
-            ~y:((get_screen_y cursor)- Sdl.Rect.y camera)
-            texture
+        MTexture.render renderer
+        ~clip:( Some (match_status_to_clip cursor#get_status))
+        ~x:((get_screen_x cursor)- Sdl.Rect.x camera)
+        ~y:((get_screen_y cursor)- Sdl.Rect.y camera)
+        texture
 end
 ;;

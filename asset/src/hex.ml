@@ -4,7 +4,7 @@ open Utils
 module MHex =
 struct
     let size = 80
-    let width = round ((sqrt 3.) *. float (size))
+    let width = truncate ((sqrt 3.) *. float (size))
     let height = 2 * size
 
     type axial_coord = {
@@ -17,6 +17,9 @@ struct
         y : int;
         z : int
     }
+
+    let get_r ax = ax.r
+    let get_q ax = ax.q
 
     let axial_to_cube axial =
         let x = axial.q in

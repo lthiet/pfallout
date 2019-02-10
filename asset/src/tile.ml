@@ -25,10 +25,18 @@ module MTile = struct
     let int_to_terrain_feature n =
         match n with
         | 0 -> MOUNTAIN
-        | 1 -> HILL
-        | 2 -> FOREST
-        | 3 -> LAKE
+        | 1 | 2 -> HILL
+        | 3 | 4 -> FOREST
+        | 5 -> LAKE
         | _ -> REGULAR
+
+    let terrain_feature_to_int tf =
+        match tf with
+        | MOUNTAIN -> 0
+        | FOREST -> 1
+        | HILL -> 2
+        | REGULAR -> 3
+        | LAKE -> 4
 
     type tile_type =
         | TILE_GRASSLAND
@@ -47,7 +55,7 @@ module MTile = struct
         | 2  -> TILE_SNOW
         | 0 | _ -> TILE_GRASSLAND
 
-    class tile id r q tt tf =
+    class tile r q tt tf =
     object(self)
         inherit game_object r q as super
         val tile_type : tile_type = tt
@@ -60,6 +68,7 @@ module MTile = struct
         method is_forest = terrain_feature = FOREST
         method is_regular = terrain_feature = REGULAR
         method get_movement_cost = terrain_feature_to_movement_cost terrain_feature
+        method is_impassable = terrain_feature = MOUNTAIN || terrain_feature = LAKE
     end
 
     (* Functions *)
@@ -77,14 +86,26 @@ module MTile = struct
         in
         Sdl.Rect.create x y w h
 
+    let match_terrain_feature_to_clip t =
+        let tw,th = MHex.width,MHex.height in
+        let i = terrain_feature_to_int t in
+        Sdl.Rect.create (i*tw) 0 tw th
+
     (* Render a tile *)
-    let render renderer tile tile_texture camera =
-        if check_collision (get_box tile) camera && (tile#is_regular || tile#is_hill || tile#is_forest) then
+    let render renderer tile tile_texture terrain_feature_texture camera =
+        if check_collision (get_box tile) camera && (not tile#is_lake) then
+            let x = (get_screen_x tile)- Sdl.Rect.x camera in
+            let y = (get_screen_y tile)- Sdl.Rect.y camera in
             MTexture.render renderer
             ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))
-            ~x:((get_screen_x tile)- Sdl.Rect.x camera)
-            ~y:((get_screen_y tile)- Sdl.Rect.y camera)
-            tile_texture
+            ~x:x
+            ~y:y
+            tile_texture;
+            MTexture.render renderer
+            ~clip:(Some (match_terrain_feature_to_clip tile#get_terrain_feature))
+            ~x:x
+            ~y:y
+            terrain_feature_texture
         else
             ()
 end
