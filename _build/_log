@@ -1,0 +1,100 @@
+### Starting build.
+# Target: trpg.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:trpg.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules trpg.ml > trpg.ml.depends
+# Target: asset/src/game.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/game.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/game.ml > asset/src/game.ml.depends
+# Target: asset/src/background.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/background.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/background.ml > asset/src/background.ml.depends
+# Target: asset/src/texture_wrapper.mli.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:mli, file:asset/src/texture_wrapper.mli, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/texture_wrapper.mli > asset/src/texture_wrapper.mli.depends
+# Target: asset/src/utils.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/utils.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/utils.ml > asset/src/utils.ml.depends
+# Target: asset/src/texture_wrapper.cmi, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:mli, file:asset/src/texture_wrapper.mli, interf, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/texture_wrapper.cmi asset/src/texture_wrapper.mli
+# Target: asset/src/utils.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/utils.cmo, file:asset/src/utils.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/utils.cmo asset/src/utils.ml
+# Target: asset/src/context.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/context.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/context.ml > asset/src/context.ml.depends
+# Target: asset/src/action.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/action.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/action.ml > asset/src/action.ml.depends
+# Target: asset/src/action_enum.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/action_enum.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/action_enum.ml > asset/src/action_enum.ml.depends
+# Target: asset/src/grid.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/grid.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/grid.ml > asset/src/grid.ml.depends
+# Target: asset/src/hex.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/hex.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/hex.ml > asset/src/hex.ml.depends
+# Target: asset/src/infrastructure.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/infrastructure.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/infrastructure.ml > asset/src/infrastructure.ml.depends
+# Target: asset/src/action_enum.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/action_enum.cmo, file:asset/src/action_enum.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/action_enum.cmo asset/src/action_enum.ml
+# Target: asset/src/entity.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/entity.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/entity.ml > asset/src/entity.ml.depends
+# Target: asset/src/game_object.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/game_object.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/game_object.ml > asset/src/game_object.ml.depends
+# Target: asset/src/hex.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/hex.cmo, file:asset/src/hex.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/hex.cmo asset/src/hex.ml
+# Target: asset/src/game_object.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/game_object.cmo, file:asset/src/game_object.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/game_object.cmo asset/src/game_object.ml
+# Target: asset/src/entity.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/entity.cmo, file:asset/src/entity.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/entity.cmo asset/src/entity.ml
+# Target: asset/src/military.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/military.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/military.ml > asset/src/military.ml.depends
+# Target: asset/src/tile.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/tile.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/tile.ml > asset/src/tile.ml.depends
+# Target: asset/src/infrastructure.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/infrastructure.cmo, file:asset/src/infrastructure.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/infrastructure.cmo asset/src/infrastructure.ml
+# Target: asset/src/military.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/military.cmo, file:asset/src/military.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/military.cmo asset/src/military.ml
+# Target: asset/src/tile.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/tile.cmo, file:asset/src/tile.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/tile.cmo asset/src/tile.ml
+# Target: asset/src/pathfinder.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/pathfinder.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/pathfinder.ml > asset/src/pathfinder.ml.depends
+# Target: asset/src/grid.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/grid.cmo, file:asset/src/grid.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/grid.cmo asset/src/grid.ml
+# Target: asset/src/pathfinder.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/pathfinder.cmo, file:asset/src/pathfinder.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/pathfinder.cmo asset/src/pathfinder.ml
+# Target: asset/src/cursor.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/cursor.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/cursor.ml > asset/src/cursor.ml.depends
+# Target: asset/src/faction.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/faction.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/faction.ml > asset/src/faction.ml.depends
+# Target: asset/src/faction_enum.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/faction_enum.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/faction_enum.ml > asset/src/faction_enum.ml.depends
+# Target: asset/src/faction_enum.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/faction_enum.cmo, file:asset/src/faction_enum.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/faction_enum.cmo asset/src/faction_enum.ml
+# Target: asset/src/keyboard_wrapper.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/keyboard_wrapper.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/keyboard_wrapper.ml > asset/src/keyboard_wrapper.ml.depends
+# Target: asset/src/action.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/action.cmo, file:asset/src/action.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/action.cmo asset/src/action.ml
+# Target: asset/src/cursor.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/cursor.cmo, file:asset/src/cursor.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/cursor.cmo asset/src/cursor.ml
+# Target: asset/src/faction.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/faction.cmo, file:asset/src/faction.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/faction.cmo asset/src/faction.ml
+# Target: asset/src/keyboard_wrapper.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/keyboard_wrapper.cmo, file:asset/src/keyboard_wrapper.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/keyboard_wrapper.cmo asset/src/keyboard_wrapper.ml
+# Target: asset/src/menu.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/menu.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/menu.ml > asset/src/menu.ml.depends
+# Target: asset/src/btn.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/btn.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/btn.ml > asset/src/btn.ml.depends
+# Target: asset/src/mouse_wrapper.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/mouse_wrapper.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/mouse_wrapper.ml > asset/src/mouse_wrapper.ml.depends
+# Target: asset/src/btn.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/btn.cmo, file:asset/src/btn.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/btn.cmo asset/src/btn.ml
+# Target: asset/src/mouse_wrapper.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/mouse_wrapper.cmo, file:asset/src/mouse_wrapper.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/mouse_wrapper.cmo asset/src/mouse_wrapper.ml
+# Target: asset/src/background.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/background.cmo, file:asset/src/background.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/background.cmo asset/src/background.ml
+# Target: asset/src/context.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/context.cmo, file:asset/src/context.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/context.cmo asset/src/context.ml
+# Target: asset/src/menu.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/menu.cmo, file:asset/src/menu.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/menu.cmo asset/src/menu.ml
+# Target: asset/src/game.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/game.cmo, file:asset/src/game.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/game.cmo asset/src/game.ml
+# Target: trpg.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:trpg.cmo, file:trpg.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o trpg.cmo trpg.ml
+# Target: asset/src/texture_wrapper.ml.depends, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), debug, extension:ml, file:asset/src/texture_wrapper.ml, ocaml, ocamldep, quiet, traverse }
+ocamlfind ocamldep -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -modules asset/src/texture_wrapper.ml > asset/src/texture_wrapper.ml.depends
+# Target: asset/src/texture_wrapper.cmo, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, compile, debug, extension:cmo, extension:ml, file:asset/src/texture_wrapper.cmo, file:asset/src/texture_wrapper.ml, implem, ocaml, quiet, traverse }
+ocamlfind ocamlc -c -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src -o asset/src/texture_wrapper.cmo asset/src/texture_wrapper.ml
+# Target: trpg.byte, tags: { package(tsdl,tsdl_mixer,tsdl_image,tsdl_ttf), byte, debug, dont_link_with, extension:byte, file:trpg.byte, link, ocaml, program, quiet, traverse }
+ocamlfind ocamlc -linkpkg -g -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf -I asset/src asset/src/utils.cmo asset/src/texture_wrapper.cmo asset/src/background.cmo asset/src/action_enum.cmo asset/src/hex.cmo asset/src/game_object.cmo asset/src/entity.cmo asset/src/infrastructure.cmo asset/src/military.cmo asset/src/tile.cmo asset/src/grid.cmo asset/src/pathfinder.cmo asset/src/action.cmo asset/src/cursor.cmo asset/src/faction_enum.cmo asset/src/faction.cmo asset/src/keyboard_wrapper.cmo asset/src/context.cmo asset/src/btn.cmo asset/src/mouse_wrapper.cmo asset/src/menu.cmo asset/src/game.cmo trpg.cmo -o trpg.byte
+# Compilation successful.
