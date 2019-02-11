@@ -32,17 +32,6 @@ module MMilitary = struct
         (m : military :> MEntity.entity)
 
     let render renderer m military_texture camera =
-        if check_collision m#get_box camera then
-            let x,y = 
-                let tmp1,tmp2 = MHex.axial_to_screen_coord m#get_axial in
-                tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
-            in
-            MTexture.render renderer
-            ~x:x
-            ~y:y
-            military_texture
-
-
-
+        MEntity.render renderer (military_to_entity m) military_texture camera
 end
 ;;

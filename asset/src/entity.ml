@@ -1,5 +1,9 @@
 open Game_object
 open Action_enum
+open Utils
+open Hex
+open Tsdl
+open Texture_wrapper
 
 module MEntity = struct
     class entity r q hp ap mp current_mp atks defs ar pa aos =
@@ -29,5 +33,18 @@ module MEntity = struct
         method get_aos = aos
     end
     type t = entity
+
+    (* Render the entity *)
+    let render renderer e txt camera =
+        if check_collision e#get_box camera then
+            let x,y = 
+                let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
+                tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
+            in
+            MTexture.render renderer
+            ~x:x
+            ~y:y
+            txt
+
 end
 ;;

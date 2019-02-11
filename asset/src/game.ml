@@ -13,6 +13,7 @@ open Faction
 open Faction_enum
 open Military
 open Infrastructure
+open Animation
 
 
 module MGame = struct
@@ -113,7 +114,10 @@ module MGame = struct
                 player_turn = true;
                 faction_list = [faction1];
                 action_src = None;
-                action_dst = None
+                action_dst = None;
+                to_be_added_m = None;
+                to_be_deleted_m = None;
+                animation = (None : MAnimation.t option)
             } in
 
             let txt = {

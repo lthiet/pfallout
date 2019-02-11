@@ -47,7 +47,6 @@ struct
         let x = truncate ((float size) *. ((sqrt 3.) *. (float axial.q) +. ((sqrt 3.) /. 2.) *. (float axial.r))) in
         let y = truncate ((float size) *. ((3. /. 2.) *. ( float axial.r) ) ) in
         x,y
-
    
     let right = {
             x = 1;

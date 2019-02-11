@@ -6,6 +6,8 @@ open Faction
 open Tsdl
 open Hex
 open Action
+open Animation
+open Military
 
 let ev = Some (Sdl.Event.create ())
 
@@ -18,7 +20,10 @@ module MGameContext = struct
         player_turn : bool;
         faction_list : MFaction.t list;
         action_src : MHex.axial_coord option;
-        action_dst : MHex.axial_coord option
+        action_dst : MHex.axial_coord option;
+        animation : MAnimation.t option;
+        to_be_added_m : MMilitary.t list option;
+        to_be_deleted_m : MMilitary.t list option;
     }
 
     (* Return a new camera based on user input *)
@@ -94,7 +99,7 @@ module MGameContext = struct
                 MAction.move ctx.grid src dst
             | _,_ -> raise Exit
         else
-            ctx.grid,[],[]
+            ctx.grid,[],[],[]
 
 
     (* Update the new context of the game *)
@@ -124,15 +129,14 @@ module MGameContext = struct
                     else
                         None,None
                 in
-                let grid,added,deleted = compute_new_grid e context 
+                let grid,added_m,deleted_m,_ = compute_new_grid e context 
                 in
 
                 let faction_list =
                     List.fold_left (
-                        fun acc x -> (MFaction.update_military x added deleted) :: acc
+                        fun acc x -> (MFaction.update_military x added_m deleted_m) :: acc
                     ) [] context.faction_list
                 in
-
 
                 {
                     context with
@@ -142,10 +146,11 @@ module MGameContext = struct
                     cursor_selector = cursor_selector;
                     faction_list = faction_list;
                     action_src = action_src;
-                    action_dst = action_dst
+                    action_dst = action_dst;
+                    to_be_added_m = Some added_m;
+                    to_be_deleted_m = Some deleted_m
                 }
         else
             context
-
 end
 ;;
