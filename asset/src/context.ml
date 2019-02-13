@@ -21,9 +21,8 @@ module MGameContext = struct
         faction_list : MFaction.t list;
         action_src : MHex.axial_coord option;
         action_dst : MHex.axial_coord option;
-        animation : MAnimation.t option;
-        to_be_added_m : MMilitary.t list option;
-        to_be_deleted_m : MMilitary.t list option;
+        to_be_added_m : MMilitary.t list;
+        animation : MAnimation.t
     }
 
     (* Return a new camera based on user input *)
@@ -99,19 +98,24 @@ module MGameContext = struct
                 MAction.move ctx.grid src dst
             | _,_ -> raise Exit
         else
-            ctx.grid,[],[],[]
+            ctx.grid,[],[],(MAnimation.create [])
 
 
     (* Update the new context of the game *)
     let update_context context =
+        let animation =
+            MAnimation.compute_next context.animation
+        in
+
         (* Get the next event in the queue *)
-        if  (Sdl.poll_event ev) then
+        let ctx1 = if (Sdl.poll_event ev) then
             match ev with
             (* If no event, nothing to do *)
             | None ->
                 context
             (* Otherwise, check the event *)
             | Some e ->
+
                 (* If the user clicks the red cross button, the game closes *)
                 let over = check_ev_type e Sdl.Event.quit in
                 let camera = get_camera e context.camera in
@@ -129,14 +133,33 @@ module MGameContext = struct
                     else
                         None,None
                 in
-                let grid,added_m,deleted_m,_ = compute_new_grid e context 
+                let grid,added_m,deleted_m,animation_tmp = compute_new_grid e context 
                 in
-
+               
                 let faction_list =
                     List.fold_left (
-                        fun acc x -> (MFaction.update_military x added_m deleted_m) :: acc
-                    ) [] context.faction_list
+                        fun acc x -> (MFaction.update_military x [] deleted_m ) :: acc
+                    ) [] context.faction_list;
                 in
+
+                let to_be_added_m = 
+                    begin
+                        match added_m with
+                        | x::s -> 
+                            added_m
+                        | [] -> 
+                            context.to_be_added_m
+                    end
+                in
+
+                let new_animation = if not (MAnimation.is_over animation_tmp) then
+                    begin
+                        animation_tmp
+                end
+                    else
+                        animation
+                in
+
 
                 {
                     context with
@@ -147,10 +170,30 @@ module MGameContext = struct
                     faction_list = faction_list;
                     action_src = action_src;
                     action_dst = action_dst;
-                    to_be_added_m = Some added_m;
-                    to_be_deleted_m = Some deleted_m
+                    to_be_added_m = to_be_added_m;
+                    animation = new_animation
                 }
         else
-            context
+        {
+            context with
+            animation = animation
+        }
+        in
+
+        if MAnimation.is_over ctx1.animation then
+            let faction_list =
+                    List.fold_left (
+                        fun acc x -> (MFaction.update_military x ctx1.to_be_added_m [] ) :: acc
+                    ) [] ctx1.faction_list;
+            in
+
+            let to_be_added_m = [] in
+            {ctx1 with
+            faction_list = faction_list;
+            to_be_added_m = to_be_added_m}
+        else
+            ctx1
+
+
 end
 ;;

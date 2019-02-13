@@ -14,6 +14,7 @@ open Faction_enum
 open Military
 open Infrastructure
 open Animation
+open Entity
 
 
 module MGame = struct
@@ -50,14 +51,23 @@ module MGame = struct
                 match context.action_src with
                 | None -> ()
                 | Some x ->
-                    let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.POSSIBLE
+                    let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.SELECTING
                     in
                     MCursor.render renderer textures.curs c context.camera;
                     let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
                     let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
-                    let path = MPathfinder.a_star tile_below_src tile_below_current context.grid in
+
+                    let path,path_color =
+                    match context.action_dst with
+                    | None ->
+                        MPathfinder.a_star tile_below_src tile_below_current context.grid,MCursor.POSSIBLE
+                    | Some y ->
+                        let tile_below_dst = MGrid.get_tile (MHex.get_r y) (MHex.get_q y) context.grid in
+                        MPathfinder.a_star tile_below_src tile_below_dst context.grid,MCursor.IMPOSSIBLE
+                    in
+
                     List.iter (
-                        fun x -> let c = MCursor.create x#get_r x#get_q MCursor.POSSIBLE in
+                        fun x -> let c = MCursor.create x#get_r x#get_q path_color in
                         MCursor.render renderer textures.curs c context.camera
                     )
                     path
@@ -73,6 +83,11 @@ module MGame = struct
                     (MFaction.get_military x)
             ) 
             context.faction_list;
+
+            (* Render the animated *)
+            List.iter (
+                fun x ->  MEntity.render renderer x textures.military context.camera
+            ) (MAnimation.get_current_animated context.animation);
 
             (* Update the renderer *)
             Sdl.render_present renderer;
@@ -115,9 +130,8 @@ module MGame = struct
                 faction_list = [faction1];
                 action_src = None;
                 action_dst = None;
-                to_be_added_m = None;
-                to_be_deleted_m = None;
-                animation = (None : MAnimation.t option)
+                to_be_added_m = [];
+                animation = MAnimation.create []
             } in
 
             let txt = {
