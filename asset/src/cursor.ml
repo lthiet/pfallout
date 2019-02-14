@@ -23,11 +23,13 @@ module MCursor = struct
         Sdl.Rect.create x y w h
 
     class cursor r q status = 
-    object
+    object(self)
         inherit game_object r q as super
         val status : status = status
         method get_status = status
         method is_hidden = status = HIDDEN
+        method is_not_hidden = not self#is_hidden
+        method set_status s = {< status = s>}
     end
 
     let create r q status =
@@ -43,6 +45,7 @@ module MCursor = struct
    
     (* Render a cursor *)
     let render renderer texture cursor camera =
+        if cursor#is_not_hidden then
         MTexture.render renderer
         ~clip:( Some (match_status_to_clip cursor#get_status))
         ~x:((get_screen_x cursor)- Sdl.Rect.x camera)

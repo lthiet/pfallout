@@ -44,7 +44,7 @@ module MAction = struct
             let movement_animation_list =
                 List.fold_left (
                     fun acc x -> (
-                        MMilitary.military_to_entity (old_mu#move x#get_r x#get_q),20) :: acc
+                        MMilitary.military_to_entity (old_mu#move x#get_r x#get_q),10) :: acc
                 ) [] (List.rev path_taken)
             in
             grid,[new_mu],[old_mu],(MAnimation.create [movement_animation_list])

@@ -22,8 +22,17 @@ struct
     let get_r ax = ax.r
     let get_q ax = ax.q
 
+    let get_x cu = cu.x
+    let get_y cu = cu.y
+    let get_z cu = cu.z
+
     let print_ax ax = 
-        Printf.printf "%d %d" (get_r ax) (get_q ax)
+        Printf.printf "r : %d\tq : %d" (get_r ax) (get_q ax);
+        print_newline ()
+
+    let print_cu cu = 
+        Printf.printf "x : %d\ty : %d\tz : %d" (get_x cu) (get_y cu) (get_z cu);
+        print_newline ()
 
     let axial_to_cube axial =
         let x = axial.q in

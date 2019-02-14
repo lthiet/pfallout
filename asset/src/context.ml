@@ -52,8 +52,14 @@ module MGameContext = struct
         ks : key_set
         g : grid
     *)
-    let move_cursor_io e c ks (g:MGrid.t) =
+    let update_cs e ctx ks =
         let offset = 1 in
+        let tmp = ctx.cursor_selector in
+        let g = ctx.grid in
+        let c = tmp#set_status MCursor.SELECTING in
+
+        if MAnimation.is_over ctx.animation then
+        begin
         if check_ev_type e Sdl.Event.key_down then
             let pk = MKeyboard.get_scancode e in
             let r = new_int pk ks.down ks.up  offset c#get_r in
@@ -62,9 +68,13 @@ module MGameContext = struct
             if tile_below#is_impassable then
                 c
             else
-                MCursor.move c r q
+                c#move r q
         else
             c
+        end
+        else
+            c#set_status MCursor.HIDDEN
+
 
     let action_src_is_set ctx =
         match ctx.action_src with
@@ -77,13 +87,15 @@ module MGameContext = struct
         | _ -> true 
 
     let set_action_src e ctx =
-        if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return then
+        if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
+        begin
             Some ctx.cursor_selector#get_axial
+        end
         else
             ctx.action_src
 
     let set_action_dst e ctx =
-        if action_src_is_set ctx && MKeyboard.key_is_pressed e Sdl.Scancode.return then
+        if action_src_is_set ctx && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
             Some ctx.cursor_selector#get_axial
         else
             ctx.action_dst
@@ -103,22 +115,28 @@ module MGameContext = struct
 
     (* Update the new context of the game *)
     let update_context context =
-        let animation =
-            MAnimation.compute_next context.animation
+        (* Event independant context change *)
+        let ctx_before_event =
+            let animation =
+                MAnimation.compute_next context.animation
+            in
+            {
+                context with
+                animation = animation
+            }
         in
 
         (* Get the next event in the queue *)
-        let ctx1 = if (Sdl.poll_event ev) then
+        let ctx_with_event = if (Sdl.poll_event ev) then
             match ev with
             (* If no event, nothing to do *)
             | None ->
-                context
+                ctx_before_event
             (* Otherwise, check the event *)
             | Some e ->
-
                 (* If the user clicks the red cross button, the game closes *)
                 let over = check_ev_type e Sdl.Event.quit in
-                let camera = get_camera e context.camera in
+                let camera = get_camera e ctx_before_event.camera in
                 let cursor_selector_ks = {
                     up = Sdl.Scancode.up;
                     down = Sdl.Scancode.down;
@@ -126,20 +144,21 @@ module MGameContext = struct
                     left = Sdl.Scancode.left;
                 } in
 
-                let cursor_selector = move_cursor_io e context.cursor_selector cursor_selector_ks context.grid in
+                let cursor_selector = update_cs e ctx_before_event cursor_selector_ks in
                 let action_src,action_dst =
-                    if not (action_confirmed e context) then
-                        set_action_src e context,set_action_dst e context
+                    if not (action_confirmed e ctx_before_event) then
+                        set_action_src e ctx_before_event,set_action_dst e ctx_before_event
                     else
                         None,None
                 in
-                let grid,added_m,deleted_m,animation_tmp = compute_new_grid e context 
+
+                let grid,added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
                 in
                
                 let faction_list =
                     List.fold_left (
                         fun acc x -> (MFaction.update_military x [] deleted_m ) :: acc
-                    ) [] context.faction_list;
+                    ) [] ctx_before_event.faction_list;
                 in
 
                 let to_be_added_m = 
@@ -148,21 +167,19 @@ module MGameContext = struct
                         | x::s -> 
                             added_m
                         | [] -> 
-                            context.to_be_added_m
+                            ctx_before_event.to_be_added_m
                     end
                 in
 
                 let new_animation = if not (MAnimation.is_over animation_tmp) then
-                    begin
                         animation_tmp
-                end
                     else
-                        animation
+                        ctx_before_event.animation
                 in
 
 
                 {
-                    context with
+                    ctx_before_event with
                     grid = grid;
                     over = over;
                     camera = camera;
@@ -174,26 +191,23 @@ module MGameContext = struct
                     animation = new_animation
                 }
         else
-        {
-            context with
-            animation = animation
-        }
+            ctx_before_event
         in
 
-        if MAnimation.is_over ctx1.animation then
+        let ctx_after_event = if MAnimation.is_over ctx_with_event.animation then
             let faction_list =
-                    List.fold_left (
-                        fun acc x -> (MFaction.update_military x ctx1.to_be_added_m [] ) :: acc
-                    ) [] ctx1.faction_list;
+                List.fold_left (
+                    fun acc x -> (MFaction.update_military x ctx_with_event.to_be_added_m [] ) :: acc
+                ) [] ctx_with_event.faction_list;
             in
 
             let to_be_added_m = [] in
-            {ctx1 with
+            {ctx_with_event with
             faction_list = faction_list;
             to_be_added_m = to_be_added_m}
         else
-            ctx1
-
-
+            ctx_with_event
+        in
+        ctx_after_event
 end
 ;;

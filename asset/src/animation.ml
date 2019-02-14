@@ -27,6 +27,8 @@ module MAnimation = struct
         | [] -> true
         | _ -> false
 
+    let is_not_over t =
+        not (is_over t)
 
     let get_to_be_animated t = t.to_be_animated
 
@@ -39,9 +41,7 @@ module MAnimation = struct
         )
         [] t.to_be_animated
 
-    let i = ref 0
     let compute_next t =
-        i := !i + 1;
         let l = t.to_be_animated in
 
         let new_tba =
