@@ -45,53 +45,30 @@ module MPathfinder = struct
         ) visited;
         !visited_list
 
-
-    let a_star start goal grid =
-        let frontier = Queue.create () in
-        Queue.add start frontier;
-        let came_from = Hashtbl.create 23 in
-
-        (* Explore everything *)
-        let rec aux1 grid =
-            if not (Queue.is_empty frontier) then
-            begin
-                let current = Queue.take frontier in
-                let n_l = MGrid.neighbours_list current grid in
-                List.iter (
-                    fun x ->
-                        try
-                            let _ = Hashtbl.find came_from x in
-                            ()
-                        with Not_found ->
-                            if not x#is_impassable then
-                            begin
-                                Queue.add x frontier;
-                                Hashtbl.add came_from x current
-                            end
-                ) n_l;
-                aux1 grid
-            end
-        in
-        aux1 grid;
-
+    let trace_path come_from start goal grid =  
         (* Retrace the path *)
-        let rec aux2 current path =
+        let rec aux current path =
             if current = start then
                 path
             else
             begin
-                let tmp = Hashtbl.find_opt came_from current in
+                let tmp = Hashtbl.find_opt come_from current in
                 match tmp with
                 | None ->
                     path
                 | Some tmp ->
                     let b = MGrid.get_tile current#get_r current#get_q grid in
-                    aux2 tmp (b::path)
+                    aux tmp (b::path)
             end
         in
-        aux2 goal []
+        aux goal []
 
-    let dijkstra start goal grid = 
+    let reachable_tile come_from =
+        Hashtbl.fold (fun k e acc -> 
+            k :: acc
+        ) come_from []
+
+    let dijkstra start goal grid all range = 
         let frontier = 
             let tmp = MPriority_queue.empty
             in
@@ -99,12 +76,59 @@ module MPathfinder = struct
         in
         let come_from = Hashtbl.create 23 in
         let cost_so_far = Hashtbl.create 23 in
-        Hashtbl.add cost_so_far start 0
+        Hashtbl.add cost_so_far start 0;
 
-        (* let rec aux frontier start goal grid =
-            if  *)
+        let rec aux frontier start goal grid =
+            if not (MPriority_queue.is_empty frontier) then
+            begin
+                let _,current,new_frontier = MPriority_queue.extract frontier in
+                if current != goal || all then
+                begin
+                    let n_l = MGrid.neighbours_list current grid in
+                    let updated_frontier = List.fold_left (
+                        fun acc x ->
+                            if (not x#is_impassable) then
+                            begin
+                                let new_cost = (Hashtbl.find cost_so_far current) + x#get_movement_cost in
+                                let x_in_cost_so_far =
+                                    try
+                                        let _ = Hashtbl.find cost_so_far x in
+                                        true
+                                    with Not_found ->
+                                        false
+                                in
+                                if ((not x_in_cost_so_far) || new_cost < (Hashtbl.find cost_so_far x)) && new_cost <= range then
+                                begin
+                                    Hashtbl.add come_from x current;
+                                    Hashtbl.remove cost_so_far x;
+                                    Hashtbl.add cost_so_far x new_cost;
+                                    let priority = new_cost in
+                                    MPriority_queue.insert acc priority x
+                                end
+                                else
+                                begin
+                                    acc
+                                end
+                            end
+                            else
+                            begin
+                                acc
+                            end
+                    ) new_frontier n_l
+                    in
+                    aux updated_frontier start goal grid
+                end
+            end
+        in
+        aux frontier start goal grid;
+        come_from
 
+    let dijkstra_path start goal grid range = 
+        let tmp = dijkstra start goal grid false range in
+        trace_path tmp start goal grid
 
-
+    let dijkstra_reachable start goal grid range = 
+        let tmp = dijkstra start goal grid true range in
+        reachable_tile tmp
 end
 ;;

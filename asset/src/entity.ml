@@ -21,7 +21,7 @@ module MEntity = struct
 
         method get_hp = hp
         method get_ap = ap
-        method get_mp = ap
+        method get_mp = mp
         method can_use_mp n = 0 <= current_mp - n
         method get_atks = atks
         method get_defs = defs

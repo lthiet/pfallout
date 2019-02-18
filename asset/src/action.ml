@@ -40,7 +40,7 @@ module MAction = struct
             
             let start = MGrid.get_tile old_mu#get_r old_mu#get_q grid in
             let goal = MGrid.get_tile new_mu#get_r new_mu#get_q grid in
-            let path_taken = MPathfinder.a_star start goal grid in
+            let path_taken = MPathfinder.dijkstra_path start goal grid old_mu#get_mp in
             let movement_animation_list =
                 List.fold_left (
                     fun acc x -> (

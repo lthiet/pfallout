@@ -24,5 +24,10 @@ type priority = int
     let extract = function
           Empty -> raise Queue_is_empty
         | Node(prio, elt, _, _) as queue -> (prio, elt, remove_top queue)
+
+    let is_empty q =
+      match q with
+      | Empty -> true
+      | _ -> false
 end
 ;;

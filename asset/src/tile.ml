@@ -71,6 +71,8 @@ module MTile = struct
         method is_impassable = terrain_feature = MOUNTAIN || terrain_feature = LAKE
     end
 
+    type t = tile
+
 
     (* Match a tile type to a clip to get the texture from *)
     let match_tile_type_to_clip t =

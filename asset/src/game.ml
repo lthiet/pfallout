@@ -46,33 +46,14 @@ module MGame = struct
             (* Render the selector ( cursor ) *)
             MCursor.render renderer textures.curs context.cursor_selector context.camera;
 
-            (* If a src is selected, display a cursor *)
-            let () =
-                match context.action_src with
-                | None -> ()
-                | Some x ->
-                    let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.SELECTING
-                    in
-                    MCursor.render renderer textures.curs c context.camera;
-                    let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
-                    let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
+            (* Render the movement range selector *)
+            List.iter (
+                fun x -> let c = MCursor.create x#get_r x#get_q MCursor.POSSIBLE in
+                MCursor.render renderer textures.curs c context.camera
+            ) context.movement_range_selector;
 
-                    let path,path_color =
-                    match context.action_dst with
-                    | None ->
-                        MPathfinder.a_star tile_below_src tile_below_current context.grid,MCursor.POSSIBLE
-                    | Some y ->
-                        let tile_below_dst = MGrid.get_tile (MHex.get_r y) (MHex.get_q y) context.grid in
-                        MPathfinder.a_star tile_below_src tile_below_dst context.grid,MCursor.IMPOSSIBLE
-                    in
 
-                    List.iter (
-                        fun x -> let c = MCursor.create x#get_r x#get_q path_color in
-                        MCursor.render renderer textures.curs c context.camera
-                    )
-                    path
-            in
-
+           
             (* Render the soldiers *)
             List.iter (
                 fun x ->
@@ -104,7 +85,7 @@ module MGame = struct
     (* Run the game with the correct paths and context *)
     let run (menu_result:MMenu.result) renderer screen_width screen_height = 
         if menu_result.start_game then
-            let start = 4 in
+            let start = 8 in
 
             let soldier1 = MMilitary.create_soldier start start in
             let soldier2 = MMilitary.create_soldier (start+1) start in
@@ -131,7 +112,8 @@ module MGame = struct
                 action_src = None;
                 action_dst = None;
                 to_be_added_m = [];
-                animation = MAnimation.create []
+                animation = MAnimation.create [];
+                movement_range_selector = []
             } in
 
             let txt = {

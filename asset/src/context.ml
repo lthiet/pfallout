@@ -5,9 +5,11 @@ open Cursor
 open Faction
 open Tsdl
 open Hex
+open Tile
 open Action
 open Animation
 open Military
+open Pathfinder
 
 let ev = Some (Sdl.Event.create ())
 
@@ -21,6 +23,7 @@ module MGameContext = struct
         faction_list : MFaction.t list;
         action_src : MHex.axial_coord option;
         action_dst : MHex.axial_coord option;
+        movement_range_selector : MTile.t list;
         to_be_added_m : MMilitary.t list;
         animation : MAnimation.t
     }
@@ -152,6 +155,37 @@ module MGameContext = struct
                         None,None
                 in
 
+                (* If a src is selected, display the range *)
+                let movement_range_selector =
+                match action_src,context.action_src with
+                | Some x,None ->
+                begin
+                    let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.SELECTING
+                    in
+                    let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
+                    let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
+                    let military_below = 
+                        match MGrid.get_mg_at context.grid c#get_r c#get_q with
+                        | Some x -> x
+                        | None -> raise Exit
+                    in
+
+                    Printf.printf "%d" military_below#get_mp;
+
+                    match context.action_dst with
+                    | None ->
+                        MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                    | Some y ->
+                        let tile_below_dst = MGrid.get_tile (MHex.get_r y) (MHex.get_q y) context.grid in
+                        MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp
+                end
+                | None,Some x->
+                    []
+                | _,_ -> context.movement_range_selector
+
+                in
+
+
                 let grid,added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
                 in
                
@@ -177,7 +211,6 @@ module MGameContext = struct
                         ctx_before_event.animation
                 in
 
-
                 {
                     ctx_before_event with
                     grid = grid;
@@ -188,6 +221,7 @@ module MGameContext = struct
                     action_src = action_src;
                     action_dst = action_dst;
                     to_be_added_m = to_be_added_m;
+                    movement_range_selector = movement_range_selector;
                     animation = new_animation
                 }
         else
