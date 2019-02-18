@@ -49,7 +49,7 @@ module MGrid = struct
         Array.init size ( fun r ->
             Array.init size ( fun q ->
                 let n = Random.int 5 in
-                let m = Random.int 7 in
+                let m = Random.int 10 in
                 let tmp1 = level_radius - r in
                 let tmp2 = q - tmp1 in
 

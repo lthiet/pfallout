@@ -16,8 +16,8 @@ module MCursor = struct
     let match_status_to_clip t =
         let tw,th = MHex.width,MHex.height in
         let x,y,w,h = match t with
-        | IMPOSSIBLE -> 138, 0,  tw,th
-        | POSSIBLE -> 276, 0,  tw,th
+        | IMPOSSIBLE -> tw, 0,  tw,th
+        | POSSIBLE -> tw*2, 0,  tw,th
         | SELECTING | _ -> 0, 0, tw,th 
         in
         Sdl.Rect.create x y w h
@@ -33,10 +33,6 @@ module MCursor = struct
     end
 
     let create r q status =
-        new cursor r q status
-
-    let move cursor r q =
-        let status = cursor#get_status in
         new cursor r q status
 
     (* Functions *)

@@ -77,8 +77,8 @@ module MTile = struct
         let tw,th = MHex.width,MHex.height in
         let x,y,w,h = match t with
         | TILE_GRASSLAND -> 0, 0, tw,th 
-        | TILE_DESERT -> 138, 0,  tw,th
-        | TILE_SNOW -> 276, 0,  tw,th
+        | TILE_DESERT -> tw, 0,  tw,th
+        | TILE_SNOW -> tw*2, 0,  tw,th
         in
         Sdl.Rect.create x y w h
 

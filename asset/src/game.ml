@@ -78,7 +78,7 @@ module MGame = struct
                 fun x ->
                     List.iter (
                         fun y ->
-                            MMilitary.render renderer y textures.military context.camera
+                            MMilitary.render renderer y textures.military context.camera 0
                     )
                     (MFaction.get_military x)
             ) 
@@ -86,7 +86,7 @@ module MGame = struct
 
             (* Render the animated *)
             List.iter (
-                fun x ->  MEntity.render renderer x textures.military context.camera
+                fun x ->  MEntity.render renderer x textures.military context.camera 0
             ) (MAnimation.get_current_animated context.animation);
 
             (* Update the renderer *)
@@ -104,7 +104,7 @@ module MGame = struct
     (* Run the game with the correct paths and context *)
     let run (menu_result:MMenu.result) renderer screen_width screen_height = 
         if menu_result.start_game then
-            let start = 7 in
+            let start = 4 in
 
             let soldier1 = MMilitary.create_soldier start start in
             let soldier2 = MMilitary.create_soldier (start+1) start in

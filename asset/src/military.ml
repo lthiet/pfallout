@@ -31,7 +31,9 @@ module MMilitary = struct
     let military_to_entity m =
         (m : military :> MEntity.entity)
 
-    let render renderer m military_texture camera =
-        MEntity.render renderer (military_to_entity m) military_texture camera
+    let clip = Sdl.Rect.create 0 0 MHex.width MHex.height
+
+    let render renderer m military_texture camera frame_n =
+        MEntity.render renderer (military_to_entity m) military_texture camera frame_n
 end
 ;;

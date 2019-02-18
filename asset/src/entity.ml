@@ -23,10 +23,6 @@ module MEntity = struct
         method get_ap = ap
         method get_mp = ap
         method can_use_mp n = 0 <= current_mp - n
-        method use_mp n = 
-            let x = max 0 (mp-n) in
-            new entity r q hp ap mp x atks defs ar pa aos
-
         method get_atks = atks
         method get_defs = defs
         method get_pa = pa
@@ -35,13 +31,15 @@ module MEntity = struct
     type t = entity
 
     (* Render the entity *)
-    let render renderer e txt camera =
+    let render renderer e txt camera frame_n=
+        let clip = Sdl.Rect.create (MHex.width * frame_n) 0 MHex.width MHex.height in
         if check_collision e#get_box camera then
             let x,y = 
                 let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
                 tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
             in
             MTexture.render renderer
+            ~clip:(Some clip)
             ~x:x
             ~y:y
             txt
