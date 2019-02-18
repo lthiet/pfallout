@@ -90,5 +90,8 @@ module MPathfinder = struct
         in
         aux2 goal []
 
+    (* let dijkstra start goal grid =  *)
+
+
 end
 ;;

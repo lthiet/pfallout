@@ -48,7 +48,7 @@ module MTexture = struct
         )
 
 
-    let load_from_rendered_text renderer font text color =
+    (* let load_from_rendered_text renderer font text color =
         let text_surface = manage_result (
             Ttf.render_text_solid font text color
         ) "error render text solid %s"
@@ -67,7 +67,7 @@ module MTexture = struct
             mTexture = mTexture;
             mWidth = w;
             mHeight = h
-        }
+        } *)
 
     let free t =
         Sdl.destroy_texture t.mTexture

@@ -17,7 +17,7 @@ module MMenu = struct
     type textures = {
         bg : MTexture.t;
         btn : MTexture.t;
-        btn_start_text : MTexture.t
+        (* btn_start_text : MTexture.t *)
     }
 
     let update_context context = 
@@ -84,7 +84,7 @@ module MMenu = struct
             (* Display the start button *)
             MBtn.render renderer new_ctx.btn_start textures.btn;
             (* Display the start button text *)
-            MBtn.render_text renderer new_ctx.btn_start textures.btn_start_text;
+            (* MBtn.render_text renderer new_ctx.btn_start textures.btn_start_text; *)
 
             (* Update the renderer *)
             Sdl.render_present renderer;
@@ -97,15 +97,15 @@ module MMenu = struct
 
     let menu_bg_path = "asset/image/menu_bg.png"
     let btn_path = "asset/image/btns.png"
-    let font_path = "asset/font/spiderman.ttf"
+    (* let font_path = "asset/font/spiderman.ttf" *)
 
     let run renderer = 
-        let font = manage_result (Ttf.open_font font_path 70) "Error font %s" in
+        (* let font = manage_result (Ttf.open_font font_path 70) "Error font %s" in *)
         (* Create the menu *)
         let txt = {
             bg = MTexture.load_from_file renderer menu_bg_path;
             btn = MTexture.load_from_file renderer btn_path;
-            btn_start_text = MTexture.load_from_rendered_text renderer font "Start" (Sdl.Color.create 255 255 255 255)
+            (* btn_start_text = MTexture.load_from_rendered_text renderer font "Start" (Sdl.Color.create 255 255 255 255) *)
         } in
         let ctx  = {
             over = false;
