@@ -1,6 +1,6 @@
 open Tsdl
 open Tsdl_image
-open Tsdl_ttf
+(* open Tsdl_ttf *)
 
 module MTexture : sig
     type t

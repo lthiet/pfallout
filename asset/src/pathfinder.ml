@@ -2,6 +2,7 @@ open Tile
 open Hex
 open Grid
 open Utils
+open Priority_queue
 
 module MPathfinder = struct
  (* TODO : functionalize *)
@@ -90,7 +91,19 @@ module MPathfinder = struct
         in
         aux2 goal []
 
-    (* let dijkstra start goal grid =  *)
+    let dijkstra start goal grid = 
+        let frontier = 
+            let tmp = MPriority_queue.empty
+            in
+            MPriority_queue.insert tmp 0 start
+        in
+        let come_from = Hashtbl.create 23 in
+        let cost_so_far = Hashtbl.create 23 in
+        Hashtbl.add cost_so_far start 0
+
+        (* let rec aux frontier start goal grid =
+            if  *)
+
 
 
 end
