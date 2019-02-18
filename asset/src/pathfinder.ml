@@ -47,21 +47,21 @@ module MPathfinder = struct
 
     let trace_path come_from start goal grid =  
         (* Retrace the path *)
-        let rec aux current path =
+        let rec aux current path cost =
             if current = start then
-                path
+                path,cost
             else
             begin
                 let tmp = Hashtbl.find_opt come_from current in
                 match tmp with
                 | None ->
-                    path
+                    path,cost
                 | Some tmp ->
                     let b = MGrid.get_tile current#get_r current#get_q grid in
-                    aux tmp (b::path)
+                    aux tmp (b::path) (cost + b#get_movement_cost)
             end
         in
-        aux goal []
+        aux goal [] 0
 
     let reachable_tile come_from =
         Hashtbl.fold (fun k e acc -> 

@@ -27,6 +27,9 @@ module MEntity = struct
         method get_defs = defs
         method get_pa = pa
         method get_aos = aos
+        method remove_mp n = 
+            let tmp = max 0 (self#get_mp-n) in
+            {< mp = tmp>}
     end
     type t = entity
 

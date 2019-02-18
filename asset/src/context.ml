@@ -170,14 +170,15 @@ module MGameContext = struct
                         | None -> raise Exit
                     in
 
-                    Printf.printf "%d" military_below#get_mp;
+                    (* Printf.printf "%d" military_below#get_mp; *)
 
                     match context.action_dst with
                     | None ->
                         MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
                     | Some y ->
                         let tile_below_dst = MGrid.get_tile (MHex.get_r y) (MHex.get_q y) context.grid in
-                        MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp
+                        let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp in
+                        res
                 end
                 | None,Some x->
                     []
@@ -188,10 +189,18 @@ module MGameContext = struct
 
                 let grid,added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
                 in
+
+                let () =
+                print_newline ();
+                match deleted_m with
+                | [] -> Printf.printf "%s" "vide";
+                | _ -> Printf.printf "%s" "pas vide";
+                in
                
                 let faction_list =
                     List.fold_left (
-                        fun acc x -> (MFaction.update_military x [] deleted_m ) :: acc
+                        fun acc x -> 
+                        (MFaction.update_military x [] deleted_m ) :: acc
                     ) [] ctx_before_event.faction_list;
                 in
 

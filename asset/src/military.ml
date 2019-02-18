@@ -26,7 +26,7 @@ module MMilitary = struct
     type t = military
 
     let create_soldier r q =
-        new military r q 40 20 2 2 40 40 1 [MAction_enum.MOVE;MAction_enum.ATTACK] [] SOLDIER MELEE GROUND 3
+        new military r q 40 20 4 2 40 40 1 [MAction_enum.MOVE;MAction_enum.ATTACK] [] SOLDIER MELEE GROUND 3
 
     let military_to_entity m =
         (m : military :> MEntity.entity)
