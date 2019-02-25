@@ -190,13 +190,6 @@ module MGameContext = struct
                 let grid,added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
                 in
 
-                let () =
-                print_newline ();
-                match deleted_m with
-                | [] -> Printf.printf "%s" "vide";
-                | _ -> Printf.printf "%s" "pas vide";
-                in
-               
                 let faction_list =
                     List.fold_left (
                         fun acc x -> 

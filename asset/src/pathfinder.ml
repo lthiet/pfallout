@@ -55,7 +55,14 @@ module MPathfinder = struct
                 let tmp = Hashtbl.find_opt come_from current in
                 match tmp with
                 | None ->
-                    path,cost
+                begin
+                    if current = start then
+                    begin
+                        path,cost
+                    end
+                    else
+                        raise Exit
+                end
                 | Some tmp ->
                     let b = MGrid.get_tile current#get_r current#get_q grid in
                     aux tmp (b::path) (cost + b#get_movement_cost)
