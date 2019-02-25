@@ -28,18 +28,21 @@ module MGrid = struct
         tmg.(r).(q) <- None
 
     exception Grid_cell_not_empty
+    exception Grid_cell_no_entity
 
     let get_mg_at t r q =
         let tmg = t.military_grid in
-        tmg.(r).(q)
+        match tmg.(r).(q) with
+        | None -> raise Grid_cell_no_entity
+        | Some x -> x
 
     let set_mg_at t r q m =
         let tmg = t.military_grid in
-        match get_mg_at t r q with
-        | None ->
-            tmg.(r).(q) <- Some m
-        | _ ->
+        try
+            let _ = get_mg_at t r q in
             raise Grid_cell_not_empty
+        with Grid_cell_no_entity ->
+            tmg.(r).(q) <- Some m
 
     let get_infrastructure_grid t = t.infrastructure_grid
 

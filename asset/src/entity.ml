@@ -34,8 +34,8 @@ module MEntity = struct
                 {< mp = tmp>}
             else
                 raise Exit
-		
 		method remove_hp damage = {< hp = self#get_hp-damage>}
+        method refill_mp = {<current_mp = self#get_mp>}
 		
     end
     type t = entity

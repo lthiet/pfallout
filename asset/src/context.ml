@@ -224,11 +224,7 @@ module MGameContext = struct
                         in
                         let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
                         let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
-                        let military_below = 
-                            match MGrid.get_mg_at context.grid c#get_r c#get_q with
-                            | Some x -> x
-                            | None -> raise Exit
-                        in
+                        let military_below = MGrid.get_mg_at context.grid c#get_r c#get_q in
                         match context.action_src with
                         | None ->
                             begin

@@ -21,51 +21,36 @@ module MAction = struct
         let smu, dmu = 
 			MGrid.get_mg_at grid sr sq,
 			MGrid.get_mg_at grid dr dq in
-		let satks = match smu with 
-			| None ->
-				raise Exit
-			| Some x -> 
-				x#get_atks
+		let satks = smu#get_atks
 		in
-		let dhp,ddefs = match dmu with
-            | None -> 
-                raise Exit
-            | Some x ->
-                x#get_hp,x#get_defs
+		let dhp,ddefs = dmu#get_hp,dmu#get_defs
 		in
 		let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
 		
 		MGrid.remove_mg_at grid dr dq;
-        MGrid.set_mg_at grid dr dq (match dmu with
-									| None ->
-										raise Exit
-									| Some x -> x#remove_hp damage);
+        MGrid.set_mg_at grid dr dq (dmu#remove_hp damage);
 									
-		let old_dmu = match dmu with
-			| None ->
-				raise Exit
-			| Some x ->
-				x
-		in
 		(*if the entity is dead*)
 		if (dhp<=damage) then 
 			begin
 			MGrid.remove_mg_at grid dr dq;
-			grid,[],[old_dmu],(MAnimation.create [])  , MAction_enum.NOTHING
+			grid,[],[dmu],(MAnimation.create [])  , MAction_enum.NOTHING
 			end
 		(*if the entity isn't dead*)
 		else
-			let new_dmu = match dmu with
-				| None ->
-					raise Exit
-				| Some x ->
-					x#remove_hp damage
+			let new_dmu = dmu#remove_hp damage
 			in 
 			MGrid.remove_mg_at grid dr dq;
 			MGrid.set_mg_at grid dr dq new_dmu;
-			grid,[new_dmu],[old_dmu],(MAnimation.create []) , MAction_enum.NOTHING
-		
-	
+			grid,[new_dmu],[dmu],(MAnimation.create []) , MAction_enum.NOTHING
+
+    (* Refill a unit movement point *)
+    let refill_mp grid src dst =
+        let sr,sq = MHex.get_r src,MHex.get_q src
+        in
+        let mu = MGrid.get_mg_at grid sr sq in
+        grid,[mu#refill_mp],[mu],(MAnimation.create []), MAction_enum.NOTHING 
+
     let move grid src dst =
         let sr,sq,dr,dq =
             MHex.get_r src,
@@ -82,11 +67,7 @@ module MAction = struct
         else
             let mu = MGrid.get_mg_at grid sr sq in
             let old_mu,new_mu = 
-                match mu with
-                | None -> 
-                    raise Exit
-                | Some x ->
-                    x,x#move dr dq
+                    mu,mu#move dr dq
             in
                         
             let start = MGrid.get_tile old_mu#get_r old_mu#get_q grid in
