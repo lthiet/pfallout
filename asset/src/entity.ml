@@ -27,6 +27,10 @@ module MEntity = struct
         method get_defs = defs
         method get_pa = pa
         method get_aos = aos
+		
+		(****)
+		method remove_hp damage = {< hp = self#get_hp-damage>}
+		
     end
     type t = entity
 

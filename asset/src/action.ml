@@ -8,9 +8,64 @@ open Military
 
 module MAction = struct
     exception Not_implemented
-
     exception Impossible_movement
-
+	
+	
+	let attack grid src dst = 
+        let sr,sq,dr,dq =
+            MHex.get_r src,
+            MHex.get_q src,
+            MHex.get_r dst,
+            MHex.get_q dst
+        in
+        let smu, dmu = 
+			MGrid.get_mg_at grid sr sq,
+			MGrid.get_mg_at grid dr dq in
+		let satks = match smu with 
+			| None ->
+				raise Exit
+			| Some x -> 
+				x#get_atks
+		in
+		let dhp,ddefs = match dmu with
+            | None -> 
+                raise Exit
+            | Some x ->
+                x#get_hp,x#get_defs
+		in
+		let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
+		
+		MGrid.remove_mg_at grid dr dq;
+        MGrid.set_mg_at grid dr dq (match dmu with
+									| None ->
+										raise Exit
+									| Some x -> x#remove_hp damage);
+									
+		let old_dmu = match dmu with
+			| None ->
+				raise Exit
+			| Some x ->
+				x
+		in
+		(*if the entity is dead*)
+		if (dhp<=damage) then 
+			begin
+			MGrid.remove_mg_at grid dr dq;
+			grid,[],[old_dmu],(MAnimation.create [])  , MAction_enum.NOTHING
+			end
+		(*if the entity isn't dead*)
+		else
+			let new_dmu = match dmu with
+				| None ->
+					raise Exit
+				| Some x ->
+					x#remove_hp damage
+			in 
+			MGrid.remove_mg_at grid dr dq;
+			MGrid.set_mg_at grid dr dq new_dmu;
+			grid,[new_dmu],[old_dmu],(MAnimation.create []) , MAction_enum.NOTHING
+		
+	
     let move grid src dst =
         let sr,sq,dr,dq =
             MHex.get_r src,
@@ -47,11 +102,15 @@ module MAction = struct
                         MMilitary.military_to_entity (old_mu#move x#get_r x#get_q),10) :: acc
                 ) [] (List.rev path_taken)
             in
-            grid,[new_mu],[old_mu],(MAnimation.create [movement_animation_list])
-
+            grid,[new_mu],[old_mu],(MAnimation.create [movement_animation_list]), MAction_enum.NOTHING (***********)
+	
+	(**
     let execute t grid src_ax dst_ax =
         match t with
         | MAction_enum.MOVE -> move grid src_ax dst_ax
+		| MAction_enum.ATTACK -> attack grid src_ax dst_ax
         | _ -> raise Not_implemented
+	**)
+	
 end
 ;;
