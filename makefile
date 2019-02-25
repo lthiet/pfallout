@@ -1,6 +1,6 @@
 EXE = trpg.byte
 SRC = asset/src
-OCB_FLAG = -I $(SRC) -r -tag debug -use-ocamlfind -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf
+OCB_FLAG = -I $(SRC) -r -tag debug -use-ocamlfind -package tsdl,tsdl_mixer,tsdl_image
 DOC = docs
 DIAGRAM_SRC = $(DOC)/diagrams/src/classes.wsd
 DIAGRAM_OUT = $(DOC)/diagrams/src/classes.png

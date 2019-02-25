@@ -98,7 +98,7 @@ module MGameContext = struct
                 ) ctx.movement_range_selector
             in
 
-            if not in_range || tile_below#is_impassable then
+            if (action_src_is_set ctx && not in_range) || tile_below#is_impassable then
                 c
             else
                 c#move r q
@@ -108,19 +108,24 @@ module MGameContext = struct
         else
             c#set_status MCursor.HIDDEN
 
-
+    (* Cancelled action is triggered when a user presses
+    presses the escape key *)
+    let action_cancelled e =
+        MKeyboard.key_is_pressed e Sdl.Scancode.escape
    
     let set_action_src e ctx =
         if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
-        begin
             Some ctx.cursor_selector#get_axial
-        end
+        else if action_cancelled e then
+            None
         else
             ctx.action_src
 
     let set_action_dst e ctx =
         if action_src_is_set ctx && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
             Some ctx.cursor_selector#get_axial
+        else if action_cancelled e then
+            None
         else
             ctx.action_dst
 
@@ -178,10 +183,30 @@ module MGameContext = struct
 
                 (* If a src is selected, display the range *)
                 let movement_range_selector =
-                match action_src,context.action_src with
-                | Some x,None ->
-                begin
-                    let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.SELECTING
+                    (* match context.action_src with
+                    | None -> []
+                    | Some x ->
+                        let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.SELECTING
+                        in
+                        let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
+                        let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
+                        let military_below = 
+                            match MGrid.get_mg_at context.grid c#get_r c#get_q with
+                            | Some x -> x
+                            | None -> raise Exit
+                        in
+                        match context.action_dst with
+                        | None ->
+                            MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                        | Some y ->
+                            let tile_below_dst = MGrid.get_tile (MHex.get_r y) (MHex.get_q y) context.grid in
+                            let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp in
+                            res *)
+
+                match action_src with
+                | None -> []
+                | Some x1 ->
+                    let c = MCursor.create (MHex.get_r x1) (MHex.get_q x1) MCursor.SELECTING
                     in
                     let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
                     let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
@@ -190,21 +215,21 @@ module MGameContext = struct
                         | Some x -> x
                         | None -> raise Exit
                     in
-
-                    (* Printf.printf "%d" military_below#get_mp; *)
-
-                    match context.action_dst with
+                    match context.action_src with
                     | None ->
                         MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
-                    | Some y ->
-                        let tile_below_dst = MGrid.get_tile (MHex.get_r y) (MHex.get_q y) context.grid in
-                        let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp in
-                        res
-                end
-                | None,Some x->
-                    []
-                | _,_ -> context.movement_range_selector
-
+                    | Some x2 ->
+                        match action_dst,context.action_dst with
+                        (* action dst has just been set *)
+                        | Some y1,None ->
+                            let tile_below_dst = MGrid.get_tile (MHex.get_r y1) (MHex.get_q y1) context.grid in
+                            let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp in
+                            res
+                        (* action dst has just been disabled *)
+                        | None,_-> 
+                            MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                        | Some y1,Some y2 -> 
+                            context.movement_range_selector
                 in
 
 
