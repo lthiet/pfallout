@@ -15,6 +15,7 @@ open Military
 open Infrastructure
 open Animation
 open Entity
+open Action_enum
 
 
 module MGame = struct
@@ -114,7 +115,8 @@ module MGame = struct
                 action_dst = None;
                 to_be_added_m = [];
                 animation = MAnimation.create [];
-                movement_range_selector = []
+                movement_range_selector = [];
+				action_type = MAction_enum.NOTHING
             } in
 
             let txt = {

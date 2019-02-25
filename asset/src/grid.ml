@@ -128,11 +128,11 @@ module MGrid = struct
         let tmp = neighbours tile grid in
         neighbours_to_list tmp
 
-   
-        (* let dikstra start goal grid =
-            let frontier = MPriority_queue.insert MPriority_queue.empty 0 start in
-            let came_from = Hashtbl.create 23 in
-            let cost_so_far = Hashtbl.create 23 in *)
-
+    let range_tile grid t n =
+        let l = MHex.range_ax n t#get_axial in
+        List.fold_left (fun acc x -> 
+            let tmp = get_tile_cube x grid
+            in tmp :: acc
+        ) [] l
 end
 ;;

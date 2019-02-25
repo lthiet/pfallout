@@ -7,6 +7,7 @@ open Tsdl
 open Hex
 open Tile
 open Action
+open Action_enum
 open Animation
 open Military
 open Pathfinder
@@ -27,7 +28,10 @@ module MGameContext = struct
         movement_range_selector : MTile.t list;
         to_be_added_m : MMilitary.t list;
         animation : MAnimation.t;
+		action_type : MAction_enum.t;
     }
+
+	exception Nothing
 
     let action_src_is_set ctx =
         match ctx.action_src with
@@ -38,8 +42,7 @@ module MGameContext = struct
         match ctx.action_dst with
         | None -> false
         | _ -> true 
-
-
+	
     (* Return a new camera based on user input *)
     let get_camera e c =
         (* The distance at which the camera will move *)
@@ -67,6 +70,8 @@ module MGameContext = struct
         ks : key_set
         g : grid
     *)
+	
+	
     let update_cs e ctx ks =
         let offset = 1 in
         let tmp = ctx.cursor_selector in
@@ -102,7 +107,7 @@ module MGameContext = struct
 
             if (action_src_is_set ctx && not in_range) || tile_below#is_impassable then
                 c
-            else
+            else				
                 c#move r q
         else
             c
@@ -130,18 +135,35 @@ module MGameContext = struct
             None
         else
             ctx.action_dst
-
+	
+	let set_action_type e ctx =
+    (* TODO: factorize *)
+		if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.m && MAnimation.is_over ctx.animation then
+			MAction_enum.MOVE
+		else if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.o && MAnimation.is_over ctx.animation then
+			MAction_enum.ATTACK
+		else if (not (action_src_is_set ctx)) && action_cancelled e && MAnimation.is_over ctx.animation then
+			MAction_enum.NOTHING
+		else 
+			ctx.action_type
+	
     let action_confirmed e ctx =
         action_dst_is_set ctx && action_src_is_set ctx && MKeyboard.key_is_pressed e Sdl.Scancode.return 
 
     let compute_new_grid e ctx =
-        if action_confirmed e ctx then
-            match ctx.action_src,ctx.action_dst with
-            | Some src, Some dst ->
+        if action_confirmed e ctx then	
+            match ctx.action_src,ctx.action_dst
+			,ctx.action_type with
+            | Some src, Some dst, MAction_enum.MOVE  ->
                 MAction.move ctx.grid src dst
-            | _,_ -> raise Exit
+			| Some src, Some dst, MAction_enum.ATTACK ->
+				MAction.attack ctx.grid src dst	
+			| Some src, Some dst, MAction_enum.NOTHING -> raise Nothing
+            | _,_,_ ->  raise Exit
+			
+			
         else
-            ctx.grid,[],[],(MAnimation.create [])
+            ctx.grid,[],[],(MAnimation.create []),MAction_enum.MOVE 
 
     let new_turn e =
         MKeyboard.key_is_pressed e Sdl.Scancode.f1
@@ -178,11 +200,15 @@ module MGameContext = struct
                 } in
 
                 let cursor_selector = update_cs e ctx_before_event cursor_selector_ks in
-                let action_src,action_dst =
+                let 
+				keyboard_action_type, 
+				action_src,action_dst =
                     if not (action_confirmed e ctx_before_event) then
-                        set_action_src e ctx_before_event,set_action_dst e ctx_before_event
+                        set_action_type e ctx_before_event,
+						set_action_src e ctx_before_event,set_action_dst e ctx_before_event
                     else
-                        None,None
+                        context.action_type,
+						None,None
                 in
 
                 (* If a src is selected, display the range,
@@ -205,7 +231,15 @@ module MGameContext = struct
                         in
                         match context.action_src with
                         | None ->
-                            MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                            begin
+                            match context.action_type with
+                            | MOVE ->
+                                MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                            | ATTACK ->
+                                MGrid.range_tile context.grid tile_below_src military_below#get_ar
+                            | _ -> 
+                                []
+                            end
                         | Some x2 ->
                             match action_dst,context.action_dst with
                             (* action dst has just been set *)
@@ -214,14 +248,26 @@ module MGameContext = struct
                                 let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp in
                                 res
                             (* action dst has just been disabled *)
-                            | None,_-> 
-                                MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
-                            | Some y1,Some y2 -> 
+                            | None,Some y2-> 
+                            begin
+                                match context.action_type with
+                                | MOVE ->
+                                    MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                                | ATTACK ->
+                                    MGrid.range_tile context.grid tile_below_src military_below#get_ar
+                                | _ -> 
+                                    []
+                            end
+                            | _,_ ->
                                 context.movement_range_selector
                 in
 
-
-                let grid,added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
+                let grid,added_m,deleted_m,animation_tmp,compute_action_type = compute_new_grid e ctx_before_event 
+                in
+				
+				let new_action_type = match compute_action_type with
+					| MAction_enum.NOTHING -> compute_action_type
+					| _ -> keyboard_action_type
                 in
 
                 let faction_list =
@@ -258,7 +304,8 @@ module MGameContext = struct
                     action_dst = action_dst;
                     to_be_added_m = to_be_added_m;
                     movement_range_selector = movement_range_selector;
-                    animation = new_animation
+                    animation = new_animation;
+					action_type = new_action_type
                 }
         else
             ctx_before_event
@@ -270,7 +317,6 @@ module MGameContext = struct
                     fun acc x -> (MFaction.update_military x ctx_with_event.to_be_added_m [] ) :: acc
                 ) [] ctx_with_event.faction_list;
             in
-
             let to_be_added_m = [] in
             {ctx_with_event with
             faction_list = faction_list;

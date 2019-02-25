@@ -26,6 +26,7 @@ module MEntity = struct
         method get_atks = atks
         method get_defs = defs
         method get_pa = pa
+        method get_ar = ar
         method get_aos = aos
         method remove_mp n = 
             let tmp = self#get_mp-n in
@@ -33,6 +34,9 @@ module MEntity = struct
                 {< mp = tmp>}
             else
                 raise Exit
+		
+		method remove_hp damage = {< hp = self#get_hp-damage>}
+		
     end
     type t = entity
 
