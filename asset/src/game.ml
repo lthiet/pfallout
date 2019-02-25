@@ -108,6 +108,7 @@ module MGame = struct
                 grid = grid;
                 cursor_selector = MCursor.create start start MCursor.SELECTING;
                 player_turn = true;
+                new_turn = false;
                 faction_list = [faction1];
                 action_src = None;
                 action_dst = None;
