@@ -8,6 +8,7 @@ open Grid
 module MCursor = struct
     type status = 
     | SELECTING
+    | SELECTING_DST
     | POSSIBLE
     | IMPOSSIBLE
     | HIDDEN
@@ -18,7 +19,7 @@ module MCursor = struct
         let x,y,w,h = match t with
         | IMPOSSIBLE -> tw, 0,  tw,th
         | POSSIBLE -> tw*2, 0,  tw,th
-        | SELECTING | _ -> 0, 0, tw,th 
+        | SELECTING | SELECTING_DST | _ -> 0, 0, tw,th 
         in
         Sdl.Rect.create x y w h
 

@@ -27,6 +27,16 @@ module MGameContext = struct
         to_be_added_m : MMilitary.t list;
         animation : MAnimation.t
     }
+    let action_src_is_set ctx =
+        match ctx.action_src with
+        | None -> false
+        | _ -> true
+
+    let action_dst_is_set ctx =
+        match ctx.action_dst with
+        | None -> false
+        | _ -> true 
+
 
     (* Return a new camera based on user input *)
     let get_camera e c =
@@ -59,7 +69,12 @@ module MGameContext = struct
         let offset = 1 in
         let tmp = ctx.cursor_selector in
         let g = ctx.grid in
-        let c = tmp#set_status MCursor.SELECTING in
+        let c =
+            if action_src_is_set ctx then
+                tmp#set_status MCursor.SELECTING_DST
+            else
+                tmp#set_status MCursor.SELECTING
+        in
 
         if MAnimation.is_over ctx.animation then
         begin
@@ -68,7 +83,22 @@ module MGameContext = struct
             let r = new_int pk ks.down ks.up  offset c#get_r in
             let q = new_int pk ks.right ks.left  offset c#get_q in
             let tile_below = MGrid.get_tile r q g in
-            if tile_below#is_impassable then
+            let in_range =
+                List.exists (fun x ->
+                    let tmp1 = 
+                        x#get_axial = tile_below#get_axial
+                    in
+                    let tmp2 =
+                        match ctx.action_src with
+                        | None -> false
+                        | Some e ->
+                            x#get_axial = e
+                    in
+                    tmp1 || tmp2
+                ) ctx.movement_range_selector
+            in
+
+            if not in_range || tile_below#is_impassable then
                 c
             else
                 c#move r q
@@ -79,16 +109,7 @@ module MGameContext = struct
             c#set_status MCursor.HIDDEN
 
 
-    let action_src_is_set ctx =
-        match ctx.action_src with
-        | None -> false
-        | _ -> true
-
-    let action_dst_is_set ctx =
-        match ctx.action_dst with
-        | None -> false
-        | _ -> true 
-
+   
     let set_action_src e ctx =
         if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
         begin
