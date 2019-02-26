@@ -75,3 +75,10 @@ let new_int pk ekp ekn offset old =
     old - offset
   else
     old
+
+(* Put the first at the last position of a list, and the second at the first and so on *)
+let cycle l =
+  match l with
+  | [] -> []
+  | x :: s -> s @ [x]
+

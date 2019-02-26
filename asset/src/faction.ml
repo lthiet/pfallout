@@ -29,6 +29,9 @@ struct
       infrastructure_list = [];
     }
 
+  let equal t1 t2 =
+    t1.code = t2.code
+
   let add_military m t =
     {
       t with
@@ -48,11 +51,11 @@ struct
       match l with
       | [] ->
         List.fold_left (fun acc x -> 
-          if military_in x t then
-            x :: acc
-          else
-            acc
-        ) acc added
+            if military_in x t then
+              x :: acc
+            else
+              acc
+          ) acc added
       | x :: s ->
         let new_acc =
           if List.exists (fun y -> x = y) deleted then

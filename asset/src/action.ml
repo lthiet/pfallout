@@ -7,8 +7,8 @@ open Entity
 open Military
 
 (* This module computes actions in the game. Each action can modified the state
-of the game (the factions lists and the grid). Each action shall return the newly computed grid,
-the list of unit to delete, the list of unit to add *)
+   of the game (the factions lists and the grid). Each action shall return the newly computed grid,
+   the list of unit to delete, the list of unit to add *)
 module MAction = struct
   exception Not_implemented
   exception Impossible_movement
@@ -36,7 +36,7 @@ module MAction = struct
     if (dhp<=damage) then 
       begin
         MGrid.remove_mg_at grid dr dq;
-        grid,[],[dmu],(MAnimation.create [])
+        [],[dmu],(MAnimation.create [])
       end
       (*if the entity isn't dead*)
     else
@@ -44,7 +44,7 @@ module MAction = struct
       in 
       MGrid.remove_mg_at grid dr dq;
       MGrid.set_mg_at grid dr dq new_dmu;
-      grid,[new_dmu],[dmu],(MAnimation.create [])
+      [new_dmu],[dmu],(MAnimation.create [])
 
   (* Refill a unit movement point *)
   let refill_mp grid src dst =
@@ -56,8 +56,9 @@ module MAction = struct
       MGrid.remove_mg_at grid sr sq;
       MGrid.set_mg_at grid sr sq new_mu;
     in
-    grid,[new_mu],[mu],(MAnimation.create [])
+    [new_mu],[mu],(MAnimation.create [])
 
+  (* Move a unit that is on src to dst *)
   let move grid src dst =
     let sr,sq,dr,dq =
       MHex.get_r src,
@@ -92,7 +93,7 @@ module MAction = struct
         MGrid.set_mg_at grid dr dq new_mu_minus_mp;
       in
 
-      grid,[new_mu_minus_mp],[old_mu],(MAnimation.create [movement_animation_list])
+      [new_mu_minus_mp],[old_mu],(MAnimation.create [movement_animation_list])
 
   exception No_action_specified
 

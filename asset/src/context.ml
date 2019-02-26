@@ -22,8 +22,6 @@ module MGameContext = struct
     camera : Sdl.rect;
     grid : MGrid.t;
     cursor_selector : MCursor.cursor;
-    player_turn : bool;
-    new_turn : bool;
     faction_list : MFaction.t list;
     faction_controlled_by_player : MFaction.t;
     action_src : MHex.axial_coord option;
@@ -73,14 +71,20 @@ module MGameContext = struct
     right : Sdl.scancode;
   }
 
+  (* Checks whether or not it is the player turn. it is decided
+     by whether or turn the faction controlled by the player is that the
+     head of the faction list *)
+  let is_player_turn ctx =
+    match ctx.faction_list with
+    | [] -> false
+    | x :: s ->
+      MFaction.equal ctx.faction_controlled_by_player x
     (*
         e : event
         c : cursor
         ks : key_set
         g : grid
     *)
-
-
   let update_cs e ctx ks =
     let offset = 1 in
     let tmp = ctx.cursor_selector in
@@ -92,7 +96,10 @@ module MGameContext = struct
         tmp#set_status MCursor.SELECTING
     in
 
-    if MAnimation.is_over ctx.animation then
+    Printf.printf "%B" (is_player_turn ctx);
+    print_newline ();
+
+    if MAnimation.is_over ctx.animation  && (is_player_turn ctx) then
       begin
         if check_ev_type e Sdl.Event.key_down then
           let pk = MKeyboard.get_scancode e in
@@ -181,10 +188,33 @@ module MGameContext = struct
         MAction.execute ctx.action_type ctx.grid src dst
       | _,_ ->  raise Unspecified_Src_Dst
     else
-      ctx.grid,[],[],(MAnimation.create [])
+      [],[],(MAnimation.create [])
 
-  let new_turn e =
-    MKeyboard.key_is_pressed e Sdl.Scancode.f1
+  let new_turn e ctx =
+    MKeyboard.key_is_pressed e Sdl.Scancode.r && is_player_turn ctx
+
+  (* this function just gives more meaning
+     when cycling through a faction list *)
+  let next_faction l =
+    cycle l
+
+  (* Update the context after event have been taken
+     into account, usually this is used for animation
+     or when the modificaiton on the grids are not
+     done by the player *)
+  let update_context_after_event ctx = 
+    if MAnimation.is_over ctx.animation then
+      let faction_list =
+        List.fold_right (
+          fun x acc-> (MFaction.update_military x ctx.to_be_added_m [] ) :: acc
+        ) ctx.faction_list []
+      in
+      let to_be_added_m = [] in
+      {ctx with
+       faction_list = faction_list;
+       to_be_added_m = to_be_added_m}
+    else
+      ctx
 
   (* Update the new context of the game *)
   let update_context context =
@@ -298,15 +328,25 @@ module MGameContext = struct
               end
           in
 
-          let grid,added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
+          let added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
           in
 
           let faction_list =
-            List.fold_left (
-              fun acc x -> 
-                (MFaction.update_military x [] deleted_m ) :: acc
-            ) [] ctx_before_event.faction_list;
+            let tmp = List.fold_right (
+                fun x acc  -> 
+                  (MFaction.update_military x [] deleted_m ) :: acc
+              ) ctx_before_event.faction_list []
+            in
+            if new_turn e ctx_before_event then
+              cycle tmp
+            else
+              tmp
           in
+
+
+
+          List.iter (fun x -> print_string (MFaction.to_string x)) faction_list;
+          print_newline ();
 
           let to_be_added_m = 
             begin
@@ -325,7 +365,6 @@ module MGameContext = struct
           in
           {
             ctx_before_event with
-            grid = grid;
             over = over;
             camera = camera;
             cursor_selector = cursor_selector;
@@ -340,20 +379,7 @@ module MGameContext = struct
       else
         ctx_before_event
     in
+    update_context_after_event ctx_with_event
 
-    let ctx_after_event = if MAnimation.is_over ctx_with_event.animation then
-        let faction_list =
-          List.fold_left (
-            fun acc x -> (MFaction.update_military x ctx_with_event.to_be_added_m [] ) :: acc
-          ) [] ctx_with_event.faction_list;
-        in
-        let to_be_added_m = [] in
-        {ctx_with_event with
-         faction_list = faction_list;
-         to_be_added_m = to_be_added_m}
-      else
-        ctx_with_event
-    in
-    ctx_after_event
 end
 ;;
