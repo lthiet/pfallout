@@ -45,6 +45,7 @@ module MPathfinder = struct
     ) visited;
     !visited_list
 
+  exception No_path_found
   let trace_path come_from start goal grid =  
     (* Retrace the path *)
     let rec aux current path cost =
@@ -61,7 +62,7 @@ module MPathfinder = struct
                   path,cost
                 end
               else
-                raise Exit
+                raise No_path_found
             end
           | Some tmp ->
             let b = MGrid.get_tile current#get_r current#get_q grid in

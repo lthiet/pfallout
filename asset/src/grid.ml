@@ -38,7 +38,12 @@ module MGrid = struct
 
   let set_mg_at t r q m =
     let tmg = t.military_grid in
-    tmg.(r).(q) <- Some m
+    (* Check if there's already something *)
+    match tmg.(r).(q) with
+    (* If not, we can set *)
+    | None -> tmg.(r).(q) <- Some m
+    (* Otherwise, it is an error*)
+    | _ -> raise Grid_cell_not_empty
 
   let get_infrastructure_grid t = t.infrastructure_grid
 

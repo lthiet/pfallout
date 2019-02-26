@@ -6,6 +6,7 @@ open Tsdl
 open Texture_wrapper
 
 module MEntity = struct
+  exception Unsifficient_mp
   class entity r q hp ap mp current_mp atks defs ar pa aos =
     object(self)
       inherit game_object r q as super
@@ -22,18 +23,18 @@ module MEntity = struct
       method get_hp = hp
       method get_ap = ap
       method get_mp = mp
-      method can_use_mp n = 0 <= current_mp - n
+      method get_current_mp = current_mp
       method get_atks = atks
       method get_defs = defs
       method get_pa = pa
       method get_ar = ar
       method get_aos = aos
       method remove_mp n = 
-        let tmp = self#get_mp-n in
+        let tmp = self#get_current_mp-n in
         if tmp >= 0 then
-          {< mp = tmp>}
+          {< current_mp = tmp>}
         else
-          raise Exit
+          raise Unsifficient_mp
       method remove_hp damage = {< hp = self#get_hp-damage>}
       method refill_mp = {<current_mp = self#get_mp>}
 

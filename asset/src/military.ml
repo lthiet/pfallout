@@ -21,14 +21,12 @@ module MMilitary = struct
       method get_at = at
       method get_tt = tt
       method get_pc = pc
-
-
     end
 
   type t = military
 
   let create_soldier r q =
-    new military r q 30 20 4 2 40 25 1 [MAction_enum.MOVE;MAction_enum.ATTACK] [MAction_enum.REFILL_MP] SOLDIER MELEE GROUND 3
+    new military r q 30 20 4 4 40 25 1 [MAction_enum.MOVE;MAction_enum.ATTACK] [MAction_enum.REFILL_MP] SOLDIER MELEE GROUND 3
 
   let military_to_entity m =
     (m : military :> MEntity.entity)

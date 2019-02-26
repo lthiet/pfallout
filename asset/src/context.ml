@@ -204,11 +204,6 @@ module MGameContext = struct
           ctx_before_event
         (* Otherwise, check the event *)
         | Some e ->
-          Printf.printf "%B " (action_src_is_set ctx_before_event);
-          Printf.printf "%B " (action_type_is_set ctx_before_event);
-          Printf.printf "%B " (action_dst_is_set ctx_before_event);
-          print_newline ();
-
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let camera = get_camera e ctx_before_event.camera in
@@ -253,7 +248,7 @@ module MGameContext = struct
                   begin
                     match e1 with 
                     | MAction_enum.MOVE ->
-                      MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                      MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_current_mp
                     | MAction_enum.ATTACK ->
                       MGrid.range_tile context.grid tile_below_src military_below#get_ar
                     | _ -> []
@@ -264,7 +259,7 @@ module MGameContext = struct
                     (* action dst has just been set *)
                     | Some y1,None ->
                       let tile_below_dst = MGrid.get_tile (MHex.get_r y1) (MHex.get_q y1) context.grid in
-                      let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_mp in
+                      let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_current_mp in
                       res
                     (* action dst has just been disabled *)
                     | None,Some y2-> 
@@ -275,7 +270,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE ->
-                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_mp
+                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_current_mp
                             | MAction_enum.ATTACK ->
                               MGrid.range_tile context.grid tile_below_src military_below#get_ar
                             | _ -> []

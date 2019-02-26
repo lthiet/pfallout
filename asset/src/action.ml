@@ -51,9 +51,10 @@ module MAction = struct
     let mu = MGrid.get_mg_at grid sr sq in
     let new_mu = mu#refill_mp in
     let () =
+      MGrid.remove_mg_at grid sr sq;
       MGrid.set_mg_at grid sr sq new_mu;
     in
-    grid,[mu#refill_mp],[mu],(MAnimation.create [])
+    grid,[new_mu],[mu],(MAnimation.create [])
 
   let move grid src dst =
     let sr,sq,dr,dq =
@@ -76,7 +77,7 @@ module MAction = struct
 
       let start = MGrid.get_tile old_mu#get_r old_mu#get_q grid in
       let goal = MGrid.get_tile new_mu#get_r new_mu#get_q grid in
-      let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid old_mu#get_mp in
+      let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid old_mu#get_current_mp in
       let movement_animation_list =
         List.fold_left (
           fun acc x -> (
