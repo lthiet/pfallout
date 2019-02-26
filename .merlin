@@ -1,0 +1,7 @@
+# source
+
+S asset/src
+
+B _build/asset/src
+
+PKG tsdl tsdl_ttf tsdl_image tsdl_mixer
