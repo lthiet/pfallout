@@ -113,10 +113,10 @@ module MGame = struct
                 faction_list = [faction1];
                 action_src = None;
                 action_dst = None;
+				action_type = None;
                 to_be_added_m = [];
                 animation = MAnimation.create [];
                 movement_range_selector = [];
-				action_type = MAction_enum.NOTHING
             } in
 
             let txt = {

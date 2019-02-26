@@ -34,7 +34,7 @@ module MAction = struct
 		if (dhp<=damage) then 
 			begin
 			MGrid.remove_mg_at grid dr dq;
-			grid,[],[dmu],(MAnimation.create [])  , MAction_enum.NOTHING
+			grid,[],[dmu],(MAnimation.create [])
 			end
 		(*if the entity isn't dead*)
 		else
@@ -42,14 +42,14 @@ module MAction = struct
 			in 
 			MGrid.remove_mg_at grid dr dq;
 			MGrid.set_mg_at grid dr dq new_dmu;
-			grid,[new_dmu],[dmu],(MAnimation.create []) , MAction_enum.NOTHING
+			grid,[new_dmu],[dmu],(MAnimation.create [])
 
     (* Refill a unit movement point *)
     let refill_mp grid src dst =
         let sr,sq = MHex.get_r src,MHex.get_q src
         in
         let mu = MGrid.get_mg_at grid sr sq in
-        grid,[mu#refill_mp],[mu],(MAnimation.create []), MAction_enum.NOTHING 
+        grid,[mu#refill_mp],[mu],(MAnimation.create [])
 
     let move grid src dst =
         let sr,sq,dr,dq =
@@ -85,13 +85,18 @@ module MAction = struct
                 MGrid.set_mg_at grid dr dq new_mu_minus_mp;
             in
 
-            grid,[new_mu_minus_mp],[old_mu],(MAnimation.create [movement_animation_list]), MAction_enum.NOTHING 
+            grid,[new_mu_minus_mp],[old_mu],(MAnimation.create [movement_animation_list])
+
+    exception No_action_specified
 	
     let execute t grid src_ax dst_ax =
         match t with
-        | MAction_enum.MOVE -> move grid src_ax dst_ax
-		| MAction_enum.ATTACK -> attack grid src_ax dst_ax
-        | _ -> raise Not_implemented
+        | None -> raise No_action_specified
+        | Some e ->
+            match e with
+                | MAction_enum.MOVE -> move grid src_ax dst_ax
+                | MAction_enum.ATTACK -> attack grid src_ax dst_ax
+                | _ -> raise Not_implemented
 	
 end
 ;;
