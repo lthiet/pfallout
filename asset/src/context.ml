@@ -14,6 +14,8 @@ open Pathfinder
 
 let ev = Some (Sdl.Event.create ())
 
+(* The context module is the main engine of the game. Depending
+   on multiples factors, such as input, it modifies the state of the game *)
 module MGameContext = struct
   type t = {
     over : bool;
@@ -206,12 +208,6 @@ module MGameContext = struct
           ctx_before_event
         (* Otherwise, check the event *)
         | Some e ->
-          print_string "-----------------------";
-          print_newline ();
-          List.iter (fun x->
-              print_string (MFaction.to_string x);
-              print_newline ();
-            ) ctx_before_event.faction_list;
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let camera = get_camera e ctx_before_event.camera in
@@ -259,16 +255,28 @@ module MGameContext = struct
                       MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_current_mp
                     | MAction_enum.ATTACK ->
                       MGrid.range_tile context.grid tile_below_src military_below#get_ar
-                    | _ -> []
+                    | _ -> [tile_below_src]
                   end
                 | _,_ -> 
                   begin
                     match action_dst,context.action_dst with
                     (* action dst has just been set *)
                     | Some y1,None ->
-                      let tile_below_dst = MGrid.get_tile (MHex.get_r y1) (MHex.get_q y1) context.grid in
-                      let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_current_mp in
-                      res
+                      begin
+                        let tile_below_dst = MGrid.get_tile (MHex.get_r y1) (MHex.get_q y1) context.grid in
+                        match context.action_type with
+                        | None -> []
+                        | Some e ->
+                          begin
+                            match e with
+                            | MAction_enum.MOVE ->
+                              let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_current_mp in
+                              res
+                            | MAction_enum.ATTACK ->
+                              [tile_below_dst] 
+                            | _ -> context.movement_range_selector
+                          end
+                      end
                     (* action dst has just been disabled *)
                     | None,Some y2-> 
                       begin
@@ -281,7 +289,7 @@ module MGameContext = struct
                               MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_current_mp
                             | MAction_enum.ATTACK ->
                               MGrid.range_tile context.grid tile_below_src military_below#get_ar
-                            | _ -> []
+                            | _ -> [tile_below_src]
                           end
                       end
                     | _,_ ->
