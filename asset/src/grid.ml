@@ -37,6 +37,9 @@ module MGrid = struct
     | None -> raise Grid_cell_no_entity
     | Some x -> x
 
+  let get_mg_at_ax t ax =
+    get_mg_at t (MHex.get_r ax) (MHex.get_q ax)
+
   let set_mg_at t r q m =
     let tmg = t.military_grid in
     (* Check if there's already something *)

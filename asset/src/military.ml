@@ -10,9 +10,9 @@ module MMilitary = struct
   type attack_type = MELEE | RANGED
   type terrain_type = GROUND | AIR
 
-  class military r q hp ap mp current_mp atks defs ar pa aos mt at tt pc = 
+  class military r q hp ap mp current_mp atks defs ar pa aos faction mt at tt pc = 
     object(self)
-      inherit MEntity.entity r q hp ap mp current_mp atks defs ar pa aos as super
+      inherit MEntity.entity r q hp ap mp current_mp atks defs ar pa aos faction as super
       val mt : military_type = mt
       val at : attack_type = at
       val tt : terrain_type = tt
@@ -25,8 +25,11 @@ module MMilitary = struct
 
   type t = military
 
-  let create_soldier r q =
-    new military r q 30 20 4 4 40 25 1 [MAction_enum.MOVE;MAction_enum.ATTACK] [MAction_enum.REFILL_MP] SOLDIER MELEE GROUND 3
+  let to_string t =
+    MHex.to_string_ax t#get_axial
+
+  let create_soldier r q f =
+    new military r q 30 20 4 4 40 25 1 [MAction_enum.MOVE;MAction_enum.ATTACK] [MAction_enum.REFILL_MP] f SOLDIER MELEE GROUND 3
 
   let military_to_entity m =
     (m : military :> MEntity.entity)

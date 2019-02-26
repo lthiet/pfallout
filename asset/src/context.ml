@@ -23,6 +23,7 @@ module MGameContext = struct
     player_turn : bool;
     new_turn : bool;
     faction_list : MFaction.t list;
+    faction_controlled_by_player : MFaction.t;
     action_src : MHex.axial_coord option;
     action_dst : MHex.axial_coord option;
     movement_range_selector : MTile.t list;
@@ -119,9 +120,17 @@ module MGameContext = struct
   let action_cancelled e =
     MKeyboard.key_is_pressed e Sdl.Scancode.escape
 
+  exception Entity_Not_Owned_By_Player
+
   let set_action_src e ctx =
     if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
-      Some ctx.cursor_selector#get_axial
+      begin
+        let mu_below = MGrid.get_mg_at_ax ctx.grid ctx.cursor_selector#get_axial in
+        if (MFaction.military_in mu_below ctx.faction_controlled_by_player) then
+          Some ctx.cursor_selector#get_axial
+        else
+          raise Entity_Not_Owned_By_Player
+      end
     else if action_cancelled e then
       None
     else
@@ -197,6 +206,12 @@ module MGameContext = struct
           ctx_before_event
         (* Otherwise, check the event *)
         | Some e ->
+          print_string "-----------------------";
+          print_newline ();
+          List.iter (fun x->
+              print_string (MFaction.to_string x);
+              print_newline ();
+            ) ctx_before_event.faction_list;
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let camera = get_camera e ctx_before_event.camera in

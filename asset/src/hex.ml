@@ -26,8 +26,11 @@ struct
   let get_y cu = cu.y
   let get_z cu = cu.z
 
+  let to_string_ax ax = 
+    "r : " ^ (string_of_int (get_r ax)) ^ "\t q : " ^ (string_of_int (get_q ax))
+
   let print_ax ax = 
-    Printf.printf "r : %d\tq : %d" (get_r ax) (get_q ax);
+    print_string (to_string_ax ax);
     print_newline ()
 
   let print_cu cu = 

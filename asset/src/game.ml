@@ -87,20 +87,25 @@ module MGame = struct
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
     if menu_result.start_game then
       let start = 8 in
-
-      let soldier1 = MMilitary.create_soldier start start in
-      let soldier2 = MMilitary.create_soldier (start+1) start in
+      let faction_code1 = 
+        MFaction_enum.create MFaction_enum.EU
+      in 
+      let soldier1 = MMilitary.create_soldier start start faction_code1 in
+      let soldier2 = MMilitary.create_soldier (start+1) start faction_code1 in
       let faction1 =
-        let f = MFaction.create_faction (MFaction_enum.create MFaction_enum.EU) true in
+        let f = MFaction.create_faction faction_code1 in
         MFaction.add_military soldier1 f
         |> MFaction.add_military soldier2
       in
 
-      let soldier3 = MMilitary.create_soldier (start+2) (start+2) in
-      let soldier4 = MMilitary.create_soldier (start+3) (start+2) in
+      let faction_code2 = 
+        MFaction_enum.create MFaction_enum.EU
+      in
+      let soldier3 = MMilitary.create_soldier (start+2) (start+2) faction_code2 in
+      let soldier4 = MMilitary.create_soldier (start+3) (start+2) faction_code2 in
 
       let faction2 =
-        let f = MFaction.create_faction (MFaction_enum.create MFaction_enum.EU) false in
+        let f = MFaction.create_faction faction_code2 in
         MFaction.add_military soldier3 f
         |> MFaction.add_military soldier4
       in
@@ -122,6 +127,7 @@ module MGame = struct
         player_turn = true;
         new_turn = false;
         faction_list = [faction1;faction2];
+        faction_controlled_by_player = faction1;
         action_src = None;
         action_dst = None;
         action_type = None;

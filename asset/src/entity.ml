@@ -4,10 +4,11 @@ open Utils
 open Hex
 open Tsdl
 open Texture_wrapper
+open Faction_enum
 
 module MEntity = struct
   exception Unsifficient_mp
-  class entity r q hp ap mp current_mp atks defs ar pa aos =
+  class entity r q hp ap mp current_mp atks defs ar pa aos faction =
     object(self)
       inherit game_object r q as super
       val hp : int = hp (* HEALTH POINT *)
@@ -19,6 +20,7 @@ module MEntity = struct
       val ar : int = ar (* ATTACK RANGE *)
       val pa : MAction_enum.t list = pa (* POSSIBLE ACTIONS *)
       val aos : MAction_enum.t list = aos (* ACTIONS ON START *)
+      val faction : MFaction_enum.t = faction 
 
       method get_hp = hp
       method get_ap = ap
@@ -29,6 +31,7 @@ module MEntity = struct
       method get_pa = pa
       method get_ar = ar
       method get_aos = aos
+      method get_faction = faction
       method remove_mp n = 
         let tmp = self#get_current_mp-n in
         if tmp >= 0 then

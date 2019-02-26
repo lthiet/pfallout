@@ -6,10 +6,12 @@ open Animation
 open Entity
 open Military
 
+(* This module computes actions in the game. Each action can modified the state
+of the game (the factions lists and the grid). Each action shall return the newly computed grid,
+the list of unit to delete, the list of unit to add *)
 module MAction = struct
   exception Not_implemented
   exception Impossible_movement
-
 
   let attack grid src dst = 
     let sr,sq,dr,dq =

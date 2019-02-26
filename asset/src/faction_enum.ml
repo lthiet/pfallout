@@ -21,5 +21,6 @@ module MFaction_enum = struct
   let create code =
     id := !id + 1;
     code,!id
+
 end
 ;;
