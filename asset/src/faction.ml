@@ -21,7 +21,7 @@ struct
       controlled_by_player = cbp
     }
 
-  let add_military t m =
+  let add_military m t =
     {
       t with
       military_list = m :: t.military_list

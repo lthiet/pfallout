@@ -30,6 +30,7 @@ module MGrid = struct
   exception Grid_cell_not_empty
   exception Grid_cell_no_entity
 
+
   let get_mg_at t r q =
     let tmg = t.military_grid in
     match tmg.(r).(q) with
@@ -44,6 +45,9 @@ module MGrid = struct
     | None -> tmg.(r).(q) <- Some m
     (* Otherwise, it is an error*)
     | _ -> raise Grid_cell_not_empty
+
+  let add_mg_at t m =
+    set_mg_at t m#get_r m#get_q m
 
   let get_infrastructure_grid t = t.infrastructure_grid
 

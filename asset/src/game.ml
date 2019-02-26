@@ -91,16 +91,27 @@ module MGame = struct
       let soldier1 = MMilitary.create_soldier start start in
       let soldier2 = MMilitary.create_soldier (start+1) start in
       let faction1 =
-        let f = MFaction.create_faction MFaction_enum.EU true in
-        let tmp = MFaction.add_military f soldier1 in
-        MFaction.add_military tmp soldier2
+        let f = MFaction.create_faction (MFaction_enum.create MFaction_enum.EU) true in
+        MFaction.add_military soldier1 f
+        |> MFaction.add_military soldier2
+      in
+
+      let soldier3 = MMilitary.create_soldier (start+2) (start+2) in
+      let soldier4 = MMilitary.create_soldier (start+3) (start+2) in
+
+      let faction2 =
+        let f = MFaction.create_faction (MFaction_enum.create MFaction_enum.EU) false in
+        MFaction.add_military soldier3 f
+        |> MFaction.add_military soldier4
       in
 
       let grid = MGrid.create start in
 
       let () =
-        MGrid.set_mg_at grid soldier1#get_r soldier1#get_q soldier1;
-        MGrid.set_mg_at grid soldier2#get_r soldier2#get_q soldier2
+        MGrid.add_mg_at grid soldier1;
+        MGrid.add_mg_at grid soldier2;
+        MGrid.add_mg_at grid soldier3;
+        MGrid.add_mg_at grid soldier4;
       in
 
       let ctx : MGameContext.t = {
@@ -110,7 +121,7 @@ module MGame = struct
         cursor_selector = MCursor.create start start MCursor.SELECTING;
         player_turn = true;
         new_turn = false;
-        faction_list = [faction1];
+        faction_list = [faction1;faction2];
         action_src = None;
         action_dst = None;
         action_type = None;
