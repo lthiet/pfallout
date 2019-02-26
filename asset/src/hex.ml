@@ -152,7 +152,7 @@ struct
           let tmp = aux2 bound_bot [] in
           aux1 (x+1) (tmp @ acc1)
       in
-      aux1 (-n) []
+      aux1 (-n) [cu]
 
   let range_ax n ax =
     let cu = axial_to_cube ax in

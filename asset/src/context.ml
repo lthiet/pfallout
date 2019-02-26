@@ -95,23 +95,16 @@ module MGameContext = struct
           let pk = MKeyboard.get_scancode e in
           let r = new_int pk ks.down ks.up  offset c#get_r in
           let q = new_int pk ks.right ks.left  offset c#get_q in
-          let tile_below = MGrid.get_tile r q g in
-          let in_range =
+          let new_tile_below = MGrid.get_tile r q g in
+          (* Checks whether or not the new tile is
+             inside the tiles that represents the range of
+             a certain action *)
+          let new_tile_in_range = 
             List.exists (fun x ->
-                let tmp1 = 
-                  x#get_axial = tile_below#get_axial
-                in
-                let tmp2 =
-                  match ctx.action_src with
-                  | None -> false
-                  | Some e ->
-                    x#get_axial = e
-                in
-                tmp1 || tmp2
+                x#get_axial = new_tile_below#get_axial
               ) ctx.movement_range_selector
           in
-
-          if (action_src_is_set ctx && not in_range) || tile_below#is_impassable then
+          if ((action_src_is_set ctx) && not new_tile_in_range) || new_tile_below#is_impassable then
             c
           else				
             c#move r q
