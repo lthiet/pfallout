@@ -60,9 +60,9 @@ module MGame = struct
         fun x ->
           List.iter (
             fun y ->
-              MMilitary.render renderer y textures.military context.camera 0
+              MEntity.render renderer y textures.military context.camera 0
           )
-            (MFaction.get_military x)
+            (MFaction.get_entity x)
       ) 
         context.faction_list;
 
@@ -94,8 +94,8 @@ module MGame = struct
       let soldier2 = MMilitary.create_soldier (start+1) start faction_code1 in
       let faction1 =
         let f = MFaction.create_faction faction_code1 in
-        MFaction.add_military soldier1 f
-        |> MFaction.add_military soldier2
+        MFaction.add_entity soldier1 f
+        |> MFaction.add_entity soldier2
       in
 
       let faction_code2 = 
@@ -129,7 +129,7 @@ module MGame = struct
         action_src = None;
         action_dst = None;
         action_type = None;
-        to_be_added_m = [];
+        to_be_added = [];
         animation = MAnimation.create [];
         movement_range_selector = [];
       } in

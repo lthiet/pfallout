@@ -1,6 +1,7 @@
 open Tsdl
 open Texture_wrapper
 open Tile
+open Entity
 open Military
 open Infrastructure
 open Tile
@@ -17,8 +18,7 @@ module MGrid = struct
   type t = {
     level_radius : int;
     grid : (MTile.tile) array array;
-    military_grid : (MMilitary.t option) array array;
-    infrastructure_grid : (MInfrastructure.t option) array array;
+    military_grid : (MEntity.t option) array array;
   }
 
   let get_military_grid t = t.military_grid
@@ -31,14 +31,14 @@ module MGrid = struct
   exception Grid_cell_no_entity
 
 
-  let get_mg_at t r q =
+  let get_ent_at t r q =
     let tmg = t.military_grid in
     match tmg.(r).(q) with
     | None -> raise Grid_cell_no_entity
     | Some x -> x
 
-  let get_mg_at_ax t ax =
-    get_mg_at t (MHex.get_r ax) (MHex.get_q ax)
+  let get_ent_at_ax t ax =
+    get_ent_at t (MHex.get_r ax) (MHex.get_q ax)
 
   let set_mg_at t r q m =
     let tmg = t.military_grid in
@@ -51,8 +51,6 @@ module MGrid = struct
 
   let add_mg_at t m =
     set_mg_at t m#get_r m#get_q m
-
-  let get_infrastructure_grid t = t.infrastructure_grid
 
   let create_grid level_radius =
     let size = level_radius * 2 + 1 in
@@ -94,7 +92,6 @@ module MGrid = struct
       level_radius = level_radius;
       grid = create_grid level_radius;
       military_grid = create_none_grid level_radius;
-      infrastructure_grid = create_none_grid level_radius;
     }
 
   let render renderer tile_texture terrain_feature_texture grid camera = 

@@ -10,6 +10,7 @@ open Action
 open Action_enum
 open Animation
 open Military
+open Entity
 open Pathfinder
 
 let ev = Some (Sdl.Event.create ())
@@ -27,7 +28,7 @@ module MGameContext = struct
     action_src : MHex.axial_coord option;
     action_dst : MHex.axial_coord option;
     movement_range_selector : MTile.t list;
-    to_be_added_m : MMilitary.t list;
+    to_be_added : MEntity.t list;
     animation : MAnimation.t;
     action_type : MAction_enum.t option
   }
@@ -134,8 +135,8 @@ module MGameContext = struct
   let set_action_src e ctx =
     if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
       begin
-        let mu_below = MGrid.get_mg_at_ax ctx.grid ctx.cursor_selector#get_axial in
-        if (MFaction.military_in mu_below ctx.faction_controlled_by_player) then
+        let ent_below = MGrid.get_ent_at_ax ctx.grid ctx.cursor_selector#get_axial in
+        if (MFaction.entity ent_below ctx.faction_controlled_by_player) then
           Some ctx.cursor_selector#get_axial
         else
           raise Entity_Not_Owned_By_Player
@@ -197,6 +198,41 @@ module MGameContext = struct
      when cycling through a faction list *)
   let next_faction l =
     cycle l
+(* 
+  (* Make a call of each of the unit of a faction, provided
+     the faction is not controlled by the player *)
+  let compute_cpu_faction_turn ctx fl = 
+    raise Not_yet_implemented
+
+
+  (* Make a call on each of the unit (without regard to their respective
+     factions) that are not 
+     controlled by the player *)
+  let compute_cpu_turn ctx = 
+    if not (is_player_turn ctx) then
+      begin
+        let added,deleted,animation =
+        begin
+        List.fold_right ( fun x acc -> 
+            if MFaction.equal x ctx.faction_controlled_by_player then
+              let to_be_added_acc,to_be_deleted_acc,_ = acc in
+              let to_be_added,to_be_deleted,_ = compute_cpu_faction_turn ctx x in
+              (to_be_added :: to_be_added_acc),(to_be_deleted :: to_be_deleted_acc),(MAnimation.create [])
+            else
+              acc
+          ) ctx.faction_list ([],[],MAnimation.create []) 
+        end
+        in
+        {
+          ctx with
+          to_be_added_m = added;
+          to_be_deleted = deleted;
+          animation = animation
+        }
+      end
+    else 
+      ctx
+ *)
 
   (* Update the context after event have been taken
      into account, usually this is used for animation
@@ -206,13 +242,14 @@ module MGameContext = struct
     if MAnimation.is_over ctx.animation then
       let faction_list =
         List.fold_right (
-          fun x acc-> (MFaction.update_military x ctx.to_be_added_m [] ) :: acc
+          fun x acc-> (MFaction.update_entities x ctx.to_be_added [] ) :: acc
         ) ctx.faction_list []
       in
-      let to_be_added_m = [] in
+      let to_be_added = [] in
       {ctx with
        faction_list = faction_list;
-       to_be_added_m = to_be_added_m}
+       to_be_added = to_be_added}
+       (* |> compute_cpu_turn *)
     else
       ctx
 
@@ -273,7 +310,7 @@ module MGameContext = struct
                 in
                 let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
                 let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
-                let military_below = MGrid.get_mg_at context.grid c#get_r c#get_q in
+                let ent_below = MGrid.get_ent_at context.grid c#get_r c#get_q in
                 match action_type,context.action_type with
                 (* Action has been cancelled *)
                 | None,Some e2 -> []
@@ -282,9 +319,9 @@ module MGameContext = struct
                   begin
                     match e1 with 
                     | MAction_enum.MOVE ->
-                      MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_current_mp
+                      MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp
                     | MAction_enum.ATTACK ->
-                      MGrid.range_tile context.grid tile_below_src military_below#get_ar
+                      MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                     | _ -> [tile_below_src]
                   end
                 | _,_ -> 
@@ -300,7 +337,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE ->
-                              let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid military_below#get_current_mp in
+                              let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp in
                               res
                             | MAction_enum.ATTACK ->
                               [tile_below_dst] 
@@ -316,9 +353,9 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE ->
-                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid military_below#get_current_mp
+                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp
                             | MAction_enum.ATTACK ->
-                              MGrid.range_tile context.grid tile_below_src military_below#get_ar
+                              MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                             | _ -> [tile_below_src]
                           end
                       end
@@ -328,13 +365,13 @@ module MGameContext = struct
               end
           in
 
-          let added_m,deleted_m,animation_tmp = compute_new_grid e ctx_before_event 
+          let added_e,deleted_e,animation_tmp = compute_new_grid e ctx_before_event 
           in
 
           let faction_list =
             let tmp = List.fold_right (
                 fun x acc  -> 
-                  (MFaction.update_military x [] deleted_m ) :: acc
+                  (MFaction.update_entities x [] deleted_e ) :: acc
               ) ctx_before_event.faction_list []
             in
             if new_turn e ctx_before_event then
@@ -348,13 +385,13 @@ module MGameContext = struct
           List.iter (fun x -> print_string (MFaction.to_string x)) faction_list;
           print_newline ();
 
-          let to_be_added_m = 
+          let to_be_added = 
             begin
-              match added_m with
+              match added_e with
               | x::s -> 
-                added_m
+                added_e
               | [] -> 
-                ctx_before_event.to_be_added_m
+                ctx_before_event.to_be_added
             end
           in
 
@@ -371,7 +408,7 @@ module MGameContext = struct
             faction_list = faction_list;
             action_src = action_src;
             action_dst = action_dst;
-            to_be_added_m = to_be_added_m;
+            to_be_added = to_be_added;
             movement_range_selector = movement_range_selector;
             animation = new_animation;
             action_type = action_type

@@ -82,3 +82,7 @@ let cycle l =
   | [] -> []
   | x :: s -> s @ [x]
 
+(* Exception whenever a function has not been implement yet
+   but requires to be called nonetheless *)
+exception Not_yet_implemented 
+

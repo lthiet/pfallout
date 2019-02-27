@@ -8,7 +8,12 @@ open Faction_enum
 
 module MEntity = struct
   exception Unsifficient_mp
-  class entity r q hp ap mp current_mp atks defs ar pa aos faction =
+  type military_type = SOLDIER | SNIPER
+  type attack_type = MELEE | RANGED
+  type terrain_type = GROUND | AIR
+
+
+  class entity r q hp ap mp current_mp atks defs ar pa aos faction mt at tt pc = 
     object(self)
       inherit game_object r q as super
       val hp : int = hp (* HEALTH POINT *)
@@ -21,6 +26,15 @@ module MEntity = struct
       val pa : MAction_enum.t list = pa (* POSSIBLE ACTIONS *)
       val aos : MAction_enum.t list = aos (* ACTIONS ON START *)
       val faction : MFaction_enum.t = faction 
+      val mt : military_type = mt
+      val at : attack_type = at
+      val tt : terrain_type = tt
+      val pc : int = pc (* Production cost *)
+      method get_mt = mt
+      method get_at = at
+      method get_tt = tt
+      method get_pc = pc
+
 
       method get_hp = hp
       method get_ap = ap
@@ -43,6 +57,10 @@ module MEntity = struct
 
     end
   type t = entity
+
+  let to_string t =
+    MHex.to_string_ax t#get_axial
+
 
   (* Render the entity *)
   let render renderer e txt camera frame_n=
