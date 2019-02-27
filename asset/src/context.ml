@@ -135,7 +135,7 @@ module MGameContext = struct
   let set_action_src e ctx =
     if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
       begin
-        let ent_below = MGrid.get_ent_at_ax ctx.grid ctx.cursor_selector#get_axial in
+        let ent_below = MGrid.get_mg_at_ax ctx.grid ctx.cursor_selector#get_axial in
         if (MFaction.entity ent_below ctx.faction_controlled_by_player) then
           Some ctx.cursor_selector#get_axial
         else
@@ -310,7 +310,7 @@ module MGameContext = struct
                 in
                 let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
                 let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
-                let ent_below = MGrid.get_ent_at context.grid c#get_r c#get_q in
+                let ent_below = MGrid.get_mg_at context.grid c#get_r c#get_q in
                 match action_type,context.action_type with
                 (* Action has been cancelled *)
                 | None,Some e2 -> []

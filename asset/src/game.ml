@@ -12,7 +12,6 @@ open Pathfinder
 open Faction
 open Faction_enum
 open Military
-open Infrastructure
 open Animation
 open Entity
 open Action_enum
@@ -106,8 +105,8 @@ module MGame = struct
 
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
-        MFaction.add_military soldier3 f
-        |> MFaction.add_military soldier4
+        MFaction.add_entity soldier3 f
+        |> MFaction.add_entity soldier4
       in
 
       let grid = MGrid.create start in

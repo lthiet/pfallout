@@ -3,13 +3,20 @@ open Texture_wrapper
 open Tile
 open Entity
 open Military
-open Infrastructure
 open Tile
 open Utils
 open Hex
 
 (* Some functions are Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
-(* Constants *)
+(* The grid module is  where all the game object are stored. Currently
+   there are 2 layers : 
+   1 : tiles
+   2 : military units
+
+   In the future, there will be infrastructure layer. In short,
+   each instance from different layer may be on top of each other,
+   however two instances of same layer
+   cannot be on the same coordinates *)
 module MGrid = struct
   let () =  Random.self_init ()
 
@@ -29,25 +36,34 @@ module MGrid = struct
 
   exception Grid_cell_not_empty
   exception Grid_cell_no_entity
+  exception Grid_set_error of string
+
+  let not_mu_on_mg_error_msg = "Tried to set a non military unit on the military grid"
 
 
-  let get_ent_at t r q =
+  let get_mg_at t r q =
     let tmg = t.military_grid in
     match tmg.(r).(q) with
     | None -> raise Grid_cell_no_entity
     | Some x -> x
 
-  let get_ent_at_ax t ax =
-    get_ent_at t (MHex.get_r ax) (MHex.get_q ax)
+  let get_mg_at_ax t ax =
+    get_mg_at t (MHex.get_r ax) (MHex.get_q ax)
 
   let set_mg_at t r q m =
     let tmg = t.military_grid in
-    (* Check if there's already something *)
-    match tmg.(r).(q) with
-    (* If not, we can set *)
-    | None -> tmg.(r).(q) <- Some m
-    (* Otherwise, it is an error*)
-    | _ -> raise Grid_cell_not_empty
+    (* Check if the unit is indeed a military *)
+    if MEntity.is_military m then
+      begin
+        (* Check if there's already something *)
+        match tmg.(r).(q) with
+        (* If not, we can set *)
+        | None -> tmg.(r).(q) <- Some m
+        (* Otherwise, it is an error*)
+        | _ -> raise Grid_cell_not_empty
+      end
+    else
+      raise (Grid_set_error not_mu_on_mg_error_msg)
 
   let add_mg_at t m =
     set_mg_at t m#get_r m#get_q m

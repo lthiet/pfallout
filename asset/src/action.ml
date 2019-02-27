@@ -14,51 +14,49 @@ module MAction = struct
   exception Impossible_movement
 
   let attack grid src dst = 
-    raise Not_yet_implemented
-  (* let sr,sq,dr,dq =
-     MHex.get_r src,
-     MHex.get_q src,
-     MHex.get_r dst,
-     MHex.get_q dst
-     in
-     let smu, dmu = 
-     MGrid.get_mg_at grid sr sq,
-     MGrid.get_mg_at grid dr dq in
-     let satks = smu#get_atks
-     in
-     let dhp,ddefs = dmu#get_hp,dmu#get_defs
-     in
-     let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
+    let sr,sq,dr,dq =
+      MHex.get_r src,
+      MHex.get_q src,
+      MHex.get_r dst,
+      MHex.get_q dst
+    in
+    let smu, dmu = 
+      MGrid.get_mg_at grid sr sq,
+      MGrid.get_mg_at grid dr dq in
+    let satks = smu#get_atks
+    in
+    let dhp,ddefs = dmu#get_hp,dmu#get_defs
+    in
+    let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
 
-     MGrid.remove_mg_at grid dr dq;
-     MGrid.set_mg_at grid dr dq (dmu#remove_hp damage);
+    MGrid.remove_mg_at grid dr dq;
+    MGrid.set_mg_at grid dr dq (dmu#remove_hp damage);
 
-     (*if the entity is dead*)
-     if (dhp<=damage) then 
-     begin
+    (*if the entity is dead*)
+    if (dhp<=damage) then 
+      begin
+        MGrid.remove_mg_at grid dr dq;
+        [],[dmu],(MAnimation.create [])
+      end
+      (*if the entity isn't dead*)
+    else
+      let new_dmu = dmu#remove_hp damage
+      in 
       MGrid.remove_mg_at grid dr dq;
-      [],[dmu],(MAnimation.create [])
-     end
-     (*if the entity isn't dead*)
-     else
-     let new_dmu = dmu#remove_hp damage
-     in 
-     MGrid.remove_mg_at grid dr dq;
-     MGrid.set_mg_at grid dr dq new_dmu;
-     [new_dmu],[dmu],(MAnimation.create []) *)
+      MGrid.set_mg_at grid dr dq new_dmu;
+      [new_dmu],[dmu],(MAnimation.create [])
 
   (* Refill a unit movement point *)
   let refill_mp grid src dst =
-    raise Not_yet_implemented
-  (* let sr,sq = MHex.get_r src,MHex.get_q src
-     in
-     let mu = MGrid.get_mg_at grid sr sq in
-     let new_mu = mu#refill_mp in
-     let () =
-     MGrid.remove_mg_at grid sr sq;
-     MGrid.set_mg_at grid sr sq new_mu;
-     in
-     [new_mu],[mu],(MAnimation.create []) *)
+    let sr,sq = MHex.get_r src,MHex.get_q src
+    in
+    let mu = MGrid.get_mg_at grid sr sq in
+    let new_mu = mu#refill_mp in
+    let () =
+      MGrid.remove_mg_at grid sr sq;
+      MGrid.set_mg_at grid sr sq new_mu;
+    in
+    [new_mu],[mu],(MAnimation.create [])
 
   (* Move an entity that is on src to dst,
      returns an error if entity cannot
@@ -79,7 +77,7 @@ module MAction = struct
     if t_dst#is_impassable then
       raise Impossible_movement
     else
-      let ent = MGrid.get_ent_at grid sr sq in
+      let ent = MGrid.get_mg_at grid sr sq in
       let old_ent,new_ent = 
         ent,ent#move dr dq
       in
