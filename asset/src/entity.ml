@@ -12,6 +12,13 @@ module MEntity = struct
   type attack_type = MELEE | RANGED
   type terrain_type = GROUND | AIR
 
+  type status = IDLE | ATTACKING | MOVING
+
+  let status_to_string s =
+    match s with
+    | IDLE -> "idle"
+    | ATTACKING -> "attacking"
+    | MOVING -> "moving"
 
   class entity r q hp ap mp current_mp atks defs ar pa aos faction ut at tt pc = 
     object(self)
@@ -30,6 +37,7 @@ module MEntity = struct
       val at : attack_type = at
       val tt : terrain_type = tt
       val pc : int = pc (* Production cost *)
+      val status : status = IDLE
       method get_hp = hp
       method get_ap = ap
       method get_mp = mp
@@ -44,6 +52,9 @@ module MEntity = struct
       method get_at = at
       method get_tt = tt
       method get_pc = pc
+      method set_status s = {<status = s>}
+      method get_status = status
+      method check_status s = self#get_status = s
       method remove_mp n = 
         let tmp = self#get_current_mp-n in
         if tmp >= 0 then

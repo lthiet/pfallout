@@ -123,8 +123,9 @@ module MAction = struct
       let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid old_ent#get_current_mp in
       let movement_animation_list =
         List.fold_left (
-          fun acc x -> (
-              (old_ent#move x#get_r x#get_q),10) :: acc
+          fun acc x -> 
+            let new_ent = (old_ent#move x#get_r x#get_q)#set_status MEntity.MOVING in
+            ((new_ent),10) :: acc
         ) [] (List.rev path_taken)
       in
       let new_ent_minus_current_mp = new_ent#remove_mp mv_cost in
