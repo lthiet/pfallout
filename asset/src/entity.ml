@@ -69,7 +69,7 @@ module MEntity = struct
     not (is_infrastructure t)
 
   let to_string t =
-    MHex.to_string_ax t#get_axial
+    (MHex.to_string_ax t#get_axial) ^ " current mp : " ^(string_of_int t#get_current_mp)
 
 
   (* Render the entity *)

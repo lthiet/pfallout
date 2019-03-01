@@ -14,7 +14,7 @@ struct
     let tmp2 =
       List.fold_left (
         fun acc x ->
-          acc ^ (MEntity.to_string x) ^ " "
+          acc ^ (MEntity.to_string x) ^ "\n"
       ) "" t.entities_list
     in
     tmp1 ^ "\n" ^ tmp2 ^ "\n"
@@ -55,11 +55,7 @@ struct
       | x :: s ->
         let new_acc =
           if List.exists (fun y -> x = y) deleted then
-            begin
-              print_string "truc";
-              print_newline ();
-              acc
-            end
+            acc
           else
             x :: acc
         in
@@ -70,5 +66,10 @@ struct
       t with
       entities_list = new_ml
     }
+
+    let faction_can_play t =
+      match t.entities_list with
+      | [] -> false
+      | l -> List.exists ( fun x -> x#can_move) l
 end
 ;;

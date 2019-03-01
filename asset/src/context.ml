@@ -27,11 +27,12 @@ module MGameContext = struct
     faction_controlled_by_player : MFaction.t;
     action_src : MHex.axial_coord option;
     action_dst : MHex.axial_coord option;
+    action_type : MAction_enum.t option;
     movement_range_selector : MTile.t list;
     to_be_added : MEntity.t list;
     to_be_deleted : MEntity.t list;
     animation : MAnimation.t;
-    action_type : MAction_enum.t option
+    new_turn : bool;
   }
 
   exception Nothing
@@ -190,7 +191,7 @@ module MGameContext = struct
     else
       MAction.empty
 
-  let new_turn e ctx =
+  let check_new_turn e ctx =
     MKeyboard.key_is_pressed e Sdl.Scancode.r && is_player_turn ctx
 
   (* this function just gives more meaning
@@ -204,35 +205,54 @@ module MGameContext = struct
     | [] -> raise No_faction
     | x :: s -> x
 
+  exception No_entities_to_play
 
   let compute_cpu_turn ctx =
+    (* If it is not the turn of the player, we can compute the turn*)
     if not (is_player_turn ctx) then
       begin
-        print_string "cool";
-        print_newline ();
-        let cf = current_faction ctx in
-        let units = MFaction.get_entity cf in
-        let res = List.fold_left ( fun acc x  ->
-            if x#can_move then
-              let dst = MHex.create_ax (x#get_r ) (x#get_q+4) in
-              let tmp = MAction.execute (Some MAction_enum.MOVE) ctx.grid x#get_axial dst in
-              MAction.add tmp acc
-            else
-              acc
-          ) MAction.empty units
-        in
-        let faction_list =
-          List.fold_right (
-            fun x acc-> (MFaction.update_entities x (MAction.get_deleted res) [] ) :: acc
-          ) ctx.faction_list []
-        in
+        (* Check if the faction can play, if not, we will iterate to the next faction *)
+        if (MFaction.faction_can_play (current_faction ctx)) then
+          let cf = current_faction ctx in
+          let units = MFaction.get_entity cf in
 
-        {
-          ctx with
-          faction_list = faction_list;
-          to_be_added = MAction.get_added res;
-          animation = MAction.get_animation res;
-        }
+          (* Compute the movement for the next unit in line *)
+          let rec aux l =
+            match l with
+            (* It shouldve been checked if the faction can play,
+               not checking for this might turn into an endless loop *)
+            | [] -> raise No_entities_to_play
+            | x :: s ->
+              if x#can_move then
+                let dst = MHex.create_ax (x#get_r ) (x#get_q-4) in
+                MAction.execute (Some MAction_enum.MOVE) ctx.grid x#get_axial dst
+              else
+                aux s
+          in
+
+          let res = aux units in
+
+          let faction_list =
+            List.fold_right (
+              fun x acc-> (MFaction.update_entities x [] (MAction.get_deleted res) ) :: acc
+            ) ctx.faction_list []
+          in
+
+          {
+            ctx with
+            faction_list = faction_list;
+            to_be_added = MAction.get_added res;
+            animation = MAction.get_animation res;
+            new_turn = false;
+          }
+        else 
+          begin
+            {
+              ctx with
+              faction_list = cycle ctx.faction_list;
+              new_turn = true
+            }
+          end
       end
     else
       ctx
@@ -250,14 +270,44 @@ module MGameContext = struct
       in
       {ctx with
        faction_list = faction_list;
-       to_be_added = []}
-      |> compute_cpu_turn
+       to_be_added = []} |> compute_cpu_turn
     else
       ctx
 
+
+  (* For each unit in the faction,
+     execute the action on start *)
+  let faction_on_start_actions ctx = 
+    if ctx.new_turn then
+      let cf = current_faction ctx in
+      let units = MFaction.get_entity cf in
+      let res = List.fold_left ( fun acc1 x1 -> 
+          List.fold_left ( fun acc1 x2 ->
+              let res = MAction.execute (Some x2) ctx.grid x1#get_axial x1#get_axial in
+              MAction.add res acc1
+            ) acc1 x1#get_aos
+        ) MAction.empty units
+      in
+
+      let faction_list =
+        List.fold_right (
+          fun x acc-> (MFaction.update_entities x [] (MAction.get_deleted res) ) :: acc
+        ) ctx.faction_list []
+      in
+
+      {
+        ctx with
+        faction_list = faction_list;
+        animation = MAction.get_animation res;
+        to_be_added = MAction.get_added res;
+        new_turn = false
+      }
+    else
+      ctx
+
+
   (* Update the new context of the game *)
   let update_context context =
-
     (* Event independant context change *)
     let ctx_before_event =
       let animation =
@@ -265,8 +315,8 @@ module MGameContext = struct
       in
       {
         context with
-        animation = animation
-      }
+        animation = animation;
+      } |> faction_on_start_actions
     in
 
     (* Get the next event in the queue *)
@@ -374,16 +424,16 @@ module MGameContext = struct
             MAction.get_animation res
           in
 
-          let faction_list =
+          let faction_list,new_turn=
             let tmp = List.fold_right (
                 fun x acc  -> 
                   (MFaction.update_entities x [] deleted_e ) :: acc
               ) ctx_before_event.faction_list []
             in
-            if new_turn e ctx_before_event then
-              cycle tmp
+            if check_new_turn e ctx_before_event then
+              cycle tmp,true
             else
-              tmp
+              tmp,ctx_before_event.new_turn
           in
 
           let to_be_added = 
@@ -412,12 +462,12 @@ module MGameContext = struct
             to_be_added = to_be_added;
             movement_range_selector = movement_range_selector;
             animation = new_animation;
-            action_type = action_type
+            action_type = action_type;
+            new_turn = new_turn
           }
       else
         ctx_before_event
     in
     update_context_after_event ctx_with_event
-
 end
 ;;
