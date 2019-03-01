@@ -12,11 +12,21 @@ struct
     r : int
   }
 
+  let create_ax r q = {
+    r = r;
+    q = q
+  }
 
   type cube_coord = {
     x : int;
     y : int;
     z : int
+  }
+
+  let create_cu x y z = {
+    x = x;
+    y = z;
+    z = z
   }
 
   let get_r ax = ax.r

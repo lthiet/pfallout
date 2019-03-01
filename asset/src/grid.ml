@@ -80,7 +80,7 @@ module MGrid = struct
             if tmp2 < 0 || q >= size + tmp1 then
               new MTile.tile r q (MTile.int_to_tile_type n) (MTile.LAKE)
             else
-              new MTile.tile r q (MTile.int_to_tile_type n) (MTile.int_to_terrain_feature m)
+              new MTile.tile r q (MTile.int_to_tile_type n) (MTile.REGULAR)
           )
       )
 

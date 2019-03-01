@@ -29,6 +29,7 @@ module MGameContext = struct
     action_dst : MHex.axial_coord option;
     movement_range_selector : MTile.t list;
     to_be_added : MEntity.t list;
+    to_be_deleted : MEntity.t list;
     animation : MAnimation.t;
     action_type : MAction_enum.t option
   }
@@ -205,16 +206,34 @@ module MGameContext = struct
 
 
   let compute_cpu_turn ctx =
-    if not (is_player_turn ctx)  then
-    begin
-      let cf = current_faction ctx in
-      let units = MFaction.get_entity cf in
-      List.iter ( fun x ->
+    if not (is_player_turn ctx) then
+      begin
+        print_string "cool";
         print_newline ();
-        print_string (MEntity.to_string x);
-      ) units;
-      ctx
-    end
+        let cf = current_faction ctx in
+        let units = MFaction.get_entity cf in
+        let res = List.fold_left ( fun acc x  ->
+            if x#can_move then
+              let dst = MHex.create_ax (x#get_r ) (x#get_q+4) in
+              let tmp = MAction.execute (Some MAction_enum.MOVE) ctx.grid x#get_axial dst in
+              MAction.add tmp acc
+            else
+              acc
+          ) MAction.empty units
+        in
+        let faction_list =
+          List.fold_right (
+            fun x acc-> (MFaction.update_entities x (MAction.get_deleted res) [] ) :: acc
+          ) ctx.faction_list []
+        in
+
+        {
+          ctx with
+          faction_list = faction_list;
+          to_be_added = MAction.get_added res;
+          animation = MAction.get_animation res;
+        }
+      end
     else
       ctx
 
@@ -229,10 +248,9 @@ module MGameContext = struct
           fun x acc-> (MFaction.update_entities x ctx.to_be_added [] ) :: acc
         ) ctx.faction_list []
       in
-      let to_be_added = [] in
       {ctx with
        faction_list = faction_list;
-       to_be_added = to_be_added}
+       to_be_added = []}
       |> compute_cpu_turn
     else
       ctx

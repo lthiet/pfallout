@@ -55,7 +55,11 @@ struct
       | x :: s ->
         let new_acc =
           if List.exists (fun y -> x = y) deleted then
-            acc
+            begin
+              print_string "truc";
+              print_newline ();
+              acc
+            end
           else
             x :: acc
         in

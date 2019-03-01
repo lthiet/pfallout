@@ -9,6 +9,20 @@ module MAnimation = struct
     to_be_animated : (MEntity.t * int) list list;
   }
 
+  let add t1 t2 =
+    let rec aux l1 l2 acc =
+      match l1,l2 with
+      | [],[] -> acc
+      | x :: s,[] -> acc @ l1
+      | [], x :: s -> acc @ l2
+      | x :: s,y :: r -> aux s r  ((x @ y) :: acc)
+    in
+    let tmp = aux t1.to_be_animated t2.to_be_animated [] in
+    {
+      to_be_animated = tmp
+    }
+
+
   let print t =
     List.iter (
       fun x -> 

@@ -34,8 +34,7 @@ module MAction = struct
     {
       added = r1.added @ r2.added;
       deleted = r1.deleted @ r2.deleted;
-      (* Not yet implemented *)
-      animation = r1.animation 
+      animation = MAnimation.add r1.animation r2.animation;
     }
 
   let attack grid src dst = 

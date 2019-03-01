@@ -101,12 +101,12 @@ module MGame = struct
         MFaction_enum.create MFaction_enum.EU
       in
       let soldier3 = MMilitary.create_soldier (start+2) (start+2) faction_code2 in
-      let soldier4 = MMilitary.create_soldier (start+3) (start+2) faction_code2 in
+      (* let soldier4 = MMilitary.create_soldier (start+3) (start+2) faction_code2 in *)
 
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
         MFaction.add_entity soldier3 f
-        |> MFaction.add_entity soldier4
+        (* |> MFaction.add_entity soldier4 *)
       in
 
       let grid = MGrid.create start in
@@ -115,7 +115,7 @@ module MGame = struct
         MGrid.add_mg_at grid soldier1;
         MGrid.add_mg_at grid soldier2;
         MGrid.add_mg_at grid soldier3;
-        MGrid.add_mg_at grid soldier4;
+        (* MGrid.add_mg_at grid soldier4; *)
       in
 
       let ctx : MGameContext.t = {
@@ -129,6 +129,7 @@ module MGame = struct
         action_dst = None;
         action_type = None;
         to_be_added = [];
+        to_be_deleted = [];
         animation = MAnimation.create [];
         movement_range_selector = [];
       } in
