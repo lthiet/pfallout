@@ -97,9 +97,6 @@ module MGameContext = struct
         tmp#set_status MCursor.SELECTING
     in
 
-    Printf.printf "%B" (is_player_turn ctx);
-    print_newline ();
-
     if MAnimation.is_over ctx.animation  && (is_player_turn ctx) then
       begin
         if check_ev_type e Sdl.Event.key_down then
@@ -200,6 +197,26 @@ module MGameContext = struct
   let next_faction l =
     cycle l
 
+  exception No_faction
+  let current_faction ctx = 
+    match ctx.faction_list with
+    | [] -> raise No_faction
+    | x :: s -> x
+
+
+  let compute_cpu_turn ctx =
+    if not (is_player_turn ctx)  then
+    begin
+      let cf = current_faction ctx in
+      let units = MFaction.get_entity cf in
+      List.iter ( fun x ->
+        print_newline ();
+        print_string (MEntity.to_string x);
+      ) units;
+      ctx
+    end
+    else
+      ctx
 
   (* Update the context after event have been taken
      into account, usually this is used for animation
@@ -216,7 +233,7 @@ module MGameContext = struct
       {ctx with
        faction_list = faction_list;
        to_be_added = to_be_added}
-      (* |> compute_cpu_turn *)
+      |> compute_cpu_turn
     else
       ctx
 
@@ -350,11 +367,6 @@ module MGameContext = struct
             else
               tmp
           in
-
-
-
-          List.iter (fun x -> print_string (MFaction.to_string x)) faction_list;
-          print_newline ();
 
           let to_be_added = 
             begin

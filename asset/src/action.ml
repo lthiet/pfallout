@@ -30,6 +30,14 @@ module MAction = struct
   let get_deleted res = res.deleted
   let get_animation res = res.animation
 
+  let add r1 r2 = 
+    {
+      added = r1.added @ r2.added;
+      deleted = r1.deleted @ r2.deleted;
+      (* Not yet implemented *)
+      animation = r1.animation 
+    }
+
   let attack grid src dst = 
     let sr,sq,dr,dq =
       MHex.get_r src,
