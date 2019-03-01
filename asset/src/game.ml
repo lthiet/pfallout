@@ -108,10 +108,10 @@ module MGame = struct
         |> MFaction.add_entity soldier4
       in
 
-      let soldier5 = MMilitary.create_soldier (start+4) (start+4) faction_code2 in
       let faction_code3 = 
         MFaction_enum.create MFaction_enum.EU
       in
+      let soldier5 = MMilitary.create_soldier (start+4) (start+4) faction_code3 in
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in

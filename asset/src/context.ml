@@ -316,7 +316,7 @@ module MGameContext = struct
       {
         context with
         animation = animation;
-      } |> faction_on_start_actions
+      } 
     in
 
     (* Get the next event in the queue *)
@@ -468,6 +468,7 @@ module MGameContext = struct
       else
         ctx_before_event
     in
-    update_context_after_event ctx_with_event
+    ctx_with_event |> faction_on_start_actions
+    |> update_context_after_event
 end
 ;;
