@@ -13,6 +13,23 @@ open Utils
 module MAction = struct
   exception Impossible_movement
 
+  (* Defines the result of each action *)
+  type res = {
+    added : MEntity.t list;
+    deleted : MEntity.t list;
+    animation : MAnimation.t;
+  }
+
+  let empty = {
+    added = [];
+    deleted = [];
+    animation = MAnimation.create []
+  }
+
+  let get_added res = res.added
+  let get_deleted res = res.deleted
+  let get_animation res = res.animation
+
   let attack grid src dst = 
     let sr,sq,dr,dq =
       MHex.get_r src,
@@ -36,7 +53,11 @@ module MAction = struct
     if (dhp<=damage) then 
       begin
         MGrid.remove_mg_at grid dr dq;
-        [],[dmu],(MAnimation.create [])
+        {
+          added = [];
+          deleted = [dmu];
+          animation = MAnimation.create []
+        }
       end
       (*if the entity isn't dead*)
     else
@@ -44,7 +65,11 @@ module MAction = struct
       in 
       MGrid.remove_mg_at grid dr dq;
       MGrid.set_mg_at grid dr dq new_dmu;
-      [new_dmu],[dmu],(MAnimation.create [])
+      {
+        added = [new_dmu];
+        deleted = [dmu];
+        animation = MAnimation.create []
+      }
 
   (* Refill a unit movement point *)
   let refill_mp grid src dst =
@@ -56,7 +81,11 @@ module MAction = struct
       MGrid.remove_mg_at grid sr sq;
       MGrid.set_mg_at grid sr sq new_mu;
     in
-    [new_mu],[mu],(MAnimation.create [])
+    {
+      added = [new_mu];
+      deleted = [mu];
+      animation = MAnimation.create []
+    }
 
   (* Move an entity that is on src to dst,
      returns an error if entity cannot
@@ -96,8 +125,11 @@ module MAction = struct
         MGrid.remove_mg_at grid sr sq;
         MGrid.set_mg_at grid dr dq new_ent_minus_current_mp;
       in
-
-      [new_ent_minus_current_mp],[old_ent],(MAnimation.create [movement_animation_list])
+      {
+        added = [new_ent_minus_current_mp];
+        deleted = [old_ent];
+        animation = MAnimation.create [movement_animation_list]
+      }
 
   exception No_action_specified
 

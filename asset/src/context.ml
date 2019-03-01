@@ -136,7 +136,7 @@ module MGameContext = struct
     if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
       begin
         let ent_below = MGrid.get_mg_at_ax ctx.grid ctx.cursor_selector#get_axial in
-        if (MFaction.entity ent_below ctx.faction_controlled_by_player) then
+        if (MFaction.entity_in ent_below ctx.faction_controlled_by_player) then
           Some ctx.cursor_selector#get_axial
         else
           raise Entity_Not_Owned_By_Player
@@ -182,6 +182,7 @@ module MGameContext = struct
     action_dst_is_set ctx && action_src_is_set ctx && MKeyboard.key_is_pressed e Sdl.Scancode.return 
 
   exception Unspecified_Src_Dst
+
   let compute_new_grid e ctx =
     if action_confirmed e ctx then	
       match ctx.action_src,ctx.action_dst with
@@ -189,7 +190,7 @@ module MGameContext = struct
         MAction.execute ctx.action_type ctx.grid src dst
       | _,_ ->  raise Unspecified_Src_Dst
     else
-      [],[],(MAnimation.create [])
+      MAction.empty
 
   let new_turn e ctx =
     MKeyboard.key_is_pressed e Sdl.Scancode.r && is_player_turn ctx
@@ -198,41 +199,7 @@ module MGameContext = struct
      when cycling through a faction list *)
   let next_faction l =
     cycle l
-(* 
-  (* Make a call of each of the unit of a faction, provided
-     the faction is not controlled by the player *)
-  let compute_cpu_faction_turn ctx fl = 
-    raise Not_yet_implemented
 
-
-  (* Make a call on each of the unit (without regard to their respective
-     factions) that are not 
-     controlled by the player *)
-  let compute_cpu_turn ctx = 
-    if not (is_player_turn ctx) then
-      begin
-        let added,deleted,animation =
-        begin
-        List.fold_right ( fun x acc -> 
-            if MFaction.equal x ctx.faction_controlled_by_player then
-              let to_be_added_acc,to_be_deleted_acc,_ = acc in
-              let to_be_added,to_be_deleted,_ = compute_cpu_faction_turn ctx x in
-              (to_be_added :: to_be_added_acc),(to_be_deleted :: to_be_deleted_acc),(MAnimation.create [])
-            else
-              acc
-          ) ctx.faction_list ([],[],MAnimation.create []) 
-        end
-        in
-        {
-          ctx with
-          to_be_added_m = added;
-          to_be_deleted = deleted;
-          animation = animation
-        }
-      end
-    else 
-      ctx
- *)
 
   (* Update the context after event have been taken
      into account, usually this is used for animation
@@ -249,7 +216,7 @@ module MGameContext = struct
       {ctx with
        faction_list = faction_list;
        to_be_added = to_be_added}
-       (* |> compute_cpu_turn *)
+      (* |> compute_cpu_turn *)
     else
       ctx
 
@@ -365,7 +332,11 @@ module MGameContext = struct
               end
           in
 
-          let added_e,deleted_e,animation_tmp = compute_new_grid e ctx_before_event 
+          let added_e,deleted_e,animation_tmp = 
+            let res = compute_new_grid e ctx_before_event in
+            MAction.get_added res,
+            MAction.get_deleted res,
+            MAction.get_animation res
           in
 
           let faction_list =

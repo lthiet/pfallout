@@ -38,7 +38,7 @@ struct
 
   let get_code t = t.code 
 
-  let entity mu t =
+  let entity_in mu t =
     let f = mu#get_faction in
     f = t.code 
 
@@ -47,7 +47,7 @@ struct
       match l with
       | [] ->
         List.fold_left (fun acc x -> 
-            if entity x t then
+            if entity_in x t then
               x :: acc
             else
               acc
