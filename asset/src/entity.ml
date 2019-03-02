@@ -4,6 +4,7 @@ open Utils
 open Hex
 open Tsdl
 open Texture_wrapper
+open Texture_pack
 open Faction_enum
 
 module MEntity = struct
@@ -82,20 +83,34 @@ module MEntity = struct
   let to_string t =
     (MHex.to_string_ax t#get_axial) ^ " current mp : " ^(string_of_int t#get_current_mp)
 
+  let entity_textures entity texture =
+    (* the faction of the entity *)
+    let f = entity#get_faction
+    in
+
+    match f with
+    | MFaction_enum.EU,_ ->
+      MTexture_pack.get_soldier_eu texture
+    | MFaction_enum.ASIA,_ ->
+      MTexture_pack.get_soldier_pac texture
+    | _ -> raise Not_yet_implemented
+
+
 
   (* Render the entity *)
-  let render renderer e txt camera frame_n=
+  let render renderer e texture camera frame_n =
     let clip = Sdl.Rect.create (MHex.width * frame_n) 0 MHex.width MHex.height in
     if check_collision e#get_box camera then
       let x,y = 
         let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
         tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
       in
-      MTexture.render renderer
-        ~clip:(Some clip)
-        ~x:x
-        ~y:y
-        txt
+      let txt = entity_textures e texture in
+        MTexture.render renderer
+          ~clip:(Some clip)
+          ~x:x
+          ~y:y
+          txt
 
 end
 ;;
