@@ -80,7 +80,7 @@ module MGame = struct
   let terrain_feature_path = "asset/image/features.png"
   let bg_path = "asset/image/bg.png"
   let cursor_path = "asset/image/cursors.png"
-  let military_path = "asset/image/soldier.png"
+  let military_path = "asset/image/soldier-pac.png"
 
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
