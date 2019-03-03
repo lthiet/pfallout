@@ -182,12 +182,19 @@ module MGameContext = struct
     action_dst_is_set ctx && action_src_is_set ctx && MKeyboard.key_is_pressed e Sdl.Scancode.return 
 
   exception Unspecified_Src_Dst
+  exception Unspecified_Action_Type
 
   let compute_new_grid e ctx =
     if action_confirmed e ctx then	
       match ctx.action_src,ctx.action_dst with
       | Some src, Some dst ->
-        MAction.execute ctx.action_type ctx.grid src dst
+        begin
+          match ctx.action_type with
+          | None -> raise Unspecified_Action_Type
+          | Some x ->
+            let action = MAction.create x src dst in
+            MAction.execute (Some action) ctx.grid 
+        end
       | _,_ ->  raise Unspecified_Src_Dst
     else
       MAction.empty
@@ -226,7 +233,8 @@ module MGameContext = struct
             | x :: s ->
               if x#can_move then
                 let dst = MHex.create_ax (x#get_r ) (x#get_q-4) in
-                MAction.execute (Some MAction_enum.MOVE) ctx.grid x#get_axial dst
+                let action = MAction.create MAction_enum.MOVE x#get_axial dst in
+                MAction.execute (Some action) ctx.grid
               else
                 aux s
           in
@@ -291,7 +299,8 @@ module MGameContext = struct
       let units = MFaction.get_entity cf in
       let res = List.fold_left ( fun acc1 x1 -> 
           List.fold_left ( fun acc1 x2 ->
-              let res = MAction.execute (Some x2) ctx.grid x1#get_axial x1#get_axial in
+              let action = MAction.create x2 x1#get_axial x1#get_axial in
+              let res = MAction.execute (Some action) ctx.grid in
               MAction.add res acc1
             ) acc1 x1#get_aos
         ) MAction.empty units

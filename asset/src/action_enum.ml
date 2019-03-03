@@ -1,8 +1,11 @@
 open Tsdl
+open Hex
 
 module MAction_enum = struct
-  type t = ATTACK | MOVE | PRODUCE
-         | REFILL_MP
+  type t = ATTACK
+            | MOVE
+            | PRODUCE
+            | REFILL_MP
 
   exception Unknown_Action
 

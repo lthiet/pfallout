@@ -141,14 +141,32 @@ module MAction = struct
 
   exception No_action_specified
 
-  let execute t grid src_ax dst_ax =
+  type t = {
+    code : MAction_enum.t;
+    src : MHex.axial_coord;
+    dst : MHex.axial_coord;
+  }
+
+  let get_code t = t.code
+  let get_src t = t.src
+  let get_dst t = t.dst
+
+  let create code src dst = {
+    code = code;
+    src = src;
+    dst = dst
+  }
+
+  let execute t grid =
     match t with
     | None -> raise No_action_specified
     | Some e ->
-      match e with
-      | MAction_enum.MOVE -> move grid src_ax dst_ax
-      | MAction_enum.ATTACK -> attack grid src_ax dst_ax
-      | MAction_enum.REFILL_MP -> refill_mp grid src_ax dst_ax
+      let src = get_src e in
+      let dst = get_dst e in
+      match get_code e with
+      | MAction_enum.MOVE -> move grid src dst
+      | MAction_enum.ATTACK -> attack grid src dst
+      | MAction_enum.REFILL_MP -> refill_mp grid src dst
       | _ -> raise Not_yet_implemented
 
 end
