@@ -13,6 +13,7 @@ open Military
 open Entity
 open Pathfinder
 open Behaviour
+open Camera
 
 let ev = Some (Sdl.Event.create ())
 
@@ -21,7 +22,7 @@ let ev = Some (Sdl.Event.create ())
 module MGameContext = struct
   type t = {
     over : bool;
-    camera : Sdl.rect;
+    camera : MCamera.t;
     grid : MGrid.t;
     cursor_selector : MCursor.cursor;
     faction_list : MFaction.t list;
@@ -58,7 +59,7 @@ module MGameContext = struct
   (* Return a new camera based on user input *)
   let get_camera e c =
     (* The distance at which the camera will move *)
-    let offset = 10 in
+    (* let offset = 10 in
     (* Check if event is a keydown *)
     if check_ev_type e Sdl.Event.key_down then
       (* If yes, check which key has been pressed *)
@@ -66,7 +67,7 @@ module MGameContext = struct
       let x = new_int pressed_key Sdl.Scancode.d Sdl.Scancode.a  offset (Sdl.Rect.x c) in
       let y = new_int pressed_key Sdl.Scancode.s Sdl.Scancode.w  offset (Sdl.Rect.y c) in
       Sdl.Rect.create x y (Sdl.Rect.w c) (Sdl.Rect.h c)
-    else
+    else *)
       c
 
   type keyset = {
@@ -270,7 +271,7 @@ module MGameContext = struct
   let inc_frame ctx = 
     {
       ctx with
-      frame = (ctx.frame + 1) mod 9
+      frame = (ctx.frame + 1) mod 21
     }
 
   (* Update the context after event have been taken

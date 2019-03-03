@@ -16,18 +16,10 @@ open Animation
 open Entity
 open Action_enum
 open Texture_pack
+open Camera
 
 
 module MGame = struct
-  type textures = {
-    tile : MTexture.t;
-    terrain_feature : MTexture.t;
-    bg : MTexture.t;
-    curs : MTexture.t;
-    soldier_eu : MTexture.t;
-    soldier_pac : MTexture.t;
-  }
-
   (* Loop the game *)
   let rec loop renderer (context : MGameContext.t) textures = 
     if context.over then
@@ -40,28 +32,26 @@ module MGame = struct
       manage_result (Sdl.render_clear renderer) "Error : %s";
 
       (* Render the background *)
-      MBackground.render renderer (MTexture_pack.get_bg textures) context.camera;
+      MBackground.render renderer (MTexture_pack.get_bg textures) (MCamera.get_rect context.camera);
 
       (* Render the tiles *)
-      MGrid.render renderer (MTexture_pack.get_tile textures) (MTexture_pack.get_terrain_feature textures) context.grid context.camera;
+      MGrid.render renderer (MTexture_pack.get_tile textures) (MTexture_pack.get_terrain_feature textures) context.grid (MCamera.get_rect context.camera);
 
       (* Render the selector ( cursor ) *)
-      MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector context.camera;
+      MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector (MCamera.get_rect context.camera);
 
       (* Render the movement range selector *)
       List.iter (
         fun x -> let c = MCursor.create x#get_r x#get_q MCursor.POSSIBLE in
-          MCursor.render renderer (MTexture_pack.get_curs textures) c context.camera
+          MCursor.render renderer (MTexture_pack.get_curs textures) c (MCamera.get_rect context.camera);
       ) context.movement_range_selector;
-
-
 
       (* Render the soldiers *)
       List.iter (
         fun x ->
           List.iter (
             fun y ->
-              MEntity.render renderer y textures context.camera context.frame
+              MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
           )
             (MFaction.get_entity x)
       ) context.faction_list;
@@ -73,7 +63,7 @@ module MGame = struct
           MEntity.render renderer 
             ~x:(Some pos_x)
             ~y:(Some pos_y)
-            (MAnimation.get_currently_animated t) textures context.camera context.frame
+            (MAnimation.get_currently_animated t) textures (MCamera.get_rect context.camera) context.frame
       ) (MAnimation.get_current_animated_and_next context.animation);
 
       (* Update the renderer *)
@@ -138,9 +128,11 @@ module MGame = struct
         MFaction.add_entity soldier5 f
       in
 
+      let camera_rect = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height) in
+
       let ctx : MGameContext.t = {
         over = false;
-        camera = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height);
+        camera = MCamera.create camera_rect;
         grid = grid;
         cursor_selector = MCursor.create start start MCursor.SELECTING;
         faction_list = [faction1;faction2;faction3];
