@@ -33,6 +33,7 @@ module MGameContext = struct
     to_be_deleted : MEntity.t list;
     animation : MAnimation.t;
     new_turn : bool;
+    frame : int
   }
 
   exception Nothing
@@ -257,6 +258,13 @@ module MGameContext = struct
     else
       ctx
 
+  (* Update the context in terms of frame *)
+  let inc_frame ctx = 
+    {
+      ctx with
+      frame = (ctx.frame + 1) mod 9
+    }
+
   (* Update the context after event have been taken
      into account, usually this is used for animation
      or when the modificaiton on the grids are not
@@ -469,6 +477,6 @@ module MGameContext = struct
         ctx_before_event
     in
     ctx_with_event |> faction_on_start_actions
-    |> update_context_after_event
+    |> update_context_after_event |> inc_frame
 end
 ;;

@@ -61,7 +61,7 @@ module MGame = struct
         fun x ->
           List.iter (
             fun y ->
-              MEntity.render renderer y textures context.camera 0
+              MEntity.render renderer y textures context.camera context.frame
           )
             (MFaction.get_entity x)
       ) 
@@ -69,7 +69,7 @@ module MGame = struct
 
       (* Render the animated *)
       List.iter (
-        fun x ->  MEntity.render renderer x textures context.camera 0
+        fun x ->  MEntity.render renderer x textures context.camera context.frame
       ) (MAnimation.get_current_animated context.animation);
 
       (* Update the renderer *)
@@ -146,6 +146,7 @@ module MGame = struct
         animation = MAnimation.create [];
         movement_range_selector = [];
         new_turn = false;
+        frame = 0;
       } in
 
       let txt = 

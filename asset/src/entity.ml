@@ -95,22 +95,28 @@ module MEntity = struct
       MTexture_pack.get_soldier_pac texture
     | _ -> raise Not_yet_implemented
 
+  let get_clip frame_n e =
+    match e#get_status with
+    | MOVING ->
+      Sdl.Rect.create (MHex.width * (frame_n/3)) 0 MHex.width MHex.height
+    | _ ->
+      Sdl.Rect.create 0 0 MHex.width MHex.height 
 
 
   (* Render the entity *)
   let render renderer e texture camera frame_n =
-    let clip = Sdl.Rect.create (MHex.width * frame_n) 0 MHex.width MHex.height in
+    let clip = get_clip frame_n e in
     if check_collision e#get_box camera then
       let x,y = 
         let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
         tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
       in
       let txt = entity_textures e texture in
-        MTexture.render renderer
-          ~clip:(Some clip)
-          ~x:x
-          ~y:y
-          txt
+      MTexture.render renderer
+        ~clip:(Some clip)
+        ~x:x
+        ~y:y
+        txt
 
 end
 ;;
