@@ -6,6 +6,7 @@ open Tsdl
 open Texture_wrapper
 open Texture_pack
 open Faction_enum
+open Behaviour_enum
 
 module MEntity = struct
   exception Unsifficient_mp
@@ -39,6 +40,7 @@ module MEntity = struct
       val tt : terrain_type = tt
       val pc : int = pc (* Production cost *)
       val status : status = IDLE
+      val behaviour : MBehaviour_enum.t = WANDERING
       method get_hp = hp
       method get_ap = ap
       method get_mp = mp
@@ -55,6 +57,8 @@ module MEntity = struct
       method get_pc = pc
       method set_status s = {<status = s>}
       method get_status = status
+      method set_behaviour b = {<behaviour = b>}
+      method get_behaviour = behaviour
       method check_status s = self#get_status = s
       method remove_mp n = 
         let tmp = self#get_current_mp-n in

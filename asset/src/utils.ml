@@ -84,9 +84,13 @@ let cycle l =
   | [] -> []
   | x :: s -> s @ [x]
 
+exception Empty_list
+
 (* NB: this is unefficient, consider deprecating this in the future *)
 let random_elem_list l =
-  List.nth l (Random.int (List.length l))
+  match l with
+  | [] -> raise Empty_list
+  | _ -> List.nth l (Random.int (List.length l))
 
 (* Exception whenever a function has not been implement yet
    but requires to be called nonetheless *)

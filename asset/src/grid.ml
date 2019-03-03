@@ -29,9 +29,13 @@ module MGrid = struct
     military_grid : (MEntity.t option) array array;
   }
 
-
-
   let get_military_grid t = t.military_grid
+
+  let empty_mg_at t r q =
+    let tmg = t.military_grid in
+    match tmg.(r).(q) with
+    | None -> true
+    | _ -> false
 
   let remove_mg_at t r q =
     let tmg = t.military_grid in
@@ -62,7 +66,8 @@ module MGrid = struct
         (* If not, we can set *)
         | None -> tmg.(r).(q) <- Some m
         (* Otherwise, it is an error*)
-        | _ -> raise Grid_cell_not_empty
+        | _ -> 
+          raise Grid_cell_not_empty
       end
     else
       raise (Grid_set_error not_mu_on_mg_error_msg)
@@ -172,10 +177,12 @@ module MGrid = struct
     (* Careful, this function might not stop *)
     let rec aux r q =
       let res = g.(r).(q) in
-      if res#is_impassable then
+      if res#is_impassable || not (empty_mg_at t r q) then
         aux (r_r ()) (r_q ())
       else
-        res
+        begin
+          res
+        end
     in aux (r_r ()) (r_q ())
 end
 ;;

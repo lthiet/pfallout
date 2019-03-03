@@ -138,6 +138,6 @@ module MPathfinder = struct
 
   let dijkstra_reachable start goal grid range = 
     let tmp = dijkstra start goal grid true range in
-    start :: (reachable_tile tmp)
+    reachable_tile tmp
 end
 ;;

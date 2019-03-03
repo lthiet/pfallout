@@ -12,6 +12,7 @@ open Animation
 open Military
 open Entity
 open Pathfinder
+open Behaviour
 
 let ev = Some (Sdl.Event.create ())
 
@@ -217,7 +218,7 @@ module MGameContext = struct
 
   let compute_cpu_turn ctx =
     (* If it is not the turn of the player, we can compute the turn*)
-    if not (is_player_turn ctx) then
+    if not (is_player_turn ctx) && MAnimation.is_over ctx.animation then
       begin
         (* Check if the faction can play, if not, we will iterate to the next faction *)
         if (MFaction.faction_can_play (current_faction ctx)) then
@@ -232,8 +233,7 @@ module MGameContext = struct
             | [] -> raise No_entities_to_play
             | x :: s ->
               if x#can_move then
-                let dst = MHex.create_ax (x#get_r ) (x#get_q-4) in
-                let action = MAction.create MAction_enum.MOVE x#get_axial dst in
+                let action = MBehaviour.compute_behaviour ctx.grid x in
                 MAction.execute (Some action) ctx.grid
               else
                 aux s
@@ -325,6 +325,8 @@ module MGameContext = struct
 
   (* Update the new context of the game *)
   let update_context context =
+    (* List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
+    print_newline (); *)
     (* Event independant context change *)
     let ctx_before_event =
       let animation =

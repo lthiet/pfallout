@@ -92,7 +92,7 @@ module MGame = struct
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
     if menu_result.start_game then
-      let start = 8 in
+      let start = 5 in
       let grid = MGrid.create start in
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
@@ -100,7 +100,9 @@ module MGame = struct
       let random_tile_soldier1 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
       let random_tile_soldier2 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
+      MGrid.add_mg_at grid soldier1;
       let soldier2 = MMilitary.create_soldier (random_tile_soldier2#get_r) (random_tile_soldier2#get_q) faction_code1 in
+      MGrid.add_mg_at grid soldier2;
       let faction1 =
         let f = MFaction.create_faction faction_code1 in
         MFaction.add_entity soldier1 f
@@ -113,7 +115,10 @@ module MGame = struct
       let random_tile_soldier3 = MGrid.get_random_accessible_tile grid () in
       let random_tile_soldier4 = MGrid.get_random_accessible_tile grid () in
       let soldier3 = MMilitary.create_soldier (random_tile_soldier3#get_r) (random_tile_soldier3#get_q) faction_code2 in
+
+      MGrid.add_mg_at grid soldier3;
       let soldier4 = MMilitary.create_soldier (random_tile_soldier4#get_r) (random_tile_soldier4#get_q) faction_code2 in
+      MGrid.add_mg_at grid soldier4;
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
         MFaction.add_entity soldier3 f
@@ -126,19 +131,11 @@ module MGame = struct
 
       let random_tile_soldier5 = MGrid.get_random_accessible_tile grid () in
       let soldier5 = MMilitary.create_soldier (random_tile_soldier5#get_r) (random_tile_soldier5#get_q) faction_code3 in
+      MGrid.add_mg_at grid soldier5;
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
         MFaction.add_entity soldier5 f
-      in
-
-
-      let () =
-        MGrid.add_mg_at grid soldier1;
-        MGrid.add_mg_at grid soldier2;
-        MGrid.add_mg_at grid soldier3;
-        MGrid.add_mg_at grid soldier4;
-        MGrid.add_mg_at grid soldier5;
       in
 
       let ctx : MGameContext.t = {
