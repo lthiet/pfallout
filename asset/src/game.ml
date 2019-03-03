@@ -64,13 +64,17 @@ module MGame = struct
               MEntity.render renderer y textures context.camera context.frame
           )
             (MFaction.get_entity x)
-      ) 
-        context.faction_list;
+      ) context.faction_list;
 
       (* Render the animated *)
       List.iter (
-        fun x ->  MEntity.render renderer x textures context.camera context.frame
-      ) (MAnimation.get_current_animated context.animation);
+        fun t ->  
+          let pos_x,pos_y = MAnimation.next_coord_currently_animated t in
+          MEntity.render renderer 
+            ~x:(Some pos_x)
+            ~y:(Some pos_y)
+            (MAnimation.get_currently_animated t) textures context.camera context.frame
+      ) (MAnimation.get_current_animated_and_next context.animation);
 
       (* Update the renderer *)
       Sdl.render_present renderer;

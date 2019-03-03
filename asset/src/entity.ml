@@ -103,19 +103,29 @@ module MEntity = struct
       Sdl.Rect.create 0 0 MHex.width MHex.height 
 
 
+  exception Option_coord_need_to_be_both_none_or_some
+
   (* Render the entity *)
-  let render renderer e texture camera frame_n =
+  let render renderer 
+      ?(x:int option = None) 
+      ?(y:int option = None)
+      e texture camera frame_n =
     let clip = get_clip frame_n e in
     if check_collision e#get_box camera then
-      let x,y = 
-        let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
-        tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
+      let pos_x,pos_y = 
+        match x,y with
+        | None,None ->
+          let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
+          tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
+        | (Some x),(Some y) ->
+          x - Sdl.Rect.x camera,y - Sdl.Rect.y camera
+        | _,_ -> raise Option_coord_need_to_be_both_none_or_some
       in
       let txt = entity_textures e texture in
       MTexture.render renderer
         ~clip:(Some clip)
-        ~x:x
-        ~y:y
+        ~x:pos_x
+        ~y:pos_y
         txt
 
 end

@@ -1,7 +1,6 @@
-(* Only concerns animation *)
-
 open Entity
 open Grid
+open Hex
 
 module MAnimation = struct
   type frame = int
@@ -46,14 +45,49 @@ module MAnimation = struct
 
   let get_to_be_animated t = t.to_be_animated
 
-  let get_current_animated t = 
+  (* The result that will contains the next elements to be displayed *)
+  type res = {
+    currently_animated : MEntity.t;
+    next_animated : MEntity.t option;
+    time_left : int
+  }
+
+  let get_currently_animated t = t.currently_animated
+  let get_next_animated t = t.next_animated
+  let get_time_left t = t.time_left
+
+  (* Returns the next entity to be animated, and also the next entity
+     after that one for grid independant rendering *)
+  let get_current_animated_and_next t = 
     List.fold_left (
       fun acc x ->
         match x with
         | [] -> acc
-        | (entity,_) :: s -> entity :: acc
-    )
-      [] t.to_be_animated
+        | (entity,n) :: [] -> {
+            currently_animated = entity;
+            next_animated = None;
+            time_left = n
+          } :: acc
+        | (first_entity,n) :: (second_entity,_) :: s  -> {
+            currently_animated = first_entity;
+            next_animated = Some second_entity;
+            time_left = n
+          } :: acc
+    ) [] t.to_be_animated
+
+  exception Second_is_none
+
+  (* The function returns where the first entity has to be
+     in terms of screen coordinates *)
+  let next_coord_currently_animated t =
+    match t.next_animated with
+    | None -> MHex.axial_to_screen_coord t.currently_animated#get_axial
+    | Some second -> 
+      let fst_x,fst_y = MHex.axial_to_screen_coord t.currently_animated#get_axial in
+      let snd_x,snd_y = MHex.axial_to_screen_coord second#get_axial in
+      let x = snd_x + ((fst_x - snd_x) / (11 - t.time_left)) in
+      let y = snd_y + ((fst_y - snd_y) / (11 - t.time_left)) in
+      x,y
 
   let compute_next t =
     let l = t.to_be_animated in
