@@ -95,7 +95,7 @@ module MPathfinder = struct
               let n_l = MGrid.neighbours_list current grid in
               let updated_frontier = List.fold_left (
                   fun acc x ->
-                    if (not x#is_impassable) then
+                    if (not x#is_impassable) && MGrid.empty_mg_at grid x#get_r x#get_q then
                       begin
                         let new_cost = (Hashtbl.find cost_so_far current) + x#get_movement_cost in
                         let x_in_cost_so_far =

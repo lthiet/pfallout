@@ -184,5 +184,16 @@ module MGrid = struct
           res
         end
     in aux (r_r ()) (r_q ())
+
+  (* Checks the whole list, if there's an unit, omit it*)
+  let free_tile_list grid l = 
+    List.fold_left (
+      fun acc x -> 
+        if empty_mg_at grid x#get_r x#get_q then
+          x :: acc
+        else
+          acc
+    ) [] l
+
 end
 ;;

@@ -16,7 +16,7 @@ module MBehaviour = struct
     try 
       let new_tile = 
         (* Get all the reachable tiles *)
-        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_current_mp in
+        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_current_mp |> MGrid.free_tile_list grid in
 
         (* Recursively get tile that are empty *)
         let rec aux () =
@@ -32,6 +32,11 @@ module MBehaviour = struct
       MAction.create MAction_enum.MOVE entity#get_axial new_tile#get_axial
     with Empty_list ->
       MAction.create MAction_enum.PASS entity#get_axial entity#get_axial
+
+  let change_behaviour grid entity =
+  match entity#get_behaviour with
+  | MBehaviour_enum.WANDERING -> MBehaviour_enum.WANDERING
+  | _ -> raise Not_yet_implemented
 
 
   (* Main function *)
