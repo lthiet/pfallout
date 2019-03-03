@@ -58,17 +58,7 @@ module MGameContext = struct
 
   (* Return a new camera based on user input *)
   let get_camera e c =
-    (* The distance at which the camera will move *)
-    (* let offset = 10 in
-    (* Check if event is a keydown *)
-    if check_ev_type e Sdl.Event.key_down then
-      (* If yes, check which key has been pressed *)
-      let pressed_key = MKeyboard.get_scancode e in
-      let x = new_int pressed_key Sdl.Scancode.d Sdl.Scancode.a  offset (Sdl.Rect.x c) in
-      let y = new_int pressed_key Sdl.Scancode.s Sdl.Scancode.w  offset (Sdl.Rect.y c) in
-      Sdl.Rect.create x y (Sdl.Rect.w c) (Sdl.Rect.h c)
-    else *)
-      c
+    MCamera.change_direction c e |> MCamera.update_camera
 
   type keyset = {
     up : Sdl.scancode;
