@@ -18,15 +18,18 @@ open Hex
    however two instances of same layer
    cannot be on the same coordinates *)
 module MGrid = struct
+
   let () =  Random.self_init ()
 
   exception InvalidMap
 
   type t = {
     level_radius : int;
-    grid : (MTile.tile) array array;
+    tile_grid : (MTile.tile) array array;
     military_grid : (MEntity.t option) array array;
   }
+
+
 
   let get_military_grid t = t.military_grid
 
@@ -39,7 +42,6 @@ module MGrid = struct
   exception Grid_set_error of string
 
   let not_mu_on_mg_error_msg = "Tried to set a non military unit on the military grid"
-
 
   let get_mg_at t r q =
     let tmg = t.military_grid in
@@ -80,7 +82,7 @@ module MGrid = struct
             if tmp2 < 0 || q >= size + tmp1 then
               new MTile.tile r q (MTile.int_to_tile_type n) (MTile.LAKE)
             else
-              new MTile.tile r q (MTile.int_to_tile_type n) (MTile.REGULAR)
+              new MTile.tile r q (MTile.int_to_tile_type n) (MTile.int_to_terrain_feature m)
           )
       )
 
@@ -93,7 +95,7 @@ module MGrid = struct
       )
 
   let get_tile r q t =
-    let t = t.grid in
+    let t = t.tile_grid in
     try
       t.(r).(q)
     with Invalid_argument e ->
@@ -106,7 +108,7 @@ module MGrid = struct
   let create level_radius = 
     {
       level_radius = level_radius;
-      grid = create_grid level_radius;
+      tile_grid = create_grid level_radius;
       military_grid = create_none_grid level_radius;
     }
 
@@ -115,7 +117,7 @@ module MGrid = struct
         Array.iter (fun y ->
             MTile.render renderer y tile_texture terrain_feature_texture camera
           ) x
-      ) grid.grid
+      ) grid.tile_grid
 
   type neighbours_t = {
     right : MTile.tile;
@@ -157,5 +159,20 @@ module MGrid = struct
         let tmp = get_tile_cube x grid
         in tmp :: acc
       ) [] l
+
+  let get_random_accessible_tile t =
+    let g = t.tile_grid in
+    let bound = t.level_radius * 2 in
+    let r_r = Random.int bound in
+    let r_q = Random.int bound in
+
+    (* Careful, this function might not stop *)
+    let rec aux r q =
+      let res = g.(r).(q) in
+      if res#is_impassable then
+        aux (Random.int bound) (Random.int bound)
+      else
+        res
+    in aux r_r r_q
 end
 ;;

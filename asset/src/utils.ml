@@ -1,5 +1,7 @@
 open Tsdl
 
+let () = Random.self_init ()
+
 (* Utils function *)
 (* Manage Result *)
 let manage_result r s =
@@ -81,6 +83,10 @@ let cycle l =
   match l with
   | [] -> []
   | x :: s -> s @ [x]
+
+(* NB: this is unefficient, consider deprecating this in the future *)
+let random_elem_list l =
+  List.nth l (Random.int (List.length l))
 
 (* Exception whenever a function has not been implement yet
    but requires to be called nonetheless *)

@@ -93,6 +93,7 @@ module MGame = struct
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
     if menu_result.start_game then
       let start = 8 in
+      let grid = MGrid.create start in
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
@@ -107,8 +108,10 @@ module MGame = struct
       let faction_code2 = 
         MFaction_enum.create MFaction_enum.ASIA
       in
-      let soldier3 = MMilitary.create_soldier (start+2) (start+2) faction_code2 in
-      let soldier4 = MMilitary.create_soldier (start+3) (start+2) faction_code2 in
+      let random_tile_soldier3 = MGrid.get_random_accessible_tile grid in
+      let random_tile_soldier4 = MGrid.get_random_accessible_tile grid in
+      let soldier3 = MMilitary.create_soldier (random_tile_soldier3#get_r) (random_tile_soldier3#get_q) faction_code2 in
+      let soldier4 = MMilitary.create_soldier (random_tile_soldier4#get_r) (random_tile_soldier4#get_q) faction_code2 in
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
         MFaction.add_entity soldier3 f
@@ -118,14 +121,15 @@ module MGame = struct
       let faction_code3 = 
         MFaction_enum.create MFaction_enum.ASIA
       in
-      let soldier5 = MMilitary.create_soldier (start+4) (start+4) faction_code3 in
+
+      let random_tile_soldier5 = MGrid.get_random_accessible_tile grid in
+      let soldier5 = MMilitary.create_soldier (random_tile_soldier5#get_r) (random_tile_soldier5#get_q) faction_code3 in
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
         MFaction.add_entity soldier5 f
       in
 
-      let grid = MGrid.create start in
 
       let () =
         MGrid.add_mg_at grid soldier1;
