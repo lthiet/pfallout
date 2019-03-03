@@ -139,6 +139,24 @@ module MAction = struct
         animation = MAnimation.create [movement_animation_list]
       }
 
+  (* Simply passes a turn, ie removing the remaining movement point *)
+  let pass grid src dst =
+    let sr = MHex.get_r src in
+    let sq = MHex.get_q src in
+    let ent = MGrid.get_mg_at grid sr sq in
+    let old_ent,new_ent =
+      ent,ent#empty_mp
+    in
+    let () =
+      MGrid.remove_mg_at grid sr sq;
+      MGrid.set_mg_at grid sr sq new_ent
+    in
+    {
+      added = [new_ent];
+      deleted = [old_ent];
+      animation = MAnimation.create [] 
+    }
+
   exception No_action_specified
 
   type t = {
@@ -167,6 +185,7 @@ module MAction = struct
       | MAction_enum.MOVE -> move grid src dst
       | MAction_enum.ATTACK -> attack grid src dst
       | MAction_enum.REFILL_MP -> refill_mp grid src dst
+      | MAction_enum.PASS -> pass grid src dst
       | _ -> raise Not_yet_implemented
 
 end

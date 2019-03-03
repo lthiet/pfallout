@@ -69,7 +69,7 @@ module MEntity = struct
       method remove_hp damage = {< hp = self#get_hp-damage>}
       method refill_mp = {<current_mp = self#get_mp>}
       method can_move = self#get_current_mp <> 0
-
+      method empty_mp = {<current_mp = 0>}
     end
   type t = entity
 

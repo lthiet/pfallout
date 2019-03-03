@@ -3,9 +3,10 @@ open Hex
 
 module MAction_enum = struct
   type t = ATTACK
-            | MOVE
-            | PRODUCE
-            | REFILL_MP
+         | MOVE
+         | PRODUCE
+         | REFILL_MP
+         | PASS
 
   exception Unknown_Action
 
@@ -15,6 +16,7 @@ module MAction_enum = struct
     | MOVE -> "MOVE"
     | PRODUCE -> "PRODUCE"
     | REFILL_MP -> "REFILL_MP"
+    | PASS -> "PASS"
 
   let print t =
     match t with
