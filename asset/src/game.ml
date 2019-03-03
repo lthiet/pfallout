@@ -97,8 +97,10 @@ module MGame = struct
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
-      let soldier1 = MMilitary.create_soldier start start faction_code1 in
-      let soldier2 = MMilitary.create_soldier (start+1) start faction_code1 in
+      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
+      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
+      let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
+      let soldier2 = MMilitary.create_soldier (random_tile_soldier2#get_r) (random_tile_soldier2#get_q) faction_code1 in
       let faction1 =
         let f = MFaction.create_faction faction_code1 in
         MFaction.add_entity soldier1 f
@@ -108,8 +110,8 @@ module MGame = struct
       let faction_code2 = 
         MFaction_enum.create MFaction_enum.ASIA
       in
-      let random_tile_soldier3 = MGrid.get_random_accessible_tile grid in
-      let random_tile_soldier4 = MGrid.get_random_accessible_tile grid in
+      let random_tile_soldier3 = MGrid.get_random_accessible_tile grid () in
+      let random_tile_soldier4 = MGrid.get_random_accessible_tile grid () in
       let soldier3 = MMilitary.create_soldier (random_tile_soldier3#get_r) (random_tile_soldier3#get_q) faction_code2 in
       let soldier4 = MMilitary.create_soldier (random_tile_soldier4#get_r) (random_tile_soldier4#get_q) faction_code2 in
       let faction2 =
@@ -122,7 +124,7 @@ module MGame = struct
         MFaction_enum.create MFaction_enum.ASIA
       in
 
-      let random_tile_soldier5 = MGrid.get_random_accessible_tile grid in
+      let random_tile_soldier5 = MGrid.get_random_accessible_tile grid () in
       let soldier5 = MMilitary.create_soldier (random_tile_soldier5#get_r) (random_tile_soldier5#get_q) faction_code3 in
 
       let faction3 =
