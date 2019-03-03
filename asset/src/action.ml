@@ -125,7 +125,7 @@ module MAction = struct
         List.fold_left (
           fun acc x -> 
             let new_ent = (old_ent#move x#get_r x#get_q)#set_status MEntity.MOVING in
-            ((new_ent),10) :: acc
+            ((new_ent),10,10) :: acc
         ) [] (List.rev path_taken)
       in
       let new_ent_minus_current_mp = new_ent#remove_mp mv_cost in

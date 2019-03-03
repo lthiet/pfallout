@@ -5,7 +5,7 @@ open Hex
 module MAnimation = struct
   type frame = int
   type t = {
-    to_be_animated : (MEntity.t * int) list list;
+    to_be_animated : (MEntity.t * int * int) list list;
   }
 
   let add t1 t2 =
@@ -21,15 +21,6 @@ module MAnimation = struct
       to_be_animated = tmp
     }
 
-
-  let print t =
-    List.iter (
-      fun x -> 
-        List.iter ( fun (y,z) -> 
-            Printf.printf "%d %d - %d /" y#get_r y#get_q z
-          ) x;
-        print_newline ();
-    ) t.to_be_animated
 
   let create l = {
     to_be_animated = l
@@ -49,12 +40,14 @@ module MAnimation = struct
   type res = {
     currently_animated : MEntity.t;
     next_animated : MEntity.t option;
-    time_left : int
+    time_left : int;
+    initial_time_left : int;
   }
 
   let get_currently_animated t = t.currently_animated
   let get_next_animated t = t.next_animated
   let get_time_left t = t.time_left
+  let get_initial_time_left t = t.time_left
 
   (* Returns the next entity to be animated, and also the next entity
      after that one for grid independant rendering *)
@@ -63,15 +56,17 @@ module MAnimation = struct
       fun acc x ->
         match x with
         | [] -> acc
-        | (entity,n) :: [] -> {
+        | (entity,n,init_n) :: [] -> {
             currently_animated = entity;
             next_animated = None;
-            time_left = n
+            time_left = n;
+            initial_time_left = init_n;
           } :: acc
-        | (first_entity,n) :: (second_entity,_) :: s  -> {
+        | (first_entity,n,init_n) :: (second_entity,_,_) :: s  -> {
             currently_animated = first_entity;
             next_animated = Some second_entity;
-            time_left = n
+            time_left = n;
+            initial_time_left = init_n;
           } :: acc
     ) [] t.to_be_animated
 
@@ -85,8 +80,8 @@ module MAnimation = struct
     | Some second -> 
       let fst_x,fst_y = MHex.axial_to_screen_coord t.currently_animated#get_axial in
       let snd_x,snd_y = MHex.axial_to_screen_coord second#get_axial in
-      let x = snd_x + ((fst_x - snd_x) / (11 - t.time_left)) in
-      let y = snd_y + ((fst_y - snd_y) / (11 - t.time_left)) in
+      let x = snd_x + ((fst_x - snd_x) / (1 + t.initial_time_left - t.time_left)) in
+      let y = snd_y + ((fst_y - snd_y) / (1 + t.initial_time_left - t.time_left)) in
       x,y
 
   let compute_next t =
@@ -97,10 +92,10 @@ module MAnimation = struct
         fun acc1 x -> 
           let tmp = match x with
             | [] -> []
-            | (x,y) :: s->  
+            | (x,y,z) :: s->  
               let new_frame = y - 1 in
               if new_frame > 0 then
-                (x,new_frame) :: s
+                (x,new_frame,z) :: s
               else
                 s
           in
