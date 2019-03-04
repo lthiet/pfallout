@@ -338,8 +338,8 @@ module MGameContext = struct
 
   (* Update the new context of the game *)
   let update_context context =
-    List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
-    print_newline ();
+    (* List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
+    print_newline (); *)
     (* Event independant context change *)
     let ctx_before_event =
       let animation =
@@ -501,7 +501,7 @@ module MGameContext = struct
         ctx_before_event
     in
     ctx_with_event |> faction_on_start_actions 
-    (* |> update_cpu_behaviour *)
+    |> update_cpu_behaviour
     |> update_context_after_event |> inc_frame
 end
 ;;

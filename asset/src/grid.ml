@@ -162,8 +162,11 @@ module MGrid = struct
   let range_tile grid t n =
     let l = MHex.range_ax n t#get_axial in
     List.fold_left (fun acc x -> 
-        let tmp = get_tile_cube x grid
-        in tmp :: acc
+        let tmp = get_tile_cube x grid in
+        if t <> tmp then
+          tmp :: acc
+        else
+          acc
       ) [] l
 
   let get_random_accessible_tile t
@@ -208,10 +211,9 @@ module MGrid = struct
         try
           let entity_on_tile = get_mg_at_ax grid x#get_axial in
           Some entity_on_tile
-        with Grid_cell_no_entity ->
-          aux s 
+        with 
+        | Grid_cell_no_entity -> aux s 
+        | Invalid_argument _  -> aux s 
     in aux nearby_tiles
-
-
 end
 ;;

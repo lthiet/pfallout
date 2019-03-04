@@ -54,16 +54,22 @@ module MAction = struct
     in
     let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
 
-    MGrid.remove_mg_at grid dr dq;
-    MGrid.set_mg_at grid dr dq (dmu#remove_hp damage);
+    let smu_without_mp = smu#empty_mp in
+    let () =
+      MGrid.remove_mg_at grid dr dq;
+      MGrid.remove_mg_at grid sr sq;
+      MGrid.add_mg_at grid smu_without_mp;
+      MGrid.set_mg_at grid dr dq (dmu#remove_hp damage)
+    in
+
 
     (*if the entity is dead*)
     if (dhp<=damage) then 
       begin
         MGrid.remove_mg_at grid dr dq;
         {
-          added = [];
-          deleted = [dmu];
+          added = [smu_without_mp];
+          deleted = [dmu;smu];
           animation = MAnimation.create []
         }
       end
@@ -74,8 +80,8 @@ module MAction = struct
       MGrid.remove_mg_at grid dr dq;
       MGrid.set_mg_at grid dr dq new_dmu;
       {
-        added = [new_dmu];
-        deleted = [dmu];
+        added = [smu_without_mp;new_dmu];
+        deleted = [dmu;smu];
         animation = MAnimation.create []
       }
 

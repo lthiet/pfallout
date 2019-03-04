@@ -10,6 +10,7 @@ open Pathfinder
    In general, it will return an action signature type *)
 module MBehaviour = struct
 
+
   let move_to_random_location grid entity = 
     let tile_src = MGrid.get_tile entity#get_r entity#get_q grid in
     (* NB : djikstra reachable doesnt care about dst *)
@@ -33,6 +34,16 @@ module MBehaviour = struct
     with Empty_list ->
       MAction.create MAction_enum.PASS entity#get_axial entity#get_axial
 
+  let attack_nearby_enemy grid entity = 
+    let neighbouring_enemy = MGrid.nearby_enemy grid entity 1 in
+    match neighbouring_enemy with
+    | None ->
+      move_to_random_location grid entity
+    | Some x ->
+      MAction.create MAction_enum.ATTACK entity#get_axial x#get_axial
+
+
+
   let change_behaviour grid entity =
     match entity#get_behaviour with
     | MBehaviour_enum.WANDERING -> 
@@ -40,8 +51,14 @@ module MBehaviour = struct
         let nearby_enemy = MGrid.nearby_enemy grid entity 4 in
         match nearby_enemy with
         | None -> MBehaviour_enum.WANDERING
-        | Some x ->
-          MBehaviour_enum.ATTACKING
+        | Some x -> MBehaviour_enum.ATTACKING
+      end
+    | MBehaviour_enum.ATTACKING ->
+      begin
+        let nearby_enemy = MGrid.nearby_enemy grid entity 4 in
+        match nearby_enemy with
+        | None -> MBehaviour_enum.WANDERING
+        | Some x -> MBehaviour_enum.ATTACKING
       end
     | _ -> raise Not_yet_implemented
 
@@ -51,6 +68,8 @@ module MBehaviour = struct
     match entity#get_behaviour with
     | MBehaviour_enum.WANDERING ->
       move_to_random_location grid entity
+    | MBehaviour_enum.ATTACKING ->
+      attack_nearby_enemy grid entity
     | _ -> raise Not_yet_implemented
 
 end
