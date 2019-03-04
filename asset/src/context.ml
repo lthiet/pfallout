@@ -107,7 +107,7 @@ module MGameContext = struct
                 x#get_axial = new_tile_below#get_axial
               ) ctx.movement_range_selector
           in
-          if ((action_src_is_set ctx) && not new_tile_in_range) || new_tile_below#is_impassable then
+          if ((action_src_is_set ctx) && not new_tile_in_range) then
             c
           else				
             c#move r q
