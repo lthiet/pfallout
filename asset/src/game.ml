@@ -95,37 +95,43 @@ module MGame = struct
       MGrid.add_mg_at grid soldier2;
       let faction1 =
         let f = MFaction.create_faction faction_code1 in
-        MFaction.add_entity soldier1 f
+        MFaction.add_entity soldier1 f 
         |> MFaction.add_entity soldier2
       in
 
       let faction_code2 = 
         MFaction_enum.create MFaction_enum.ASIA
       in
-      let random_tile_soldier3 = MGrid.get_random_accessible_tile grid () in
-      let random_tile_soldier4 = MGrid.get_random_accessible_tile grid () in
-      let soldier3 = MMilitary.create_soldier (random_tile_soldier3#get_r) (random_tile_soldier3#get_q) faction_code2 in
 
+      let random_tile_soldier3 = MGrid.get_random_accessible_tile grid () in
+      let soldier3 = MMilitary.create_soldier (random_tile_soldier3#get_r) (random_tile_soldier3#get_q) faction_code2 in
       MGrid.add_mg_at grid soldier3;
+      let random_tile_soldier4 = MGrid.get_random_accessible_tile grid () in
       let soldier4 = MMilitary.create_soldier (random_tile_soldier4#get_r) (random_tile_soldier4#get_q) faction_code2 in
       MGrid.add_mg_at grid soldier4;
+      let random_tile_soldier5 = MGrid.get_random_accessible_tile grid () in
+      let soldier5 = MMilitary.create_soldier (random_tile_soldier5#get_r) (random_tile_soldier5#get_q) faction_code2 in
+      MGrid.add_mg_at grid soldier5;
+
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
         MFaction.add_entity soldier3 f
         |> MFaction.add_entity soldier4
+        |> MFaction.add_entity soldier5
       in
 
       let faction_code3 = 
-        MFaction_enum.create MFaction_enum.ASIA
+        MFaction_enum.create MFaction_enum.EU
       in
 
-      let random_tile_soldier5 = MGrid.get_random_accessible_tile grid () in
-      let soldier5 = MMilitary.create_soldier (random_tile_soldier5#get_r) (random_tile_soldier5#get_q) faction_code3 in
-      MGrid.add_mg_at grid soldier5;
+      let random_tile_soldier6 = MGrid.get_random_accessible_tile grid () in
+      let soldier6 = MMilitary.create_soldier (random_tile_soldier6#get_r) (random_tile_soldier6#get_q) faction_code3 in
+      MGrid.add_mg_at grid soldier6;
+
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
-        MFaction.add_entity soldier5 f
+        MFaction.add_entity soldier6 f
       in
 
       let camera_rect = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height) in

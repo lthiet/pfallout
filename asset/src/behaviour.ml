@@ -38,11 +38,24 @@ module MBehaviour = struct
     let neighbouring_enemy = MGrid.nearby_enemy grid entity 1 in
     match neighbouring_enemy with
     | None ->
-      move_to_random_location grid entity
+      begin
+        let nearest_enemy = MGrid.nearby_enemy grid entity 6 in
+        match nearest_enemy with
+        | None -> move_to_random_location grid entity
+        | Some x ->
+          let src = MGrid.get_tile entity#get_r entity#get_q grid in
+          try
+            let dst = MGrid.get_tile x#get_r x#get_q grid in
+            let closest_dst = MPathfinder.closest_tile src dst grid in
+            if closest_dst = src then
+              MAction.create MAction_enum.PASS entity#get_axial entity#get_axial
+            else
+              MAction.create MAction_enum.MOVE entity#get_axial closest_dst#get_axial
+          with MPathfinder.No_path_found ->
+            MAction.create MAction_enum.PASS entity#get_axial entity#get_axial
+      end
     | Some x ->
       MAction.create MAction_enum.ATTACK entity#get_axial x#get_axial
-
-
 
   let change_behaviour grid entity =
     match entity#get_behaviour with

@@ -14,6 +14,15 @@ module MTile = struct
     | LAKE
     | REGULAR
 
+  let terrain_feature_to_string tf =
+    match tf with
+    | MOUNTAIN -> "MOUTAIN"
+    | HILL -> "HILL"
+    | FOREST -> "FOREST"
+    | LAKE -> "LAKE"
+    | REGULAR -> "REGULAR"
+
+
   let terrain_feature_to_movement_cost tf =
     match tf with
     | MOUNTAIN -> -1
@@ -42,6 +51,12 @@ module MTile = struct
     | TILE_GRASSLAND
     | TILE_DESERT 
     | TILE_SNOW 
+
+  let tile_type_to_string t =
+    match t with
+    | TILE_GRASSLAND -> "GRASSLAND"
+    | TILE_DESERT -> "DESERT"
+    | TILE_SNOW -> "SNOW"
 
   let tile_type_to_int t =
     match t with
@@ -72,6 +87,9 @@ module MTile = struct
     end
 
   type t = tile
+
+  let tile_to_string t =
+   (MHex.axial_to_string t#get_axial) ^ " type : " ^ (tile_type_to_string t#get_tile_type) ^ " feature : " ^ (terrain_feature_to_string t#get_terrain_feature)
 
 
   (* Match a tile type to a clip to get the texture from *)

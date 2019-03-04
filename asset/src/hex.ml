@@ -12,6 +12,9 @@ struct
     r : int
   }
 
+  let axial_to_string ax = 
+    "r : " ^ (string_of_int ax.r) ^ " q : " ^ (string_of_int ax.q)
+
   let create_ax r q = {
     r = r;
     q = q
