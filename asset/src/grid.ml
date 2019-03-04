@@ -6,6 +6,7 @@ open Military
 open Tile
 open Utils
 open Hex
+open Faction_enum
 
 (* Some functions are Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
 (* The grid module is  where all the game object are stored. Currently
@@ -194,6 +195,23 @@ module MGrid = struct
         else
           acc
     ) [] l
+
+  (* Check if there's an enemy unit nearby at a range n,
+     if yes, returns it, otherwise returns None*)
+  let nearby_enemy grid entity n =
+    let tile = get_tile entity#get_r entity#get_q grid in
+    let nearby_tiles = range_tile grid tile n in
+    let rec aux l = 
+      match l with
+      | [] -> None
+      | x :: s ->
+        try
+          let entity_on_tile = get_mg_at_ax grid x#get_axial in
+          Some entity_on_tile
+        with Grid_cell_no_entity ->
+          aux s 
+    in aux nearby_tiles
+
 
 end
 ;;

@@ -34,9 +34,16 @@ module MBehaviour = struct
       MAction.create MAction_enum.PASS entity#get_axial entity#get_axial
 
   let change_behaviour grid entity =
-  match entity#get_behaviour with
-  | MBehaviour_enum.WANDERING -> MBehaviour_enum.WANDERING
-  | _ -> raise Not_yet_implemented
+    match entity#get_behaviour with
+    | MBehaviour_enum.WANDERING -> 
+      begin
+        let nearby_enemy = MGrid.nearby_enemy grid entity 4 in
+        match nearby_enemy with
+        | None -> MBehaviour_enum.WANDERING
+        | Some x ->
+          MBehaviour_enum.ATTACKING
+      end
+    | _ -> raise Not_yet_implemented
 
 
   (* Main function *)

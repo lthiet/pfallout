@@ -86,6 +86,7 @@ module MEntity = struct
 
   let to_string t =
     (MHex.to_string_ax t#get_axial) ^ " current mp : " ^(string_of_int t#get_current_mp)
+    ^ " behaviour : " ^(MBehaviour_enum.to_string t#get_behaviour)
 
   let entity_textures entity texture =
     (* the faction of the entity *)

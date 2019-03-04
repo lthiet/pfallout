@@ -7,6 +7,7 @@ module MAction_enum = struct
          | PRODUCE
          | REFILL_MP
          | PASS
+         | CHANGE_BEHAVIOUR
 
   exception Unknown_Action
 
@@ -17,6 +18,7 @@ module MAction_enum = struct
     | PRODUCE -> "PRODUCE"
     | REFILL_MP -> "REFILL_MP"
     | PASS -> "PASS"
+    | CHANGE_BEHAVIOUR -> "CHANGE_BEHAVIOUR"
 
   let print t =
     match t with

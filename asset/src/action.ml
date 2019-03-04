@@ -6,6 +6,7 @@ open Animation
 open Entity
 open Military
 open Utils
+open Behaviour_enum
 
 (* This module computes actions in the game. Each action can modified the state
    of the game (the factions lists and the grid). Each action shall return the newly computed grid,
@@ -155,6 +156,24 @@ module MAction = struct
       added = [new_ent];
       deleted = [old_ent];
       animation = MAnimation.create [] 
+    }
+
+  (* This function allows to change a unit behaviour *)
+  let change_behaviour grid src new_behaviour =
+    let sr = MHex.get_r src in
+    let sq = MHex.get_q src in
+    let ent = MGrid.get_mg_at grid sr sq in
+    let old_ent,new_ent =
+      ent,ent#set_behaviour new_behaviour
+    in
+    let () =
+      MGrid.remove_mg_at grid sr sq;
+      MGrid.set_mg_at grid sr sq new_ent
+    in
+    {
+      added = [new_ent];
+      deleted = [old_ent];
+      animation = MAnimation.create []
     }
 
   exception No_action_specified
