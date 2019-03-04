@@ -210,7 +210,10 @@ module MGrid = struct
       | x :: s ->
         try
           let entity_on_tile = get_mg_at_ax grid x#get_axial in
-          Some entity_on_tile
+          if entity#get_faction <> entity_on_tile#get_faction then
+            Some entity_on_tile
+          else
+            aux s
         with 
         | Grid_cell_no_entity -> aux s 
         | Invalid_argument _  -> aux s 
