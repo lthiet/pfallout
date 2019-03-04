@@ -146,10 +146,6 @@ module MGameContext = struct
     else
       ctx.action_dst
 
-  (* Check whether of not the key for refilling mp
-     has been pressed *)
-  let refill_mp_kp e =
-    MKeyboard.key_is_pressed e Sdl.Scancode.i
 
   let set_action_type e ctx =
     begin
@@ -159,8 +155,6 @@ module MGameContext = struct
             Some (MAction_enum.MOVE)
           else if MKeyboard.key_is_pressed e Sdl.Scancode.o then
             Some (MAction_enum.ATTACK)
-          else if refill_mp_kp e then
-            Some (MAction_enum.REFILL_MP)
           else if action_cancelled e then
             None
           else

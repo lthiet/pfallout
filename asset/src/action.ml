@@ -38,6 +38,8 @@ module MAction = struct
       animation = MAnimation.add r1.animation r2.animation;
     }
 
+  exception Not_enough_point
+
   let attack grid src dst = 
     let sr,sq,dr,dq =
       MHex.get_r src,
@@ -48,42 +50,61 @@ module MAction = struct
     let smu, dmu = 
       MGrid.get_mg_at grid sr sq,
       MGrid.get_mg_at grid dr dq in
-    let satks = smu#get_atks
-    in
-    let dhp,ddefs = dmu#get_hp,dmu#get_defs
-    in
-    let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
+    if smu#get_current_mp <= 0 then
+      raise Not_enough_point
+    else
+      let satks = smu#get_atks
+      in
+      let dhp,ddefs = dmu#get_hp,dmu#get_defs
+      in
+      let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
 
-    let smu_without_mp = smu#empty_mp in
-    let () =
-      MGrid.remove_mg_at grid dr dq;
-      MGrid.remove_mg_at grid sr sq;
-      MGrid.add_mg_at grid smu_without_mp;
-      MGrid.set_mg_at grid dr dq (dmu#remove_hp damage)
-    in
-
-
-    (*if the entity is dead*)
-    if (dhp<=damage) then 
-      begin
+      let smu_without_mp = smu#empty_mp in
+      let () =
         MGrid.remove_mg_at grid dr dq;
+        MGrid.remove_mg_at grid sr sq;
+        MGrid.add_mg_at grid smu_without_mp;
+        MGrid.set_mg_at grid dr dq (dmu#remove_hp damage)
+      in
+
+
+      (*if the entity is dead*)
+      if (dhp<=damage) then 
+        begin
+          let smu_on_top = smu_without_mp#move dr dq in
+          let start = MGrid.get_tile_ax src grid in
+          let goal = MGrid.get_tile_ax dst grid in
+          let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid 2 in
+          let movement_animation_list =
+            List.fold_left (
+              fun acc x -> 
+                let new_ent = (smu_without_mp#move x#get_r x#get_q)#set_status MEntity.MOVING in
+                ((new_ent),10,10) :: acc
+            ) [] (List.rev path_taken)
+          in
+
+          let () =
+            MGrid.remove_mg_at grid dr dq;
+            MGrid.remove_mg_at grid sr sq;
+            MGrid.add_mg_at grid smu_on_top
+          in
+          {
+            added = [smu_on_top];
+            deleted = [dmu;smu];
+            animation = MAnimation.create [movement_animation_list]
+          }
+        end
+        (*if the entity isn't dead*)
+      else
+        let new_dmu = dmu#remove_hp damage
+        in 
+        MGrid.remove_mg_at grid dr dq;
+        MGrid.set_mg_at grid dr dq new_dmu;
         {
-          added = [smu_without_mp];
+          added = [smu_without_mp;new_dmu];
           deleted = [dmu;smu];
           animation = MAnimation.create []
         }
-      end
-      (*if the entity isn't dead*)
-    else
-      let new_dmu = dmu#remove_hp damage
-      in 
-      MGrid.remove_mg_at grid dr dq;
-      MGrid.set_mg_at grid dr dq new_dmu;
-      {
-        added = [smu_without_mp;new_dmu];
-        deleted = [dmu;smu];
-        animation = MAnimation.create []
-      }
 
   (* Refill a unit movement point *)
   let refill_mp grid src dst =

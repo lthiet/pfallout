@@ -107,6 +107,11 @@ module MGrid = struct
     with Invalid_argument e ->
       new MTile.tile r q (MTile.TILE_GRASSLAND) (MTile.LAKE)
 
+  let get_tile_ax ax t =
+    let r = MHex.get_r ax in
+    let q = MHex.get_q ax in
+    get_tile r q t
+
   let get_tile_cube cu t =
     let ax = MHex.cube_to_axial cu in
     get_tile ax.r ax.q t

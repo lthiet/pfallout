@@ -82,15 +82,15 @@ module MGame = struct
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
     if menu_result.start_game then
-      let start = 4 in
+      let start = 6 in
       let grid = MGrid.create start in
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
       let random_tile_soldier1 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
-      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
       MGrid.add_mg_at grid soldier1;
+      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
       let soldier2 = MMilitary.create_soldier (random_tile_soldier2#get_r) (random_tile_soldier2#get_q) faction_code1 in
       MGrid.add_mg_at grid soldier2;
       let faction1 =
@@ -128,10 +128,16 @@ module MGame = struct
       let soldier6 = MMilitary.create_soldier (random_tile_soldier6#get_r) (random_tile_soldier6#get_q) faction_code3 in
       MGrid.add_mg_at grid soldier6;
 
+      let random_tile_soldier7 = MGrid.get_random_accessible_tile grid () in
+      let soldier7 = MMilitary.create_soldier (random_tile_soldier7#get_r) (random_tile_soldier7#get_q) faction_code3 in
+      MGrid.add_mg_at grid soldier7;
+
+
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
         MFaction.add_entity soldier6 f
+        |> MFaction.add_entity soldier7;
       in
 
       let camera_rect = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height) in
