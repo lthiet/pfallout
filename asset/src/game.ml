@@ -12,6 +12,7 @@ open Pathfinder
 open Faction
 open Faction_enum
 open Military
+open Infrastructure
 open Animation
 open Entity
 open Action_enum

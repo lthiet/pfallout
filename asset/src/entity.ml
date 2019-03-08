@@ -10,7 +10,7 @@ open Behaviour_enum
 
 module MEntity = struct
   exception Unsifficient_mp
-  type unit_type = SOLDIER | SNIPER | CITY
+  type unit_type = SOLDIER | SNIPER | CITY | FORGERY
   type attack_type = MELEE | RANGED
   type terrain_type = GROUND | AIR
 

@@ -33,6 +33,5 @@ module MAction_enum = struct
     | ATTACK -> Sdl.Scancode.o
     | MOVE -> Sdl.Scancode.p
     | _ -> raise No_key_assigned
-
 end
 ;;

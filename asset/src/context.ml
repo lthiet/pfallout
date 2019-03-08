@@ -10,6 +10,7 @@ open Action
 open Action_enum
 open Animation
 open Military
+open Infrastructure
 open Entity
 open Pathfinder
 open Behaviour

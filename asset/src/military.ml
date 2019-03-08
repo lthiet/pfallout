@@ -1,6 +1,5 @@
 open Action_enum
 open Entity
-open Texture_wrapper
 open Utils
 open Hex
 open Tsdl
