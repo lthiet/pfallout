@@ -76,7 +76,7 @@ module MPathfinder = struct
         k :: acc
       ) come_from []
 
-  let dijkstra start goal grid all range = 
+  let dijkstra start goal grid all range layer = 
     let frontier = 
       let tmp = MPriority_queue.empty
       in
@@ -95,7 +95,7 @@ module MPathfinder = struct
               let n_l = MGrid.neighbours_list current grid in
               let updated_frontier = List.fold_left (
                   fun acc x ->
-                    if (not x#is_impassable) && (MGrid.empty_mg_at grid x#get_r x#get_q || x = goal) then
+                    if (not x#is_impassable) && (MGrid.empty_at grid x#get_r x#get_q layer || x = goal) then
                       begin
                         let new_cost = (Hashtbl.find cost_so_far current) + x#get_movement_cost in
                         let x_in_cost_so_far =
@@ -131,26 +131,26 @@ module MPathfinder = struct
     aux frontier start goal grid;
     come_from
 
-  let dijkstra_path start goal grid range = 
-    let tmp = dijkstra start goal grid false range in
+  let dijkstra_path start goal grid range layer = 
+    let tmp = dijkstra start goal grid false range layer in
     let res1,res2 = trace_path tmp start goal grid in
     (start :: res1),res2
 
-  let dijkstra_reachable start goal grid range = 
-    let tmp = dijkstra start goal grid true range in
+  let dijkstra_reachable start goal grid range layer = 
+    let tmp = dijkstra start goal grid true range layer in
     reachable_tile tmp
 
-  let closest_tile start goal grid =
-    let table = dijkstra start goal grid true 100 in
+  let closest_tile start goal grid layer =
+    let table = dijkstra start goal grid true 100 layer in
     let path,_ = trace_path table start goal grid in
-    let mp_left = (MGrid.get_mg_at grid start#get_r start#get_q)#get_current_mp in
+    let mp_left = (MGrid.get_at grid start#get_r start#get_q layer)#get_current_mp in
 
     let rec aux l acc mp =
       match l with
       | [] -> raise No_path_found
       | x :: s ->
         let new_mp = mp - x#get_movement_cost in
-        if new_mp < 0 || not (MGrid.empty_mg_at grid x#get_r x#get_q) then
+        if new_mp < 0 || not (MGrid.empty_at grid x#get_r x#get_q layer) then
           acc
         else
           aux s x new_mp

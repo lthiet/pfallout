@@ -17,12 +17,12 @@ module MBehaviour = struct
     try 
       let new_tile = 
         (* Get all the reachable tiles *)
-        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_current_mp |> MGrid.free_tile_list grid in
+        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_current_mp entity#get_lt |> MGrid.free_tile_list grid entity#get_lt in
 
         (* Recursively get tile that are empty *)
         let rec aux () =
           let res = random_elem_list reachable in
-          if MGrid.empty_mg_at grid res#get_r res#get_q then
+          if MGrid.empty_at grid res#get_r res#get_q entity#get_lt then
             res
           else
             aux ()
@@ -35,18 +35,18 @@ module MBehaviour = struct
       MAction.create MAction_enum.PASS entity#get_axial entity#get_axial
 
   let attack_nearby_enemy grid entity = 
-    let neighbouring_enemy = MGrid.nearby_enemy grid entity 1 in
+    let neighbouring_enemy = MGrid.nearby_enemy grid entity 1 entity#get_lt in
     match neighbouring_enemy with
     | None ->
       begin
-        let nearest_enemy = MGrid.nearby_enemy grid entity 6 in
+        let nearest_enemy = MGrid.nearby_enemy grid entity 6 entity#get_lt in
         match nearest_enemy with
         | None -> move_to_random_location grid entity
         | Some x ->
           let src = MGrid.get_tile entity#get_r entity#get_q grid in
           try
             let dst = MGrid.get_tile x#get_r x#get_q grid in
-            let closest_dst = MPathfinder.closest_tile src dst grid in
+            let closest_dst = MPathfinder.closest_tile src dst grid entity#get_lt in
             if closest_dst = src then
               MAction.create MAction_enum.PASS entity#get_axial entity#get_axial
             else
@@ -61,14 +61,14 @@ module MBehaviour = struct
     match entity#get_behaviour with
     | MBehaviour_enum.WANDERING -> 
       begin
-        let nearby_enemy = MGrid.nearby_enemy grid entity 4 in
+        let nearby_enemy = MGrid.nearby_enemy grid entity 4 entity#get_lt in
         match nearby_enemy with
         | None -> MBehaviour_enum.WANDERING
         | Some x -> MBehaviour_enum.ATTACKING
       end
     | MBehaviour_enum.ATTACKING ->
       begin
-        let nearby_enemy = MGrid.nearby_enemy grid entity 4 in
+        let nearby_enemy = MGrid.nearby_enemy grid entity 4 entity#get_lt in
         match nearby_enemy with
         | None -> MBehaviour_enum.WANDERING
         | Some x -> MBehaviour_enum.ATTACKING

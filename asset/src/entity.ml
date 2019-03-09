@@ -11,6 +11,7 @@ open Behaviour_enum
 module MEntity = struct
   exception Unsifficient_mp
   type unit_type = SOLDIER | SNIPER | CITY | FORGERY
+  type layer_type = MILITARY | INFRASTRUCTURE
   type attack_type = MELEE | RANGED
   type terrain_type = GROUND | AIR
 
@@ -22,7 +23,7 @@ module MEntity = struct
     | ATTACKING -> "attacking"
     | MOVING -> "moving"
 
-  class entity r q hp ap mp current_mp atks defs ar pa aos faction ut at tt pc = 
+  class entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc = 
     object(self)
       inherit game_object r q as super
       val hp : int = hp (* HEALTH POINT *)
@@ -36,6 +37,7 @@ module MEntity = struct
       val aos : MAction_enum.t list = aos (* ACTIONS ON START *)
       val faction : MFaction_enum.t = faction 
       val ut : unit_type = ut
+      val lt : layer_type = lt
       val at : attack_type = at
       val tt : terrain_type = tt
       val pc : int = pc (* Production cost *)
@@ -52,6 +54,7 @@ module MEntity = struct
       method get_aos = aos
       method get_faction = faction
       method get_ut = ut
+      method get_lt = lt
       method get_at = at
       method get_tt = tt
       method get_pc = pc
@@ -70,11 +73,12 @@ module MEntity = struct
       method refill_mp = {<current_mp = self#get_mp>}
       method can_move = self#get_current_mp <> 0
       method empty_mp = {<current_mp = 0>}
+      method check_layer l = self#get_lt = l
     end
   type t = entity
 
-  let create r q hp ap mp current_mp atks defs ar pa aos faction ut at tt pc = 
-    new entity r q hp ap mp current_mp atks defs ar pa aos faction ut at tt pc
+  let create r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc = 
+    new entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc
 
   let is_infrastructure t =
     match t#get_ut with
@@ -105,6 +109,8 @@ module MEntity = struct
       begin
         MTexture_pack.get_city texture
       end
+
+  
 
   let get_clip frame_n e =
     match e#get_status with

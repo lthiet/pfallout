@@ -40,7 +40,7 @@ module MAction = struct
 
   exception Not_enough_point
 
-  let attack grid src dst = 
+  let attack grid src dst layer = 
     let sr,sq,dr,dq =
       MHex.get_r src,
       MHex.get_q src,
@@ -48,8 +48,8 @@ module MAction = struct
       MHex.get_q dst
     in
     let smu, dmu = 
-      MGrid.get_mg_at grid sr sq,
-      MGrid.get_mg_at grid dr dq in
+      MGrid.get_at grid sr sq layer,
+      MGrid.get_at grid dr dq layer in
     if smu#get_current_mp <= 0 then
       raise Not_enough_point
     else
@@ -61,10 +61,10 @@ module MAction = struct
 
       let smu_without_mp = smu#empty_mp in
       let () =
-        MGrid.remove_mg_at grid dr dq;
-        MGrid.remove_mg_at grid sr sq;
-        MGrid.add_mg_at grid smu_without_mp;
-        MGrid.set_mg_at grid dr dq (dmu#remove_hp damage)
+        MGrid.remove_at grid dr dq layer;
+        MGrid.remove_at grid sr sq layer;
+        MGrid.add_at grid smu_without_mp;
+        MGrid.set_at grid dr dq (dmu#remove_hp damage) layer
       in
 
 
@@ -74,7 +74,7 @@ module MAction = struct
           let smu_on_top = smu_without_mp#move dr dq in
           let start = MGrid.get_tile_ax src grid in
           let goal = MGrid.get_tile_ax dst grid in
-          let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid 2 in
+          let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid 2 layer in
           let movement_animation_list =
             List.fold_left (
               fun acc x -> 
@@ -84,9 +84,9 @@ module MAction = struct
           in
 
           let () =
-            MGrid.remove_mg_at grid dr dq;
-            MGrid.remove_mg_at grid sr sq;
-            MGrid.add_mg_at grid smu_on_top
+            MGrid.remove_at grid dr dq layer;
+            MGrid.remove_at grid sr sq layer;
+            MGrid.add_at grid smu_on_top
           in
           {
             added = [smu_on_top];
@@ -98,8 +98,8 @@ module MAction = struct
       else
         let new_dmu = dmu#remove_hp damage
         in 
-        MGrid.remove_mg_at grid dr dq;
-        MGrid.set_mg_at grid dr dq new_dmu;
+        MGrid.remove_at grid dr dq layer;
+        MGrid.set_at grid dr dq new_dmu layer;
         {
           added = [smu_without_mp;new_dmu];
           deleted = [dmu;smu];
@@ -107,14 +107,14 @@ module MAction = struct
         }
 
   (* Refill a unit movement point *)
-  let refill_mp grid src dst =
+  let refill_mp grid src dst layer =
     let sr,sq = MHex.get_r src,MHex.get_q src
     in
-    let mu = MGrid.get_mg_at grid sr sq in
+    let mu = MGrid.get_at grid sr sq layer in
     let new_mu = mu#refill_mp in
     let () =
-      MGrid.remove_mg_at grid sr sq;
-      MGrid.set_mg_at grid sr sq new_mu;
+      MGrid.remove_at grid sr sq layer;
+      MGrid.set_at grid sr sq new_mu layer;
     in
     {
       added = [new_mu];
@@ -127,7 +127,7 @@ module MAction = struct
      be moved, ie does not have enough mp or the dst is
      an impassable terrain
   *)
-  let move grid src dst =
+  let move grid src dst layer =
     let sr,sq,dr,dq =
       MHex.get_r src,
       MHex.get_q src,
@@ -141,14 +141,14 @@ module MAction = struct
     if t_dst#is_impassable then
       raise Impossible_movement
     else
-      let ent = MGrid.get_mg_at grid sr sq in
+      let ent = MGrid.get_at grid sr sq layer in
       let old_ent,new_ent = 
         ent,ent#move dr dq
       in
 
       let start = MGrid.get_tile old_ent#get_r old_ent#get_q grid in
       let goal = MGrid.get_tile new_ent#get_r new_ent#get_q grid in
-      let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid old_ent#get_current_mp in
+      let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid old_ent#get_current_mp layer in
       let movement_animation_list =
         List.fold_left (
           fun acc x -> 
@@ -158,8 +158,8 @@ module MAction = struct
       in
       let new_ent_minus_current_mp = new_ent#remove_mp mv_cost in
       let () =
-        MGrid.remove_mg_at grid sr sq;
-        MGrid.set_mg_at grid dr dq new_ent_minus_current_mp;
+        MGrid.remove_at grid sr sq layer;
+        MGrid.set_at grid dr dq new_ent_minus_current_mp layer;
       in
       {
         added = [new_ent_minus_current_mp];
@@ -168,16 +168,16 @@ module MAction = struct
       }
 
   (* Simply passes a turn, ie removing the remaining movement point *)
-  let pass grid src dst =
+  let pass grid src dst layer =
     let sr = MHex.get_r src in
     let sq = MHex.get_q src in
-    let ent = MGrid.get_mg_at grid sr sq in
+    let ent = MGrid.get_at grid sr sq layer in
     let old_ent,new_ent =
       ent,ent#empty_mp
     in
     let () =
-      MGrid.remove_mg_at grid sr sq;
-      MGrid.set_mg_at grid sr sq new_ent
+      MGrid.remove_at grid sr sq layer;
+      MGrid.set_at grid sr sq new_ent layer
     in
     {
       added = [new_ent];
@@ -186,16 +186,16 @@ module MAction = struct
     }
 
   (* This function allows to change a unit behaviour *)
-  let change_behaviour grid src new_behaviour =
+  let change_behaviour grid src layer new_behaviour =
     let sr = MHex.get_r src in
     let sq = MHex.get_q src in
-    let ent = MGrid.get_mg_at grid sr sq in
+    let ent = MGrid.get_at grid sr sq layer in
     let old_ent,new_ent =
       ent,ent#set_behaviour new_behaviour
     in
     let () =
-      MGrid.remove_mg_at grid sr sq;
-      MGrid.set_mg_at grid sr sq new_ent
+      MGrid.remove_at grid sr sq layer;
+      MGrid.set_at grid sr sq new_ent layer
     in
     {
       added = [new_ent];
@@ -209,16 +209,19 @@ module MAction = struct
     code : MAction_enum.t;
     src : MHex.axial_coord;
     dst : MHex.axial_coord;
+    layer : MEntity.layer_type;
   }
 
   let get_code t = t.code
   let get_src t = t.src
   let get_dst t = t.dst
+  let get_layer t = t.layer
 
-  let create code src dst = {
+  let create code src dst layer = {
     code = code;
     src = src;
-    dst = dst
+    dst = dst;
+    layer = layer
   }
 
   let execute t grid =
@@ -227,11 +230,12 @@ module MAction = struct
     | Some e ->
       let src = get_src e in
       let dst = get_dst e in
+      let layer = get_layer e in
       match get_code e with
-      | MAction_enum.MOVE -> move grid src dst
-      | MAction_enum.ATTACK -> attack grid src dst
-      | MAction_enum.REFILL_MP -> refill_mp grid src dst
-      | MAction_enum.PASS -> pass grid src dst
+      | MAction_enum.MOVE -> move grid src dst layer
+      | MAction_enum.ATTACK -> attack grid src dst layer
+      | MAction_enum.REFILL_MP -> refill_mp grid src dst layer 
+      | MAction_enum.PASS -> pass grid src dst layer
       | _ -> raise Not_yet_implemented
 
 end

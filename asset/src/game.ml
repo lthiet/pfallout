@@ -81,6 +81,20 @@ module MGame = struct
   let soldier_pac_path = "asset/image/soldier-pac.png"
   let city_path = "asset/image/city.png"
 
+  (* Create a random soldier and adds it to the grid *)
+  let create_random_soldier grid fc =
+    let rts = MGrid.get_random_accessible_tile grid MEntity.MILITARY () in
+    let s = MMilitary.create_soldier (rts#get_r) (rts#get_q) fc in
+    MGrid.add_at grid s;
+    s
+
+  (* Same as above except with city *)
+  let create_random_city grid fc = 
+      let rtc = MGrid.get_random_accessible_tile grid MEntity.INFRASTRUCTURE () in
+      let c = MInfrastructure.create_city (rtc#get_r) (rtc#get_q) fc in
+      MGrid.add_at grid c;
+      c
+
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
     if menu_result.start_game then
@@ -89,12 +103,13 @@ module MGame = struct
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
-      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
+      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MEntity.MILITARY ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
-      MGrid.add_mg_at grid soldier1;
-      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid  ~bound:3 () in
+      MGrid.add_at grid soldier1;
+      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid MEntity.MILITARY ~bound:3 () in
       let soldier2 = MMilitary.create_soldier (random_tile_soldier2#get_r) (random_tile_soldier2#get_q) faction_code1 in
-      MGrid.add_mg_at grid soldier2;
+      MGrid.add_at grid soldier2;
+
       let faction1 =
         let f = MFaction.create_faction faction_code1 in
         MFaction.add_entity soldier1 f 
@@ -105,18 +120,9 @@ module MGame = struct
         MFaction_enum.create MFaction_enum.ASIA
       in
 
-      let random_tile_city1 = MGrid.get_random_accessible_tile grid () in
-      let city1 = MInfrastructure.create_city (random_tile_city1#get_r) (random_tile_city1#get_q) faction_code2 in
-
-      let random_tile_soldier3 = MGrid.get_random_accessible_tile grid () in
-      let soldier3 = MMilitary.create_soldier (random_tile_soldier3#get_r) (random_tile_soldier3#get_q) faction_code2 in
-      MGrid.add_mg_at grid soldier3;
-      let random_tile_soldier4 = MGrid.get_random_accessible_tile grid () in
-      let soldier4 = MMilitary.create_soldier (random_tile_soldier4#get_r) (random_tile_soldier4#get_q) faction_code2 in
-      MGrid.add_mg_at grid soldier4;
-      let random_tile_soldier5 = MGrid.get_random_accessible_tile grid () in
-      let soldier5 = MMilitary.create_soldier (random_tile_soldier5#get_r) (random_tile_soldier5#get_q) faction_code2 in
-      MGrid.add_mg_at grid soldier5;
+      let soldier3 = create_random_soldier grid faction_code2 in
+      let soldier4 = create_random_soldier grid faction_code2 in
+      let soldier5 = create_random_soldier grid faction_code2 in
 
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
@@ -129,20 +135,15 @@ module MGame = struct
         MFaction_enum.create MFaction_enum.EU
       in
 
-      let random_tile_soldier6 = MGrid.get_random_accessible_tile grid () in
-      let soldier6 = MMilitary.create_soldier (random_tile_soldier6#get_r) (random_tile_soldier6#get_q) faction_code3 in
-      MGrid.add_mg_at grid soldier6;
-
-      let random_tile_soldier7 = MGrid.get_random_accessible_tile grid () in
-      let soldier7 = MMilitary.create_soldier (random_tile_soldier7#get_r) (random_tile_soldier7#get_q) faction_code3 in
-      MGrid.add_mg_at grid soldier7;
-
-
+      let soldier6 = create_random_soldier grid faction_code3 in
+      let soldier7 = create_random_soldier grid faction_code3 in
+      let city1 = create_random_city grid faction_code3 in
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
         MFaction.add_entity soldier6 f
-        |> MFaction.add_entity soldier7;
+        |> MFaction.add_entity soldier7
+        |> MFaction.add_entity city1
       in
 
       let camera_rect = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height) in

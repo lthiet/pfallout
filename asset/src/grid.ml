@@ -31,67 +31,52 @@ module MGrid = struct
     infrastructure_grid : (MEntity.t option) array array;
   }
 
+  let get_tile_grid t = t.tile_grid
   let get_military_grid t = t.military_grid
+  let get_infrastructure_grid t = t.infrastructure_grid
 
-  let empty_at g r q =
+  let get_grid_layer t layer =
+    match layer with
+    | MEntity.MILITARY -> get_military_grid t
+    | MEntity.INFRASTRUCTURE -> get_infrastructure_grid t
+
+  let empty_at t r q layer =
+    let g = get_grid_layer t layer in
     match g.(r).(q) with
     | None -> true
     | _ -> false
 
-  let remove_at g r q =
+  let remove_at t r q layer =
+    let g = get_grid_layer t layer in
     g.(r).(q) <- None
 
   exception Grid_cell_no_entity
-  let get_at g r q =
+  let get_at t r q layer =
+    let g = get_grid_layer t layer in
     match g.(r).(q) with
     | None -> raise Grid_cell_no_entity
     | Some x -> x
 
+  let get_at_ax t ax layer =
+    get_at t (MHex.get_r ax) (MHex.get_q ax) layer
+
   exception Grid_cell_not_empty
-  let set_at g r q e =
-    (* Check if there's already something *)
-    match g.(r).(q) with
-    (* If not, we can set *)
-    | None -> g.(r).(q) <- Some e
-    (* Otherwise, it is an error*)
-    | _ -> 
-      raise Grid_cell_not_empty
+  exception Grid_set_error 
+  let set_at t r q e layer =
+    let g = get_grid_layer t layer in
+    if e#check_layer layer then
+      (* Check if there's already something *)
+      match g.(r).(q) with
+      (* If not, we can set *)
+      | None -> g.(r).(q) <- Some e
+      (* Otherwise, it is an error*)
+      | _ -> 
+        raise Grid_cell_not_empty
+    else 
+      raise Grid_set_error
 
-
-
-  let empty_mg_at t r q =
-    let tmg = t.military_grid in
-    empty_at tmg r q
-
-  let remove_mg_at t r q =
-    let tmg = t.military_grid in
-    remove_at tmg r q
-
-
-
-
-
-  let get_mg_at t r q =
-    let tmg = t.military_grid in
-    get_at tmg r q
-
-  let get_mg_at_ax t ax =
-    get_mg_at t (MHex.get_r ax) (MHex.get_q ax)
-
-  exception Grid_set_error of string
-  let not_mu_on_mg_error_msg = "Tried to set a non military unit on the military grid"
-  let set_mg_at t r q m =
-    let tmg = t.military_grid in
-    (* Check if the unit is indeed a military *)
-    if MEntity.is_military m then
-      begin
-        set_at tmg r q m
-      end
-    else
-      raise (Grid_set_error not_mu_on_mg_error_msg)
-
-  let add_mg_at t m =
-    set_mg_at t m#get_r m#get_q m
+  let add_at t e =
+    set_at t e#get_r e#get_q e e#get_lt
 
   let create_grid level_radius =
     let size = level_radius * 2 + 1 in
@@ -192,7 +177,7 @@ module MGrid = struct
           acc
       ) [] l
 
-  let get_random_accessible_tile t
+  let get_random_accessible_tile t layer
       ?(center : MHex.axial_coord = MHex.create_ax t.level_radius t.level_radius)
       ?(bound : int = t.level_radius )
       ()
@@ -204,7 +189,7 @@ module MGrid = struct
     (* Careful, this function might not stop *)
     let rec aux r q =
       let res = g.(r).(q) in
-      if res#is_impassable || not (empty_mg_at t r q) then
+      if res#is_impassable || not (empty_at t r q layer) then
         aux (r_r ()) (r_q ())
       else
         begin
@@ -213,18 +198,18 @@ module MGrid = struct
     in aux (r_r ()) (r_q ())
 
   (* Checks the whole list, if there's an unit, omit it*)
-  let free_tile_list grid l = 
+  let free_tile_list grid layer list = 
     List.fold_left (
       fun acc x -> 
-        if empty_mg_at grid x#get_r x#get_q then
+        if empty_at grid x#get_r x#get_q layer then
           x :: acc
         else
           acc
-    ) [] l
+    ) [] list
 
   (* Check if there's an enemy unit nearby at a range n,
      if yes, returns it, otherwise returns None*)
-  let nearby_enemy grid entity n =
+  let nearby_enemy grid entity n layer =
     let tile = get_tile entity#get_r entity#get_q grid in
     let nearby_tiles = range_tile grid tile n in
     let rec aux l = 
@@ -232,7 +217,7 @@ module MGrid = struct
       | [] -> None
       | x :: s ->
         try
-          let entity_on_tile = get_mg_at_ax grid x#get_axial in
+          let entity_on_tile = get_at_ax grid x#get_axial layer in
           if entity#get_faction <> entity_on_tile#get_faction then
             Some entity_on_tile
           else
@@ -241,7 +226,5 @@ module MGrid = struct
         | Grid_cell_no_entity -> aux s 
         | Invalid_argument _  -> aux s 
     in aux nearby_tiles
-
-
 end
 ;;

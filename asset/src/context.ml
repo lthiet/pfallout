@@ -128,7 +128,7 @@ module MGameContext = struct
   let set_action_src e ctx =
     if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
       begin
-        let ent_below = MGrid.get_mg_at_ax ctx.grid ctx.cursor_selector#get_axial in
+        let ent_below = MGrid.get_at_ax ctx.grid ctx.cursor_selector#get_axial MEntity.MILITARY in
         if (MFaction.entity_in ent_below ctx.faction_controlled_by_player) then
           Some ctx.cursor_selector#get_axial
         else
@@ -179,7 +179,7 @@ module MGameContext = struct
           match ctx.action_type with
           | None -> raise Unspecified_Action_Type
           | Some x ->
-            let action = MAction.create x src dst in
+            let action = MAction.create x src dst MEntity.MILITARY  in
             MAction.execute (Some action) ctx.grid 
         end
       | _,_ ->  raise Unspecified_Src_Dst
@@ -219,7 +219,7 @@ module MGameContext = struct
             | [] -> raise No_entities_to_play
             | x :: s ->
               if x#can_move then
-                let action = MBehaviour.compute_behaviour ctx.grid x in
+                let action = MBehaviour.compute_behaviour ctx.grid x x#get_lt in
                 MAction.execute (Some action) ctx.grid
               else
                 aux s
@@ -266,7 +266,7 @@ module MGameContext = struct
         let f = current_faction ctx in
         let res = List.fold_left ( fun acc x -> 
             let new_behaviour = MBehaviour.change_behaviour ctx.grid x in
-            let res = MAction.change_behaviour ctx.grid x#get_axial new_behaviour in
+            let res = MAction.change_behaviour ctx.grid x#get_axial x#get_lt new_behaviour in
             MAction.add res acc
           ) MAction.empty (MFaction.get_entity f)
         in
@@ -309,7 +309,7 @@ module MGameContext = struct
       let units = MFaction.get_entity cf in
       let res = List.fold_left ( fun acc1 x1 -> 
           List.fold_left ( fun acc1 x2 ->
-              let action = MAction.create x2 x1#get_axial x1#get_axial in
+              let action = MAction.create x2 x1#get_axial x1#get_axial x1#get_lt in
               let res = MAction.execute (Some action) ctx.grid in
               MAction.add res acc1
             ) acc1 x1#get_aos
@@ -391,7 +391,7 @@ module MGameContext = struct
                 in
                 let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
                 let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
-                let ent_below = MGrid.get_mg_at context.grid c#get_r c#get_q in
+                let ent_below = MGrid.get_at context.grid c#get_r c#get_q MEntity.MILITARY in
                 match action_type,context.action_type with
                 (* Action has been cancelled *)
                 | None,Some e2 -> []
@@ -400,7 +400,7 @@ module MGameContext = struct
                   begin
                     match e1 with 
                     | MAction_enum.MOVE ->
-                      MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp
+                      MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
                     | MAction_enum.ATTACK ->
                       MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                     | _ -> [tile_below_src]
@@ -418,7 +418,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE ->
-                              let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp in
+                              let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp ent_below#get_lt in
                               res
                             | MAction_enum.ATTACK ->
                               [tile_below_dst] 
@@ -434,7 +434,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE ->
-                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp
+                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
                             | MAction_enum.ATTACK ->
                               MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                             | _ -> [tile_below_src]
