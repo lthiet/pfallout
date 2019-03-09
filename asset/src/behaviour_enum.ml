@@ -3,11 +3,13 @@ module MBehaviour_enum = struct
     | WANDERING
     | ATTACKING
     | DEFENDING
+    | SPAWNING
 
   let to_string t =   
     match t with
     | WANDERING -> "WANDERING"
     | ATTACKING -> "ATTACKING"
     | DEFENDING -> "DEFENDING"
+    | SPAWNING -> "SPAWNING"
 
 end

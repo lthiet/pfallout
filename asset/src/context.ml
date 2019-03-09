@@ -219,7 +219,7 @@ module MGameContext = struct
             | [] -> raise No_entities_to_play
             | x :: s ->
               if x#can_move then
-                let action = MBehaviour.compute_behaviour ctx.grid x x#get_lt in
+                let action = MBehaviour.compute_behaviour ctx.grid x in
                 MAction.execute (Some action) ctx.grid
               else
                 aux s

@@ -197,6 +197,15 @@ module MGrid = struct
         end
     in aux (r_r ()) (r_q ())
 
+  let passable_tile_list list =
+    List.fold_left (
+      fun acc x ->
+        if x#is_impassable then
+          acc
+        else
+          x :: acc
+    ) [] list
+
   (* Checks the whole list, if there's an unit, omit it*)
   let free_tile_list grid layer list = 
     List.fold_left (

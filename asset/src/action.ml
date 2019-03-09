@@ -185,6 +185,48 @@ module MAction = struct
       animation = MAnimation.create [] 
     }
 
+  exception Only_city_can_spawn
+  (* Spawn a soldier with the same faction as src *)
+  let spawn_soldier grid src dst layer =
+    let city_src = MGrid.get_at_ax grid src MEntity.INFRASTRUCTURE in
+    (* Check if it is a city *)
+    if not (city_src#check_unit_type MEntity.CITY )then
+      raise Only_city_can_spawn
+    else
+      (* Create a new soldier *)
+      let new_soldier = 
+        let tmp = MMilitary.create_soldier (MHex.get_r dst) (MHex.get_q dst) city_src#get_faction  in
+        tmp#empty_mp
+        in
+      (* Add him to the grid *)
+      let () =
+        MGrid.add_at grid new_soldier
+      in
+      let anim_soldier =
+        (* The soldier will move from the city to the next tile *)
+        let first = (new_soldier#move city_src#get_r city_src#get_q)#set_status MEntity.MOVING in
+        let second = first#move new_soldier#get_r new_soldier#get_q in
+        [
+          (first,10,10);
+          (second,10,10)
+        ]
+      in
+      (* Compute the new city *)
+      let new_city = city_src#empty_mp in
+      (* Removes it from the grid and add the new one *)
+      let () =
+        MGrid.remove_at grid (MHex.get_r src) (MHex.get_q src) city_src#get_lt;
+        MGrid.add_at grid new_city
+      in
+      (* The city will disappear while the unit is moving, thus we will create an animation for the city too *)
+      let anim_city = List.init 2 (fun i -> (new_city,10,10)) in
+      {
+        added = [new_soldier;new_city];
+        deleted = [city_src];
+        animation = MAnimation.create [anim_soldier;anim_city]
+      }
+
+
   (* This function allows to change a unit behaviour *)
   let change_behaviour grid src layer new_behaviour =
     let sr = MHex.get_r src in
@@ -224,6 +266,9 @@ module MAction = struct
     layer = layer
   }
 
+  let create_on_self code entity =
+    create code entity#get_axial entity#get_axial entity#get_lt
+
   let execute t grid =
     match t with
     | None -> raise No_action_specified
@@ -236,6 +281,7 @@ module MAction = struct
       | MAction_enum.ATTACK -> attack grid src dst layer
       | MAction_enum.REFILL_MP -> refill_mp grid src dst layer 
       | MAction_enum.PASS -> pass grid src dst layer
+      | MAction_enum.SPAWN_SOLDIER -> spawn_soldier grid src dst layer
       | _ -> raise Not_yet_implemented
 
 end

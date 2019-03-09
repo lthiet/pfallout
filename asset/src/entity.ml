@@ -23,7 +23,14 @@ module MEntity = struct
     | ATTACKING -> "attacking"
     | MOVING -> "moving"
 
-  class entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc = 
+
+  let layer_to_string s =
+    match s with
+    | MILITARY -> "MILITARY"
+    | INFRASTRUCTURE -> "INFRASTRUCTURE"
+
+
+  class entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
     object(self)
       inherit game_object r q as super
       val hp : int = hp (* HEALTH POINT *)
@@ -42,7 +49,7 @@ module MEntity = struct
       val tt : terrain_type = tt
       val pc : int = pc (* Production cost *)
       val status : status = IDLE
-      val behaviour : MBehaviour_enum.t = WANDERING
+      val behaviour : MBehaviour_enum.t = behaviour
       method get_hp = hp
       method get_ap = ap
       method get_mp = mp
@@ -74,6 +81,7 @@ module MEntity = struct
       method can_move = self#get_current_mp <> 0
       method empty_mp = {<current_mp = 0>}
       method check_layer l = self#get_lt = l
+      method check_unit_type ut = self#get_ut = ut
     end
   type t = entity
 
@@ -90,6 +98,7 @@ module MEntity = struct
 
   let to_string t =
     (MHex.to_string_ax t#get_axial) ^ " current mp : " ^(string_of_int t#get_current_mp)
+    ^ " layer : " ^ (layer_to_string t#get_lt)
     ^ " behaviour : " ^(MBehaviour_enum.to_string t#get_behaviour)
 
   let entity_textures entity texture =
@@ -110,7 +119,7 @@ module MEntity = struct
         MTexture_pack.get_city texture
       end
 
-  
+
 
   let get_clip frame_n e =
     match e#get_status with
