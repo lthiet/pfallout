@@ -28,47 +28,64 @@ module MGrid = struct
     level_radius : int;
     tile_grid : (MTile.tile) array array;
     military_grid : (MEntity.t option) array array;
+    infrastructure_grid : (MEntity.t option) array array;
   }
 
   let get_military_grid t = t.military_grid
 
-  let empty_mg_at t r q =
-    let tmg = t.military_grid in
-    match tmg.(r).(q) with
+  let empty_at g r q =
+    match g.(r).(q) with
     | None -> true
     | _ -> false
 
-  let remove_mg_at t r q =
-    let tmg = t.military_grid in
-    tmg.(r).(q) <- None
+  let remove_at g r q =
+    g.(r).(q) <- None
+
+  exception Grid_cell_no_entity
+  let get_at g r q =
+    match g.(r).(q) with
+    | None -> raise Grid_cell_no_entity
+    | Some x -> x
 
   exception Grid_cell_not_empty
-  exception Grid_cell_no_entity
-  exception Grid_set_error of string
+  let set_at g r q e =
+    (* Check if there's already something *)
+    match g.(r).(q) with
+    (* If not, we can set *)
+    | None -> g.(r).(q) <- Some e
+    (* Otherwise, it is an error*)
+    | _ -> 
+      raise Grid_cell_not_empty
 
-  let not_mu_on_mg_error_msg = "Tried to set a non military unit on the military grid"
+
+
+  let empty_mg_at t r q =
+    let tmg = t.military_grid in
+    empty_at tmg r q
+
+  let remove_mg_at t r q =
+    let tmg = t.military_grid in
+    remove_at tmg r q
+
+
+
+
 
   let get_mg_at t r q =
     let tmg = t.military_grid in
-    match tmg.(r).(q) with
-    | None -> raise Grid_cell_no_entity
-    | Some x -> x
+    get_at tmg r q
 
   let get_mg_at_ax t ax =
     get_mg_at t (MHex.get_r ax) (MHex.get_q ax)
 
+  exception Grid_set_error of string
+  let not_mu_on_mg_error_msg = "Tried to set a non military unit on the military grid"
   let set_mg_at t r q m =
     let tmg = t.military_grid in
     (* Check if the unit is indeed a military *)
     if MEntity.is_military m then
       begin
-        (* Check if there's already something *)
-        match tmg.(r).(q) with
-        (* If not, we can set *)
-        | None -> tmg.(r).(q) <- Some m
-        (* Otherwise, it is an error*)
-        | _ -> 
-          raise Grid_cell_not_empty
+        set_at tmg r q m
       end
     else
       raise (Grid_set_error not_mu_on_mg_error_msg)
@@ -121,6 +138,7 @@ module MGrid = struct
       level_radius = level_radius;
       tile_grid = create_grid level_radius;
       military_grid = create_none_grid level_radius;
+      infrastructure_grid = create_none_grid level_radius;
     }
 
   let render renderer tile_texture terrain_feature_texture grid camera = 

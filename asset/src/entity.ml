@@ -92,13 +92,19 @@ module MEntity = struct
     (* the faction of the entity *)
     let f = entity#get_faction
     in
-
-    match f with
-    | MFaction_enum.EU,_ ->
-      MTexture_pack.get_soldier_eu texture
-    | MFaction_enum.ASIA,_ ->
-      MTexture_pack.get_soldier_pac texture
-    | _ -> raise Not_yet_implemented
+    if is_military entity then
+      begin
+        match f with
+        | MFaction_enum.EU,_ ->
+          MTexture_pack.get_soldier_eu texture
+        | MFaction_enum.ASIA,_ ->
+          MTexture_pack.get_soldier_pac texture
+        | _ -> raise Not_yet_implemented
+      end
+    else
+      begin
+        MTexture_pack.get_city texture
+      end
 
   let get_clip frame_n e =
     match e#get_status with
@@ -115,7 +121,13 @@ module MEntity = struct
       ?(x:int option = None) 
       ?(y:int option = None)
       e texture camera frame_n =
-    let clip = get_clip frame_n e in
+    let clip = 
+      if is_military e then
+        let tmp = get_clip frame_n e in 
+        Some tmp
+      else
+        None
+    in
     if check_collision e#get_box camera then
       let pos_x,pos_y = 
         match x,y with
@@ -128,10 +140,9 @@ module MEntity = struct
       in
       let txt = entity_textures e texture in
       MTexture.render renderer
-        ~clip:(Some clip)
+        ~clip:(clip)
         ~x:pos_x
         ~y:pos_y
         txt
-
 end
 ;;

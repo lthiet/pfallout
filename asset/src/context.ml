@@ -58,8 +58,8 @@ module MGameContext = struct
 
 
   (* Return a new camera based on user input *)
-  let get_camera e c =
-    MCamera.change_direction c e |> MCamera.update_camera
+  let get_camera ev camera =
+    MCamera.change_direction camera ev |> MCamera.update_camera
 
   type keyset = {
     up : Sdl.scancode;

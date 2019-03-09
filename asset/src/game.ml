@@ -79,6 +79,7 @@ module MGame = struct
   let cursor_path = "asset/image/cursors.png"
   let soldier_eu_path = "asset/image/soldier-eu.png"
   let soldier_pac_path = "asset/image/soldier-pac.png"
+  let city_path = "asset/image/city.png"
 
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
@@ -103,6 +104,9 @@ module MGame = struct
       let faction_code2 = 
         MFaction_enum.create MFaction_enum.ASIA
       in
+
+      let random_tile_city1 = MGrid.get_random_accessible_tile grid () in
+      let city1 = MInfrastructure.create_city (random_tile_city1#get_r) (random_tile_city1#get_q) faction_code2 in
 
       let random_tile_soldier3 = MGrid.get_random_accessible_tile grid () in
       let soldier3 = MMilitary.create_soldier (random_tile_soldier3#get_r) (random_tile_soldier3#get_q) faction_code2 in
@@ -168,7 +172,8 @@ module MGame = struct
         let curs = MTexture.load_from_file renderer cursor_path in
         let soldier_eu = MTexture.load_from_file renderer soldier_eu_path in
         let soldier_pac = MTexture.load_from_file renderer soldier_pac_path in
-        MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac
+        let city = MTexture.load_from_file renderer city_path in
+        MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac city
       in
       loop renderer ctx txt
 end
