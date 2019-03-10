@@ -67,6 +67,15 @@ module MAction = struct
         MGrid.set_at grid dr dq (dmu#remove_hp damage) layer
       in
 
+      let anim_src = [
+        (smu_without_mp#set_status MEntity.ATTACKING,35,35);
+      ] 
+      in
+      let anim_dst = [
+        (dmu,35,35)
+      ]
+      in
+
 
       (*if the entity is dead*)
       if (dhp<=damage) then 
@@ -91,19 +100,21 @@ module MAction = struct
           {
             added = [smu_on_top];
             deleted = [dmu;smu];
-            animation = MAnimation.create [movement_animation_list]
+            animation = MAnimation.create [anim_src @ movement_animation_list;anim_dst]
           }
         end
         (*if the entity isn't dead*)
       else
         let new_dmu = dmu#remove_hp damage
         in 
-        MGrid.remove_at grid dr dq layer;
-        MGrid.set_at grid dr dq new_dmu layer;
+        let () =
+          MGrid.remove_at grid dr dq layer;
+          MGrid.set_at grid dr dq new_dmu layer;
+        in
         {
           added = [smu_without_mp;new_dmu];
           deleted = [dmu;smu];
-          animation = MAnimation.create []
+          animation = MAnimation.create [anim_src;anim_dst]
         }
 
   (* Refill a unit movement point *)
@@ -197,7 +208,7 @@ module MAction = struct
       let new_soldier = 
         let tmp = MMilitary.create_soldier (MHex.get_r dst) (MHex.get_q dst) city_src#get_faction  in
         tmp#empty_mp
-        in
+      in
       (* Add him to the grid *)
       let () =
         MGrid.add_at grid new_soldier

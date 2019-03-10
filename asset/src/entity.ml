@@ -125,6 +125,8 @@ module MEntity = struct
     match e#get_status with
     | MOVING ->
       Sdl.Rect.create (MHex.width * (frame_n/7)) 0 MHex.width MHex.height
+    | ATTACKING ->
+      Sdl.Rect.create (MHex.width * (frame_n/7)) MHex.height MHex.width MHex.height
     | _ ->
       Sdl.Rect.create 0 0 MHex.width MHex.height 
 
