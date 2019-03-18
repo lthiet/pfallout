@@ -2,7 +2,7 @@ open Tsdl
 open Hex
 
 module MAction_enum = struct
-  type t = ATTACK
+  type t = ATTACK of MHex.axial_coord * MHex.axial_coord
          | MOVE
          | PRODUCE
          | REFILL_MP

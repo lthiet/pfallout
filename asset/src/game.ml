@@ -113,6 +113,7 @@ module MGame = struct
       (* Add some random items *)
       let _ = create_random_hp grid in
       let _ = create_random_hp grid in
+      let _ = create_random_hp grid in
 
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
