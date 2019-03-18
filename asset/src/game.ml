@@ -98,7 +98,7 @@ module MGame = struct
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
     if menu_result.start_game then
-      let start = 6 in
+      let start = menu_result.map_size in
       let grid = MGrid.create start in
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
