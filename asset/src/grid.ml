@@ -9,6 +9,7 @@ open Utils
 open Hex
 open Faction_enum
 open Item
+open Layer_enum
 
 (* Some functions are Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
 (* The grid module is  where all the game object are stored. Currently
@@ -82,8 +83,8 @@ module MGrid = struct
 
   let get_grid_layer t layer =
     match layer with
-    | MEntity.MILITARY -> get_military_grid t
-    | MEntity.INFRASTRUCTURE -> get_infrastructure_grid t
+    | MLayer_enum.MILITARY -> get_military_grid t
+    | MLayer_enum.INFRASTRUCTURE -> get_infrastructure_grid t
 
   let empty_at t r q layer =
     let g = get_grid_layer t layer in

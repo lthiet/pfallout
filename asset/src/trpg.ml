@@ -2,7 +2,7 @@
 (* Utils *)
 open Tsdl
 open Tsdl_image
-(* open Tsdl_ttf *)
+open Tsdl_ttf
 open Tsdl_mixer
 open Utils
 (* Assets *)

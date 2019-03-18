@@ -19,6 +19,7 @@ open Action_enum
 open Texture_pack
 open Camera
 open Item
+open Layer_enum
 
 
 module MGame = struct
@@ -85,20 +86,20 @@ module MGame = struct
 
   (* Create a random soldier and adds it to the grid *)
   let create_random_soldier grid fc =
-    let rts = MGrid.get_random_accessible_tile grid MEntity.MILITARY () in
+    let rts = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
     let s = MMilitary.create_soldier (rts#get_r) (rts#get_q) fc in
     MGrid.add_at grid s;
     s
 
   (* Same as above except with city *)
   let create_random_city grid fc = 
-      let rtc = MGrid.get_random_accessible_tile grid MEntity.INFRASTRUCTURE () in
-      let c = MInfrastructure.create_city (rtc#get_r) (rtc#get_q) fc in
-      MGrid.add_at grid c;
-      c
+    let rtc = MGrid.get_random_accessible_tile grid MLayer_enum.INFRASTRUCTURE () in
+    let c = MInfrastructure.create_city (rtc#get_r) (rtc#get_q) fc in
+    MGrid.add_at grid c;
+    c
 
   let create_random_hp grid =
-    let rthp = MGrid.get_random_accessible_tile grid MEntity.MILITARY () in
+    let rthp = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
     let hp = MItem.create_healthpack rthp#get_r rthp#get_q 40 in
     MGrid.add_item_at grid hp;
     hp
@@ -118,10 +119,10 @@ module MGame = struct
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
-      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MEntity.MILITARY ~bound:3 () in
+      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
       MGrid.add_at grid soldier1;
-      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid MEntity.MILITARY ~bound:3 () in
+      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
       let soldier2 = MMilitary.create_soldier (random_tile_soldier2#get_r) (random_tile_soldier2#get_q) faction_code1 in
       MGrid.add_at grid soldier2;
 
@@ -130,7 +131,6 @@ module MGame = struct
         MFaction.add_entity soldier1 f 
         |> MFaction.add_entity soldier2
       in
-
       let faction_code2 = 
         MFaction_enum.create MFaction_enum.ASIA
       in
@@ -173,12 +173,14 @@ module MGame = struct
         action_src = None;
         action_dst = None;
         action_type = None;
+        action_layer = None;
         to_be_added = [];
         to_be_deleted = [];
         animation = MAnimation.create [];
         movement_range_selector = [];
         new_turn = false;
         frame = 0;
+        current_layer = MLayer_enum.MILITARY;
       } in
 
       let txt = 
