@@ -4,6 +4,7 @@ module MBehaviour_enum = struct
     | ATTACKING
     | DEFENDING
     | SPAWNING
+    | CONTROLLED_BY_PLAYER
 
   let to_string t =   
     match t with
@@ -11,5 +12,6 @@ module MBehaviour_enum = struct
     | ATTACKING -> "ATTACKING"
     | DEFENDING -> "DEFENDING"
     | SPAWNING -> "SPAWNING"
+    | CONTROLLED_BY_PLAYER -> "CONTROLLED_BY_PLAYER"
 
 end

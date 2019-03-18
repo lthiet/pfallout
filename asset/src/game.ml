@@ -18,6 +18,7 @@ open Entity
 open Action_enum
 open Texture_pack
 open Camera
+open Item
 
 
 module MGame = struct
@@ -36,7 +37,7 @@ module MGame = struct
       MBackground.render renderer (MTexture_pack.get_bg textures) (MCamera.get_rect context.camera);
 
       (* Render the tiles *)
-      MGrid.render renderer (MTexture_pack.get_tile textures) (MTexture_pack.get_terrain_feature textures) context.grid (MCamera.get_rect context.camera);
+      MGrid.render renderer textures context.grid (MCamera.get_rect context.camera) context.frame;
 
       (* Render the selector ( cursor ) *)
       MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector (MCamera.get_rect context.camera);
@@ -80,6 +81,7 @@ module MGame = struct
   let soldier_eu_path = "asset/image/soldier-eu.png"
   let soldier_pac_path = "asset/image/soldier-pac.png"
   let city_path = "asset/image/city.png"
+  let healthpack_path = "asset/image/healthpack.png"
 
   (* Create a random soldier and adds it to the grid *)
   let create_random_soldier grid fc =
@@ -95,11 +97,23 @@ module MGame = struct
       MGrid.add_at grid c;
       c
 
+  let create_random_hp grid =
+    let rthp = MGrid.get_random_accessible_tile grid MEntity.MILITARY () in
+    let hp = MItem.create_healthpack rthp#get_r rthp#get_q 40 in
+    MGrid.add_item_at grid hp;
+    hp
+
+
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer screen_width screen_height = 
     if menu_result.start_game then
       let start = 6 in
       let grid = MGrid.create start in
+
+      (* Add some random items *)
+      let _ = create_random_hp grid in
+      let _ = create_random_hp grid in
+
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
@@ -174,8 +188,10 @@ module MGame = struct
         let soldier_eu = MTexture.load_from_file renderer soldier_eu_path in
         let soldier_pac = MTexture.load_from_file renderer soldier_pac_path in
         let city = MTexture.load_from_file renderer city_path in
-        MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac city
+        let healthpack = MTexture.load_from_file renderer healthpack_path in
+        MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac city healthpack
       in
+
       loop renderer ctx txt
 end
 ;;
