@@ -106,7 +106,7 @@ module MGame = struct
 
 
   (* Run the game with the correct paths and context *)
-  let run (menu_result:MMenu.result) renderer screen_width screen_height = 
+  let run (menu_result:MMenu.result) renderer = 
     if menu_result.start_game then
       let start = 6 in
       let grid = MGrid.create start in
@@ -133,36 +133,40 @@ module MGame = struct
       in
 
       (* let faction_code2 = 
-        MFaction_enum.create MFaction_enum.ASIA
-      in
+         MFaction_enum.create MFaction_enum.ASIA
+         in
 
-      let soldier3 = create_random_soldier grid faction_code2 in
-      let soldier4 = create_random_soldier grid faction_code2 in
-      let city1 = create_random_city grid faction_code2 in
+         let soldier3 = create_random_soldier grid faction_code2 in
+         let soldier4 = create_random_soldier grid faction_code2 in
+         let city1 = create_random_city grid faction_code2 in
 
-      let faction2 =
-        let f = MFaction.create_faction faction_code2 in
-        MFaction.add_entity soldier3 f
-        |> MFaction.add_entity soldier4
-        |> MFaction.add_entity city1
-      in
+         let faction2 =
+         let f = MFaction.create_faction faction_code2 in
+         MFaction.add_entity soldier3 f
+         |> MFaction.add_entity soldier4
+         |> MFaction.add_entity city1
+         in
 
-      let faction_code3 = 
-        MFaction_enum.create MFaction_enum.EU
-      in
+         let faction_code3 = 
+         MFaction_enum.create MFaction_enum.EU
+         in
 
-      let soldier6 = create_random_soldier grid faction_code3 in
-      let soldier7 = create_random_soldier grid faction_code3 in
-      let city2 = create_random_city grid faction_code3 in
+         let soldier6 = create_random_soldier grid faction_code3 in
+         let soldier7 = create_random_soldier grid faction_code3 in
+         let city2 = create_random_city grid faction_code3 in
 
-      let faction3 =
-        let f = MFaction.create_faction faction_code3 in
-        MFaction.add_entity soldier6 f
-        |> MFaction.add_entity soldier7
-        |> MFaction.add_entity city2
-      in *)
+         let faction3 =
+         let f = MFaction.create_faction faction_code3 in
+         MFaction.add_entity soldier6 f
+         |> MFaction.add_entity soldier7
+         |> MFaction.add_entity city2
+         in *)
 
-      let camera_rect = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height) in
+      let camera_rect =
+        let sw,sh = 
+          Sdl.get_window_size (MMenu.get_window menu_result)
+        in
+        Sdl.Rect.create (start*MHex.size) (start*MHex.size) sw sh in
 
       let ctx : MGameContext.t = {
         over = false;
@@ -183,6 +187,7 @@ module MGame = struct
         new_turn = false;
         frame = 0;
         current_layer = MLayer_enum.MILITARY;
+        window = MMenu.get_window menu_result;
       } in
 
       let txt = 

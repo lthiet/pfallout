@@ -22,15 +22,15 @@ module MCamera = struct
   let get_vel_x t = t.vel_x
   let get_vel_y t = t.vel_y
 
-  (* Update the position of the camera according to its velocity *)
-  let update_camera c =
+  (* Update the position of the camera according to its velocity,
+     and update its size according to the window *)
+  let update_camera window c =
     let r = c.rect in
-    let x,y,w,h =
+    let x,y=
       Sdl.Rect.x r,
-      Sdl.Rect.y r,
-      Sdl.Rect.w r,
-      Sdl.Rect.h r
+      Sdl.Rect.y r
     in
+    let w,h = Sdl.get_window_size window in
 
     let new_rect = Sdl.Rect.create (x + c.vel_x) (y + c.vel_y) w h
     in
@@ -38,6 +38,7 @@ module MCamera = struct
       c with
       rect = new_rect
     }
+
 
   (* Based on input/event, change the camera direct *)
   let change_direction c e =
@@ -93,11 +94,5 @@ module MCamera = struct
     (* Otherwise nothing to do *)
     else
       c
-
-
-
-
-
-
 
 end
