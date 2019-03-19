@@ -3,4 +3,5 @@ each entities of different layer can overlap themselves *)
 
 module MLayer_enum = struct
     type t = MILITARY | INFRASTRUCTURE
+
 end

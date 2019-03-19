@@ -49,15 +49,31 @@ module MGame = struct
           MCursor.render renderer (MTexture_pack.get_curs textures) c (MCamera.get_rect context.camera);
       ) context.movement_range_selector;
 
-      (* Render the soldiers *)
+      (* TODO : factorize this if possible *)
+
+      (* Render the infrastructures *)
       List.iter (
         fun x ->
           List.iter (
             fun y ->
-              MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
+              if y#check_layer MLayer_enum.INFRASTRUCTURE then
+                MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
           )
             (MFaction.get_entity x)
       ) context.faction_list;
+
+
+      (* Render the military *)
+      List.iter (
+        fun x ->
+          List.iter (
+            fun y ->
+              if y#check_layer MLayer_enum.MILITARY then
+                MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
+          )
+            (MFaction.get_entity x)
+      ) context.faction_list;
+
 
       (* Render the animated *)
       List.iter (
