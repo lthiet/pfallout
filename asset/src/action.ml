@@ -76,7 +76,7 @@ module MAction = struct
       ] 
       in
       let anim_dst = [
-        (dmu,35,35)
+        (dmu#set_status MEntity.ATTACKING,35,35)
       ]
       in
 

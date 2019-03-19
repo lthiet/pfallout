@@ -31,11 +31,11 @@ module MBehaviour = struct
             aux ()
         in
         aux ()
-        (* If there is nowherer else to move, pass the turn *)
       in
       MAction_enum.create_move entity#get_axial new_tile#get_axial entity#get_lt
     with Empty_list ->
-      MAction_enum.create_move entity#get_axial entity#get_axial entity#get_lt
+      (* If there is nowherer else to move, pass the turn *)
+      MAction_enum.create_pass entity#get_axial entity#get_lt
 
   let attack_nearby_enemy grid entity = 
     let neighbouring_enemy = MGrid.nearby_enemy grid entity 1 entity#get_lt in
@@ -58,7 +58,7 @@ module MBehaviour = struct
             MAction_enum.create_pass entity#get_axial entity#get_lt
       end
     | Some x ->
-    MAction_enum.create_attack entity#get_axial x#get_axial entity#get_lt x#get_lt
+      MAction_enum.create_attack entity#get_axial x#get_axial entity#get_lt x#get_lt
 
   let spawn_unit grid entity =
     let tile_below = MGrid.get_tile_ax entity#get_axial grid in
