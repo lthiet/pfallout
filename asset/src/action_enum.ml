@@ -2,6 +2,7 @@ open Tsdl
 open Hex
 open Layer_enum
 open Entity_enum
+open Item
 
 module MAction_enum = struct
 
@@ -13,6 +14,7 @@ module MAction_enum = struct
             | PASS_E
             | CHANGE_BEHAVIOUR_E
             | SPAWN_ENTITY_E
+            | USE_ITEM_E
 
   type t = ATTACK of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t * MLayer_enum.t
          | MOVE of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t 
@@ -20,6 +22,7 @@ module MAction_enum = struct
          | PASS of MHex.axial_coord * MLayer_enum.t
          | CHANGE_BEHAVIOUR of MHex.axial_coord * MLayer_enum.t
          | SPAWN_ENTITY of MHex.axial_coord * MHex.axial_coord * MEntity_enum.t
+         | USE_ITEM of MItem.code * MItem.param
 
   exception Invalid_on_start_action
 
@@ -41,17 +44,6 @@ module MAction_enum = struct
   let create_spawn_entity src dst entity =
     SPAWN_ENTITY (src,dst,entity)
 
-  (* Checks whether or not the type enum is the same as the type t *)
-  let same_enum_and_action_code e t =
-    match e with
-    | ATTACK_E -> 
-    begin
-      match t with
-      | ATTACK _ -> true
-      | _ -> false
-    end
-    | _ -> false 
-
   exception Unknown_Action
 
   let to_str t =
@@ -62,6 +54,7 @@ module MAction_enum = struct
     | PASS _ -> "PASS"
     | CHANGE_BEHAVIOUR _ -> "CHANGE_BEHAVIOUR"
     | SPAWN_ENTITY _ -> "SPAWN_SOLDIER"
+    | USE_ITEM _ -> "USE_ITEM"
 
   let print t =
     match t with

@@ -35,7 +35,14 @@ module MEntity = struct
   class entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
     object(self)
       inherit game_object r q as super
-      val hp : int = hp (* HEALTH POINT *)
+      val truc : unit = ()
+
+      (* Health points *)
+      val hp : int = hp 
+      method get_hp = hp
+      method add_hp_max amount = {< hp = self#get_hp + amount>}
+
+
       val ap : int = ap (* ARMOR POINT *)
       val mp : int = mp (* MOVEMENT POINT *)
       val current_mp : int = current_mp (* CURRENT MOVEMENT POINT *)
@@ -52,7 +59,6 @@ module MEntity = struct
       val pc : int = pc (* Production cost *)
       val status : status = IDLE
       val behaviour : MBehaviour_enum.t = behaviour
-      method get_hp = hp
       method get_ap = ap
       method get_mp = mp
       method get_current_mp = current_mp

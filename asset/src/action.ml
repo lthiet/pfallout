@@ -9,6 +9,8 @@ open Utils
 open Behaviour_enum
 open Layer_enum
 open Entity_enum
+open Entity_enum
+open Item
 
 (* This module computes actions in the game. Each action can modified the state
    of the game (the factions lists and the grid). Each action shall return the newly computed grid,
@@ -260,6 +262,36 @@ module MAction = struct
       animation = MAnimation.create []
     }
 
+  let use_healthpack grid amount src dst layer =
+    let sr = MHex.get_r src in
+    let sq = MHex.get_q src in
+    let ent = MGrid.get_at grid sr sq layer in
+    let old_ent,new_ent =
+      ent,ent#add_hp_max amount
+    in
+    let () =
+      MGrid.remove_at grid sr sq layer;
+      MGrid.set_at grid sr sq new_ent layer;
+      MGrid.remove_item_at grid (MHex.get_r dst) (MHex.get_q dst);
+    in
+    {
+      added = [new_ent];
+      deleted = [old_ent];
+      animation = MAnimation.create [] 
+    }
+
+
+
+
+  exception Item_code_and_param_dont_match
+  (* This function will direct to the right function for which item it is used *)
+  let use_item grid item param = 
+    match item,param with
+    | MItem.HEALTHPACK(amount),MItem.HEALTHPACK_P(src,dst,layer) -> use_healthpack grid amount src dst layer
+    | _ -> raise Not_yet_implemented
+
+
+
   exception No_action_specified
 
   let execute t grid =
@@ -272,6 +304,7 @@ module MAction = struct
       | MAction_enum.REFILL_MP (src,layer) -> refill_mp grid src layer 
       | MAction_enum.PASS (src,layer) -> pass grid src layer
       | MAction_enum.SPAWN_ENTITY (src,dst,entity_enum) -> spawn grid src dst entity_enum
+      | MAction_enum.USE_ITEM (item,param) -> use_item grid item param
       | _ -> raise Not_yet_implemented
 end
 ;;
