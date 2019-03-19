@@ -20,6 +20,7 @@ open Texture_pack
 open Camera
 open Item
 open Layer_enum
+open Sound
 
 
 module MGame = struct
@@ -217,6 +218,13 @@ module MGame = struct
         MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac city healthpack
       in
 
+
+      (* Section to play music, WIP *)
+      let () =
+        let sound_pack = MSound.create_pack () in
+        let music = MSound.get_music sound_pack in
+        MSound.play music
+      in
       loop renderer ctx txt
 end
 ;;
