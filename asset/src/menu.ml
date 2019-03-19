@@ -28,15 +28,14 @@ module MMenu = struct
     bg : MTexture.t;
     btn : MTexture.t;
 	(************)
-	btn_settings : MTexture.t;
+		btn_settings : MTexture.t;
+		settings_bg : MTexture.t;
+		btn_return : MTexture.t;
+		btn_Smapsize : MTexture.t;
+		btn_Mmapsize : MTexture.t;
+		btn_Lmapsize : MTexture.t;
 	
-	settings_bg : MTexture.t;
-    btn_return : MTexture.t;
-	btn_Smapsize : MTexture.t;
-	btn_Mmapsize : MTexture.t;
-	btn_Lmapsize : MTexture.t;
-	
-    (* btn_start_text : MTexture.t *)
+  (* btn_start_text : MTexture.t *)
   }
 
   (*************)
@@ -75,29 +74,7 @@ module MMenu = struct
 		if not context.settings then (
 			(* Check if user mouse is above start button *)
 			let btn_start = check_mouse_above_button context.btn_start e
-			(*let x,y,w,h = MBtn.get_coord context.btn_start in
-			let btn_start =
-			  if MMouse.is_inside e x y w h then 
-				if check_ev_type e Sdl.Event.mouse_button_down then
-				  {
-					context.btn_start with
-					status = MBtn.PRESSED
-				  }
-				else if check_ev_type e Sdl.Event.mouse_button_up then
-				  {
-					context.btn_start with
-					status = MBtn.RELEASED
-				  }
-				else
-				  context.btn_start
-			  else
-				{
-				  context.btn_start with
-				  status = MBtn.IDLE
-				}
-				*)
 			in
-			
 			
 			(************)
 			(* Check if user mouse if above settings button *)
@@ -251,8 +228,8 @@ module MMenu = struct
 	  (* btn_start_text = MTexture.load_from_rendered_text renderer font "Start" (Sdl.Color.create 255 255 255 255) *)
 	  (**********************)
 	  btn_settings = MTexture.load_from_file renderer btn_settings_path;
-      settings_bg = MTexture.load_from_file renderer settings_bg_path;
-      btn_return = MTexture.load_from_file renderer btn_return_path;
+    settings_bg = MTexture.load_from_file renderer settings_bg_path;
+     btn_return = MTexture.load_from_file renderer btn_return_path;
 	  btn_Smapsize = MTexture.load_from_file renderer btn_Smapsize_path;
 	  btn_Mmapsize = MTexture.load_from_file renderer btn_Mmapsize_path;
 	  btn_Lmapsize = MTexture.load_from_file renderer btn_Lmapsize_path;
@@ -260,14 +237,14 @@ module MMenu = struct
     let ctx  = {
       over = false;
       btn_start = MBtn.create (960+ (MBtn.width/2)) 750 MBtn.START;
-	  (*****************)
-	  settings = false;
-	  btn_settings = MBtn.create (960- 3*(MBtn.width/2)) 750 MBtn.OPTION;
-	  btn_return = MBtn.create (960- (MBtn.width/2)) 750 MBtn.OPTION; (**********MBTN OPTION INUTILE ?*********)
-	  btn_Smapsize = MBtn.create (480 - (MBtn.width/2)) 200 MBtn.OPTION;
-	  btn_Mmapsize = MBtn.create (960- (MBtn.width/2)) 80 MBtn.OPTION;
-	  btn_Lmapsize = MBtn.create (1440- (MBtn.width/2)) 200 MBtn.OPTION;
-	  map_size = 6;
+	 	 (*****************)
+			settings = false;
+			btn_settings = MBtn.create (960- 3*(MBtn.width/2)) 750 MBtn.OPTION;
+			btn_return = MBtn.create (960- (MBtn.width/2)) 750 MBtn.OPTION; (**********MBTN OPTION INUTILE ?*********)
+			btn_Smapsize = MBtn.create (480 - (MBtn.width/2)) 200 MBtn.OPTION;
+			btn_Mmapsize = MBtn.create (960- (MBtn.width/2)) 80 MBtn.OPTION;
+			btn_Lmapsize = MBtn.create (1440- (MBtn.width/2)) 200 MBtn.OPTION;
+			map_size = 6;
     } in
     loop renderer ctx txt;
 end;;

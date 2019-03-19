@@ -70,6 +70,13 @@ module MGame = struct
       (* Update the renderer *)
       Sdl.render_present renderer;
 
+      (* Display the user interface windows/buttons*)
+      List.iter (
+        fun t ->
+          
+      ) context.interface;
+
+
       (* Continue the game *)
       loop renderer new_context textures
 
