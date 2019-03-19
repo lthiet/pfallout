@@ -131,7 +131,8 @@ module MGame = struct
         MFaction.add_entity soldier1 f 
         |> MFaction.add_entity soldier2
       in
-      let faction_code2 = 
+
+      (* let faction_code2 = 
         MFaction_enum.create MFaction_enum.ASIA
       in
 
@@ -159,7 +160,7 @@ module MGame = struct
         MFaction.add_entity soldier6 f
         |> MFaction.add_entity soldier7
         |> MFaction.add_entity city2
-      in
+      in *)
 
       let camera_rect = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height) in
 
@@ -168,7 +169,8 @@ module MGame = struct
         camera = MCamera.create camera_rect;
         grid = grid;
         cursor_selector = MCursor.create start start MCursor.SELECTING;
-        faction_list = [faction1;faction2;faction3];
+        (* faction_list = [faction1;faction2;faction3]; *)
+        faction_list = [faction1];
         faction_controlled_by_player = faction1;
         action_src = None;
         action_dst = None;

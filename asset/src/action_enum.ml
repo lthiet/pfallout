@@ -3,6 +3,7 @@ open Hex
 open Layer_enum
 open Entity_enum
 open Item
+open Utils
 
 module MAction_enum = struct
 
@@ -43,6 +44,9 @@ module MAction_enum = struct
 
   let create_spawn_entity src dst entity =
     SPAWN_ENTITY (src,dst,entity)
+
+  let create_use_item code param =  
+    USE_ITEM (code,param)
 
   exception Unknown_Action
 

@@ -17,6 +17,7 @@ open Pathfinder
 open Behaviour
 open Camera
 open Layer_enum
+open Item
 
 let ev = Some (Sdl.Event.create ())
 
@@ -174,6 +175,8 @@ module MGameContext = struct
             Some (MAction_enum.MOVE_E)
           else if MKeyboard.key_is_pressed e Sdl.Scancode.o then
             Some (MAction_enum.ATTACK_E)
+          else if (MKeyboard.key_is_pressed e Sdl.Scancode.i ) then
+            Some (MAction_enum.USE_ITEM_E)
           else if action_cancelled e then
             None
           else
@@ -203,6 +206,10 @@ module MGameContext = struct
                 MAction_enum.create_move src dst layer
               | ATTACK_E -> 
                 MAction_enum.create_attack src dst layer layer
+              | USE_ITEM_E -> 
+                let item = MGrid.get_item_at_ax ctx.grid dst in
+                let param = MItem.create_healthpack_param src dst layer in
+                MAction_enum.create_use_item item#get_code param 
               | _ -> raise Not_yet_implemented
             in
             MAction.execute (Some action) ctx.grid 
@@ -432,7 +439,7 @@ module MGameContext = struct
                     match e1 with 
                     | MAction_enum.MOVE_E ->
                       MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
-                    | MAction_enum.ATTACK_E ->
+                    | MAction_enum.ATTACK_E | MAction_enum.USE_ITEM_E ->
                       MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                     | _ -> [tile_below_src]
                   end
@@ -451,7 +458,7 @@ module MGameContext = struct
                             | MAction_enum.MOVE_E ->
                               let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp ent_below#get_lt in
                               res
-                            | MAction_enum.ATTACK_E ->
+                            | MAction_enum.ATTACK_E | MAction_enum.USE_ITEM_E ->
                               [tile_below_dst] 
                             | _ -> context.movement_range_selector
                           end

@@ -19,6 +19,9 @@ module MItem = struct
     (* Nukes need a source and a destination*)
     | NUKE_P of MHex.axial_coord * MHex.axial_coord
 
+  let create_healthpack_param src dst layer = 
+    HEALTHPACK_P(src,dst,layer)
+
   let same_code_and_param code param = 
     match code,param with
     | HEALTHPACK _, HEALTHPACK_P _ -> true
@@ -29,6 +32,7 @@ module MItem = struct
     object(self)
       inherit game_object r q as super
       val code : code = code 
+      method get_code = code
 
       (* Determines whether or not the item is owned, if it is not owned, then it will be displayed *)
       val owned : bool = false
