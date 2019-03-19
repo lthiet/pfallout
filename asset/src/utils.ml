@@ -96,3 +96,7 @@ let random_elem_list l =
    but requires to be called nonetheless *)
 exception Not_yet_implemented 
 
+let debug str =
+  print_newline ();
+  print_string str;
+

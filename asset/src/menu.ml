@@ -11,7 +11,8 @@ module MMenu = struct
 
   type context = {
     over : bool;
-    btn_start : MBtn.t 
+    btn_start : MBtn.t;
+    window : Sdl.window
   }
 
   type textures = {
@@ -54,6 +55,7 @@ module MMenu = struct
         (* If the user clicks the red cross button, the game closes *)
         let over = check_ev_type e Sdl.Event.quit || MBtn.is_released btn_start in
         {
+          context with
           over = over;
           btn_start = btn_start
         }
@@ -61,12 +63,16 @@ module MMenu = struct
       context
 
   type result = {
-    start_game : bool
+    start_game : bool;
+    window : Sdl.window
   }
+
+  let get_window result = result.window
 
   let compute_result ctx =
     {
-      start_game = MBtn.is_released ctx.btn_start
+      start_game = MBtn.is_released ctx.btn_start;
+      window = ctx.window;
     }
 
 
@@ -99,7 +105,7 @@ module MMenu = struct
   let btn_path = "asset/image/btns.png"
   (* let font_path = "asset/font/spiderman.ttf" *)
 
-  let run renderer = 
+  let run renderer window = 
     (* let font = manage_result (Ttf.open_font font_path 70) "Error font %s" in *)
     (* Create the menu *)
     let txt = {
@@ -109,7 +115,8 @@ module MMenu = struct
     } in
     let ctx  = {
       over = false;
-      btn_start = MBtn.create (960-(MBtn.width/2)) 1000 MBtn.START
+      btn_start = MBtn.create (960-(MBtn.width/2)) 1000 MBtn.START;
+      window = window
     } in
     loop renderer ctx txt;
 end;;
