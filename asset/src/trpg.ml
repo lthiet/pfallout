@@ -23,6 +23,7 @@ let initialization () =
   manage_result ( Sdl.init init_flag) "Error init : %s";
 
   let window_flag = Sdl.Window.(+) Sdl.Window.windowed Sdl.Window.resizable in
+  (* let window_flag = Sdl.Window.fullscreen in *)
 
   (* Open a Window *)
   let window = manage_result (Sdl.create_window "TRPG" ~w:screen_width ~h:screen_height window_flag ) "Error create window : %s" in

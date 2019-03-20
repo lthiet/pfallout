@@ -68,7 +68,7 @@ module MAction = struct
         MGrid.remove_at grid dr dq src_layer;
         MGrid.remove_at grid sr sq dst_layer;
         MGrid.add_at grid smu_without_mp;
-        MGrid.set_at grid dr dq (dmu#remove_hp damage) dst_layer
+        MGrid.add_at grid (dmu#remove_hp damage) 
       in
 
       let anim_src = [
@@ -79,7 +79,6 @@ module MAction = struct
         (dmu#set_status MEntity.ATTACKING,35,35)
       ]
       in
-
 
       (*if the entity is dead*)
       if (dhp<=damage) then 

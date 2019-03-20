@@ -191,6 +191,7 @@ module MGame = struct
         grid = grid;
         cursor_selector = MCursor.create start start MCursor.SELECTING;
         faction_list = [faction1;faction2;faction3];
+        (* faction_list = [faction1]; *)
         faction_controlled_by_player = faction1;
         action_src = None;
         action_dst = None;

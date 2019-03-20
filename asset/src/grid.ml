@@ -279,24 +279,23 @@ module MGrid = struct
           acc
     ) [] list
 
-  (* Check if there's an enemy unit nearby at a range n,
-     if yes, returns it, otherwise returns None*)
-  let nearby_enemy grid entity n layer =
+  (* Returns a lit of nearby enemies *)
+  let nearby_enemies grid entity n layer =
     let tile = get_tile entity#get_r entity#get_q grid in
     let nearby_tiles = range_tile grid tile n in
-    let rec aux l = 
+    let rec aux l acc = 
       match l with
-      | [] -> None
+      | [] -> acc
       | x :: s ->
         try
           let entity_on_tile = get_at_ax grid x#get_axial layer in
           if entity#get_faction <> entity_on_tile#get_faction then
-            Some entity_on_tile
+            aux s (entity_on_tile::acc)
           else
-            aux s
+            aux s acc
         with 
-        | Grid_cell_no_entity -> aux s 
-        | Invalid_argument _  -> aux s 
-    in aux nearby_tiles
+        | Grid_cell_no_entity -> aux s acc
+        | Invalid_argument _  -> aux s acc
+    in aux nearby_tiles []
 end
 ;;
