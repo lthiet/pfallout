@@ -13,7 +13,6 @@ open Entity_enum
    In general, it will return an action signature type *)
 module MBehaviour = struct
 
-
   let move_to_random_location grid entity = 
     let tile_src = MGrid.get_tile entity#get_r entity#get_q grid in
     (* NB : djikstra reachable doesnt care about dst *)

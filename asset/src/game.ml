@@ -220,11 +220,11 @@ module MGame = struct
 
 
       (* Section to play music, WIP *)
-      let () =
+      (* let () =
         let sound_pack = MSound.create_pack () in
         let music = MSound.get_music sound_pack in
         MSound.play music
-      in
+      in *)
       loop renderer ctx txt
 end
 ;;

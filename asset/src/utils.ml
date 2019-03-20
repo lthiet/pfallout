@@ -96,6 +96,13 @@ let random_elem_list l =
    but requires to be called nonetheless *)
 exception Not_yet_implemented 
 
+(* Increment a refernce and returns the new value *)
+let incr pt =
+  begin
+    pt := !pt + 1;
+    !pt
+  end
+
 let debug str =
   print_newline ();
   print_string str;

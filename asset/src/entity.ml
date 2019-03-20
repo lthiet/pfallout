@@ -11,7 +11,6 @@ open Entity_enum
 open Layer_enum
 
 module MEntity = struct
-  exception Unsifficient_mp
   type unit_type = MEntity_enum.t 
   type layer_type = MLayer_enum.t
   type attack_type = MELEE | RANGED
@@ -31,11 +30,18 @@ module MEntity = struct
     | MLayer_enum.MILITARY -> "MILITARY"
     | MLayer_enum.INFRASTRUCTURE -> "INFRASTRUCTURE"
 
+  let identifier = ref 0
 
-  class entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
+
+  exception Unsifficient_mp
+  class entity id r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
     object(self)
       inherit game_object r q as super
+
       val truc : unit = ()
+      (* Identification *)
+      val id : int = id
+      method get_id = id
 
       (* Health points *)
       val hp : int = hp 
@@ -94,7 +100,8 @@ module MEntity = struct
   type t = entity
 
   let create r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc = 
-    new entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc
+    let new_id = incr identifier in
+    new entity new_id r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc
 
   let is_infrastructure t =
     match t#get_ut with
