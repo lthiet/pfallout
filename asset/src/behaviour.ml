@@ -36,7 +36,7 @@ module MBehaviour = struct
       (* If there is nowherer else to move, pass the turn *)
       MAction_enum.create_pass entity#get_axial entity#get_lt
 
-  let attack_nearby_enemy grid entity = 
+  let attack_nearby_enemy grid entity target range  = 
     let neighbouring_enemy = MGrid.nearby_enemy grid entity 1 entity#get_lt in
     match neighbouring_enemy with
     | None ->
@@ -84,14 +84,16 @@ module MBehaviour = struct
         let nearby_enemy = MGrid.nearby_enemy grid entity 4 entity#get_lt in
         match nearby_enemy with
         | None -> MBehaviour_enum.WANDERING
-        | Some x -> MBehaviour_enum.ATTACKING
+        | Some x -> MBehaviour_enum.ATTACKING (x#get_id,6)
       end
-    | MBehaviour_enum.ATTACKING ->
+    | MBehaviour_enum.ATTACKING (target,_)  ->
       begin
         let nearby_enemy = MGrid.nearby_enemy grid entity 4 entity#get_lt in
         match nearby_enemy with
         | None -> MBehaviour_enum.WANDERING
-        | Some x -> MBehaviour_enum.ATTACKING
+        | Some x -> 
+        (* TODO : look for the entity that is the target *)
+          MBehaviour_enum.ATTACKING (x#get_id,6)
       end
     | MBehaviour_enum.SPAWNING -> MBehaviour_enum.SPAWNING
     | _ -> raise Not_yet_implemented
@@ -102,8 +104,8 @@ module MBehaviour = struct
     match entity#get_behaviour with
     | MBehaviour_enum.WANDERING ->
       move_to_random_location grid entity
-    | MBehaviour_enum.ATTACKING ->
-      attack_nearby_enemy grid entity
+    | MBehaviour_enum.ATTACKING (target,range)->
+      attack_nearby_enemy grid entity target range
     | MBehaviour_enum.SPAWNING ->
       spawn_unit grid entity
     | _ -> raise Not_yet_implemented
