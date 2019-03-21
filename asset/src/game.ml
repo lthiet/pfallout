@@ -125,7 +125,7 @@ module MGame = struct
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer = 
     if menu_result.start_game then
-      let start = 6 in
+      let start = 4 in
       let grid = MGrid.create start in
 
       (* Add some random items *)
@@ -221,11 +221,11 @@ module MGame = struct
 
 
       (* Section to play music, WIP *)
-      (* let () =
+      let () =
         let sound_pack = MSound.create_pack () in
         let music = MSound.get_music sound_pack in
         MSound.play music
-      in *)
+      in
       loop renderer ctx txt
 end
 ;;

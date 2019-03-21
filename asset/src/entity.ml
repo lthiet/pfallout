@@ -43,11 +43,16 @@ module MEntity = struct
       val id : int = id
       method get_id = id
 
+      (* Unit type *)
+      val ut : unit_type = ut
+
       (* Health points *)
       val hp : int = hp 
       method get_hp = hp
-      method add_hp_max amount = {< hp = self#get_hp + amount>}
-
+      method add_hp_max amount = {< hp = max (MEntity_enum.max_hp_of ut) (self#get_hp + amount)>}
+      method is_low_hp = 
+        let threshold = (MEntity_enum.max_hp_of ut)/2 in
+        hp <= threshold
 
       val ap : int = ap (* ARMOR POINT *)
       val mp : int = mp (* MOVEMENT POINT *)
@@ -58,7 +63,6 @@ module MEntity = struct
       val pa : MAction_enum.enum list = pa (* POSSIBLE ACTIONS *)
       val aos : MAction_enum.enum list = aos (* ACTIONS ON START *)
       val faction : MFaction_enum.t = faction 
-      val ut : unit_type = ut
       val lt : layer_type = lt
       val at : attack_type = at
       val tt : terrain_type = tt

@@ -13,6 +13,12 @@ module MItem = struct
     | HEALTHPACK of int
     (* Radius and damage *)
     | NUKE of int * int
+
+  (* The enum is the same as above but without any attributes to it,
+     useful when the attributes aren't used*)
+  type enum =
+    | HEALTHPACK_E
+    | NUKE_E
   type param =
     (* Health pack need a source to know which unit is healed, and a destination to know which item must be consumed *)
     | HEALTHPACK_P of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t
@@ -26,6 +32,12 @@ module MItem = struct
     match code,param with
     | HEALTHPACK _, HEALTHPACK_P _ -> true
     | NUKE _, NUKE_P _ -> true
+    | _ -> false
+
+  let same_code_and_enum code enum = 
+    match code,enum with
+    | HEALTHPACK _, HEALTHPACK_E -> true
+    | NUKE _, NUKE_E -> true
     | _ -> false
 
   class item r q code = 

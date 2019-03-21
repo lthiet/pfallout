@@ -44,12 +44,6 @@ module MGrid = struct
     | None -> true
     | _ -> false
 
-  let get_item_at t r q =
-    let g = get_item_grid t in
-    match g.(r).(q) with
-    | None -> true
-    | _ -> false
-
   let remove_item_at t r q =
     let g = get_item_grid t in
     g.(r).(q) <- None
@@ -297,5 +291,23 @@ module MGrid = struct
         | Grid_cell_no_entity -> aux s acc
         | Invalid_argument _  -> aux s acc
     in aux nearby_tiles []
+
+  (* Look for an item in the grid around a radius of range *)
+  let nearby_item_of_type grid src range item_enum =
+    let tile = get_tile_ax src grid in
+    let zone = range_tile grid tile range in
+    try
+      let tmp = List.find
+          ( fun x -> 
+              try
+                let found_item = get_item_at_ax grid x#get_axial in
+                MItem.same_code_and_enum found_item#get_code item_enum
+              with
+                No_item | Invalid_argument _ -> false
+          ) zone
+      in Some tmp
+    with Not_found -> None
+
+
 end
 ;;

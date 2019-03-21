@@ -266,7 +266,7 @@ module MAction = struct
     let sq = MHex.get_q src in
     let ent = MGrid.get_at grid sr sq layer in
     let old_ent,new_ent =
-      ent,ent#add_hp_max amount
+      ent,(ent#add_hp_max amount)#empty_mp
     in
     let () =
       MGrid.remove_at grid sr sq layer;
