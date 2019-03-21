@@ -152,7 +152,7 @@ module MBehaviour = struct
         ) tile_vicinity
       in
       let found_healthpack = MGrid.get_item_at_ax grid found_healthpack_tile#get_axial in
-      MAction_enum.create_use_item (found_healthpack#get_code) (MItem.create_healthpack_param entity#get_axial dst entity#get_lt)
+      MAction_enum.create_use_item (found_healthpack#get_code) (MItem.create_healthpack_param entity#get_axial found_healthpack#get_axial entity#get_lt)
     (* No healthpack found in the vicinity, we move towards it*)
     with Not_found ->
       let tile_dst = MGrid.get_tile_ax dst grid in
@@ -197,7 +197,12 @@ module MBehaviour = struct
           if b then
             MBehaviour_enum.ATTACKING (target,6)
           else
-            MBehaviour_enum.WANDERING
+            match nearby_enemies with
+            | [] ->
+              MBehaviour_enum.WANDERING
+            | x :: _  ->
+              MBehaviour_enum.ATTACKING (x#get_id,6)
+
         end
       | MBehaviour_enum.SPAWNING -> MBehaviour_enum.SPAWNING
       | MBehaviour_enum.FLEEING -> 
