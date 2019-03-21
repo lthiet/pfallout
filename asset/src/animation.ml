@@ -1,9 +1,12 @@
 open Entity
 open Grid
 open Hex
+open Fx
 
 module MAnimation = struct
   type frame = int
+
+  type to_animated = ENTITY of MEntity.t | FX of MFx.t
   type t = {
     to_be_animated : (MEntity.t * int * int) list list;
   }
