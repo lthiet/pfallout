@@ -9,17 +9,19 @@ module MTexture_pack = struct
     soldier_eu : MTexture.t;
     soldier_pac : MTexture.t;
     city : MTexture.t;
+    healthpack : MTexture.t
   }
 
-  let create tile tf bg curs s_eu s_pac city =
+  let create tile tf bg curs s_eu s_pac city hp =
     {
-        tile = tile;
-        terrain_feature = tf;
-        bg = bg;
-        curs = curs;
-        soldier_eu = s_eu;
-        soldier_pac = s_pac;
-        city = city;
+      tile = tile;
+      terrain_feature = tf;
+      bg = bg;
+      curs = curs;
+      soldier_eu = s_eu;
+      soldier_pac = s_pac;
+      city = city;
+      healthpack = hp;
     }
 
   let get_tile t = t.tile
@@ -29,6 +31,6 @@ module MTexture_pack = struct
   let get_soldier_eu t = t.soldier_eu
   let get_soldier_pac t = t.soldier_pac
   let get_city t = t.city
-
+  let get_healthpack t = t.healthpack
 
 end

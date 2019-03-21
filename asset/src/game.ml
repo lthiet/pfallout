@@ -18,6 +18,9 @@ open Entity
 open Action_enum
 open Texture_pack
 open Camera
+open Item
+open Layer_enum
+open Sound
 
 
 module MGame = struct
@@ -36,7 +39,7 @@ module MGame = struct
       MBackground.render renderer (MTexture_pack.get_bg textures) (MCamera.get_rect context.camera);
 
       (* Render the tiles *)
-      MGrid.render renderer (MTexture_pack.get_tile textures) (MTexture_pack.get_terrain_feature textures) context.grid (MCamera.get_rect context.camera);
+      MGrid.render renderer textures context.grid (MCamera.get_rect context.camera) context.frame;
 
       (* Render the selector ( cursor ) *)
       MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector (MCamera.get_rect context.camera);
@@ -47,15 +50,31 @@ module MGame = struct
           MCursor.render renderer (MTexture_pack.get_curs textures) c (MCamera.get_rect context.camera);
       ) context.movement_range_selector;
 
-      (* Render the soldiers *)
+      (* TODO : factorize this if possible *)
+
+      (* Render the infrastructures *)
       List.iter (
         fun x ->
           List.iter (
             fun y ->
-              MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
+              if y#check_layer MLayer_enum.INFRASTRUCTURE then
+                MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
           )
             (MFaction.get_entity x)
       ) context.faction_list;
+
+
+      (* Render the military *)
+      List.iter (
+        fun x ->
+          List.iter (
+            fun y ->
+              if y#check_layer MLayer_enum.MILITARY then
+                MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
+          )
+            (MFaction.get_entity x)
+      ) context.faction_list;
+
 
       (* Render the animated *)
       List.iter (
@@ -88,33 +107,47 @@ module MGame = struct
   let soldier_eu_path = "asset/image/soldier-eu.png"
   let soldier_pac_path = "asset/image/soldier-pac.png"
   let city_path = "asset/image/city.png"
+  let healthpack_path = "asset/image/healthpack.png"
 
   (* Create a random soldier and adds it to the grid *)
   let create_random_soldier grid fc =
-    let rts = MGrid.get_random_accessible_tile grid MEntity.MILITARY () in
+    let rts = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
     let s = MMilitary.create_soldier (rts#get_r) (rts#get_q) fc in
     MGrid.add_at grid s;
     s
 
   (* Same as above except with city *)
   let create_random_city grid fc = 
-      let rtc = MGrid.get_random_accessible_tile grid MEntity.INFRASTRUCTURE () in
-      let c = MInfrastructure.create_city (rtc#get_r) (rtc#get_q) fc in
-      MGrid.add_at grid c;
-      c
+    let rtc = MGrid.get_random_accessible_tile grid MLayer_enum.INFRASTRUCTURE () in
+    let c = MInfrastructure.create_city (rtc#get_r) (rtc#get_q) fc in
+    MGrid.add_at grid c;
+    c
+
+  let create_random_hp grid =
+    let rthp = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
+    let hp = MItem.create_healthpack rthp#get_r rthp#get_q 40 in
+    MGrid.add_item_at grid hp;
+    hp
+
 
   (* Run the game with the correct paths and context *)
-  let run (menu_result:MMenu.result) renderer screen_width screen_height = 
+  let run (menu_result:MMenu.result) renderer = 
     if menu_result.start_game then
-      let start = menu_result.map_size in
+      let start = MMenu.get_map_size menu_result in
       let grid = MGrid.create start in
+
+      (* Add some random items *)
+      let _ = create_random_hp grid in
+      let _ = create_random_hp grid in
+      let _ = create_random_hp grid in
+
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
-      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MEntity.MILITARY ~bound:3 () in
+      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
       MGrid.add_at grid soldier1;
-      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid MEntity.MILITARY ~bound:3 () in
+      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
       let soldier2 = MMilitary.create_soldier (random_tile_soldier2#get_r) (random_tile_soldier2#get_q) faction_code1 in
       MGrid.add_at grid soldier2;
 
@@ -154,7 +187,11 @@ module MGame = struct
         |> MFaction.add_entity city2
       in
 
-      let camera_rect = Sdl.Rect.create (start*MHex.size) (start*MHex.size) (screen_width) (screen_height) in
+      let camera_rect =
+        let sw,sh = 
+          Sdl.get_window_size (MMenu.get_window menu_result)
+        in
+        Sdl.Rect.create (start*MHex.size) (start*MHex.size) sw sh in
 
       let ctx : MGameContext.t = {
         over = false;
@@ -166,12 +203,15 @@ module MGame = struct
         action_src = None;
         action_dst = None;
         action_type = None;
+        action_layer = None;
         to_be_added = [];
         to_be_deleted = [];
         animation = MAnimation.create [];
         movement_range_selector = [];
         new_turn = false;
         frame = 0;
+        current_layer = MLayer_enum.MILITARY;
+        window = MMenu.get_window menu_result;
       } in
 
       let txt = 
@@ -182,7 +222,16 @@ module MGame = struct
         let soldier_eu = MTexture.load_from_file renderer soldier_eu_path in
         let soldier_pac = MTexture.load_from_file renderer soldier_pac_path in
         let city = MTexture.load_from_file renderer city_path in
-        MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac city
+        let healthpack = MTexture.load_from_file renderer healthpack_path in
+        MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac city healthpack
+      in
+
+
+      (* Section to play music, WIP *)
+      let () =
+        let sound_pack = MSound.create_pack () in
+        let music = MSound.get_music sound_pack in
+        MSound.play music
       in
       loop renderer ctx txt
 end

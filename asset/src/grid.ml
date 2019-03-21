@@ -1,5 +1,6 @@
 open Tsdl
 open Texture_wrapper
+open Texture_pack
 open Tile
 open Entity
 open Military
@@ -7,6 +8,8 @@ open Tile
 open Utils
 open Hex
 open Faction_enum
+open Item
+open Layer_enum
 
 (* Some functions are Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
 (* The grid module is  where all the game object are stored. Currently
@@ -27,18 +30,55 @@ module MGrid = struct
   type t = {
     level_radius : int;
     tile_grid : (MTile.tile) array array;
+    item_grid : (MItem.t option) array array;
     military_grid : (MEntity.t option) array array;
     infrastructure_grid : (MEntity.t option) array array;
   }
 
   let get_tile_grid t = t.tile_grid
+  let get_item_grid t = t.item_grid
+
+  let empty_item_at t r q =
+    let g = get_item_grid t in
+    match g.(r).(q) with
+    | None -> true
+    | _ -> false
+
+  let remove_item_at t r q =
+    let g = get_item_grid t in
+    g.(r).(q) <- None
+
+  exception No_item
+  let get_item_at t r q =
+    let g = get_item_grid t in
+    match g.(r).(q) with
+    | None -> raise No_item
+    | Some x -> x
+
+  let get_item_at_ax t ax =
+    get_item_at t (MHex.get_r ax) (MHex.get_q ax)
+
+  exception Item_grid_not_empty
+  let set_item_at t r q item =
+    let g = get_item_grid t in
+    (* Check if there's already something *)
+    match g.(r).(q) with
+    (* If not, we can set *)
+    | None -> g.(r).(q) <- Some item
+    (* Otherwise, it is an error*)
+    | _ -> 
+      raise Item_grid_not_empty
+
+  let add_item_at t item =
+    set_item_at t item#get_r item#get_q item
+
   let get_military_grid t = t.military_grid
   let get_infrastructure_grid t = t.infrastructure_grid
 
   let get_grid_layer t layer =
     match layer with
-    | MEntity.MILITARY -> get_military_grid t
-    | MEntity.INFRASTRUCTURE -> get_infrastructure_grid t
+    | MLayer_enum.MILITARY -> get_military_grid t
+    | MLayer_enum.INFRASTRUCTURE -> get_infrastructure_grid t
 
   let empty_at t r q layer =
     let g = get_grid_layer t layer in
@@ -122,16 +162,33 @@ module MGrid = struct
     {
       level_radius = level_radius;
       tile_grid = create_grid level_radius;
+      item_grid = create_none_grid level_radius;
       military_grid = create_none_grid level_radius;
       infrastructure_grid = create_none_grid level_radius;
     }
 
-  let render renderer tile_texture terrain_feature_texture grid camera = 
+  let render renderer txt_pack grid camera frame_n = 
+
+    let tile_texture =
+      MTexture_pack.get_tile txt_pack
+    in
+    let terrain_feature_texture =
+      MTexture_pack.get_terrain_feature txt_pack
+    in
     Array.iter (fun x ->
         Array.iter (fun y ->
             MTile.render renderer y tile_texture terrain_feature_texture camera
           ) x
-      ) grid.tile_grid
+      ) grid.tile_grid;
+    Array.iter (fun x ->
+        Array.iter (fun y ->
+            match y with
+            | Some e ->
+              MItem.render renderer e txt_pack camera frame_n
+            | None -> ()
+          ) x
+      ) grid.item_grid;
+
 
   type neighbours_t = {
     right : MTile.tile;
@@ -216,24 +273,41 @@ module MGrid = struct
           acc
     ) [] list
 
-  (* Check if there's an enemy unit nearby at a range n,
-     if yes, returns it, otherwise returns None*)
-  let nearby_enemy grid entity n layer =
+  (* Returns a lit of nearby enemies *)
+  let nearby_enemies grid entity n layer =
     let tile = get_tile entity#get_r entity#get_q grid in
     let nearby_tiles = range_tile grid tile n in
-    let rec aux l = 
+    let rec aux l acc = 
       match l with
-      | [] -> None
+      | [] -> acc
       | x :: s ->
         try
           let entity_on_tile = get_at_ax grid x#get_axial layer in
           if entity#get_faction <> entity_on_tile#get_faction then
-            Some entity_on_tile
+            aux s (entity_on_tile::acc)
           else
-            aux s
+            aux s acc
         with 
-        | Grid_cell_no_entity -> aux s 
-        | Invalid_argument _  -> aux s 
-    in aux nearby_tiles
+        | Grid_cell_no_entity -> aux s acc
+        | Invalid_argument _  -> aux s acc
+    in aux nearby_tiles []
+
+  (* Look for an item in the grid around a radius of range *)
+  let nearby_item_of_type grid src range item_enum =
+    let tile = get_tile_ax src grid in
+    let zone = range_tile grid tile range in
+    try
+      let tmp = List.find
+          ( fun x -> 
+              try
+                let found_item = get_item_at_ax grid x#get_axial in
+                MItem.same_code_and_enum found_item#get_code item_enum
+              with
+                No_item | Invalid_argument _ -> false
+          ) zone
+      in Some tmp
+    with Not_found -> None
+
+
 end
 ;;

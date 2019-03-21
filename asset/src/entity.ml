@@ -7,11 +7,12 @@ open Texture_wrapper
 open Texture_pack
 open Faction_enum
 open Behaviour_enum
+open Entity_enum
+open Layer_enum
 
 module MEntity = struct
-  exception Unsifficient_mp
-  type unit_type = SOLDIER | SNIPER | CITY | FORGERY
-  type layer_type = MILITARY | INFRASTRUCTURE
+  type unit_type = MEntity_enum.t 
+  type layer_type = MLayer_enum.t
   type attack_type = MELEE | RANGED
   type terrain_type = GROUND | AIR
 
@@ -26,31 +27,48 @@ module MEntity = struct
 
   let layer_to_string s =
     match s with
-    | MILITARY -> "MILITARY"
-    | INFRASTRUCTURE -> "INFRASTRUCTURE"
+    | MLayer_enum.MILITARY -> "MILITARY"
+    | MLayer_enum.INFRASTRUCTURE -> "INFRASTRUCTURE"
+
+  let identifier = ref 0
 
 
-  class entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
+  exception Unsifficient_mp
+  class entity id r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
     object(self)
       inherit game_object r q as super
-      val hp : int = hp (* HEALTH POINT *)
+
+      val truc : unit = ()
+      (* Identification *)
+      val id : int = id
+      method get_id = id
+
+      (* Unit type *)
+      val ut : unit_type = ut
+
+      (* Health points *)
+      val hp : int = hp 
+      method get_hp = hp
+      method add_hp_max amount = {< hp = max (MEntity_enum.max_hp_of ut) (self#get_hp + amount)>}
+      method is_low_hp = 
+        let threshold = (MEntity_enum.max_hp_of ut)/2 in
+        hp <= threshold
+
       val ap : int = ap (* ARMOR POINT *)
       val mp : int = mp (* MOVEMENT POINT *)
       val current_mp : int = current_mp (* CURRENT MOVEMENT POINT *)
       val atks : int = atks (* STRENGTH ON ATTACK *)
       val defs : int = defs (* STRENGTH ON DEFENSE *)
       val ar : int = ar (* ATTACK RANGE *)
-      val pa : MAction_enum.t list = pa (* POSSIBLE ACTIONS *)
-      val aos : MAction_enum.t list = aos (* ACTIONS ON START *)
+      val pa : MAction_enum.enum list = pa (* POSSIBLE ACTIONS *)
+      val aos : MAction_enum.enum list = aos (* ACTIONS ON START *)
       val faction : MFaction_enum.t = faction 
-      val ut : unit_type = ut
       val lt : layer_type = lt
       val at : attack_type = at
       val tt : terrain_type = tt
       val pc : int = pc (* Production cost *)
       val status : status = IDLE
       val behaviour : MBehaviour_enum.t = behaviour
-      method get_hp = hp
       method get_ap = ap
       method get_mp = mp
       method get_current_mp = current_mp
@@ -86,11 +104,12 @@ module MEntity = struct
   type t = entity
 
   let create r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc = 
-    new entity r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc
+    let new_id = incr identifier in
+    new entity new_id r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc
 
   let is_infrastructure t =
     match t#get_ut with
-    | CITY -> true
+    | MEntity_enum.CITY -> true
     | _-> false
 
   let is_military t =

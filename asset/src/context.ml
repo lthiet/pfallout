@@ -12,9 +12,12 @@ open Animation
 open Military
 open Infrastructure
 open Entity
+open Entity_enum
 open Pathfinder
 open Behaviour
 open Camera
+open Layer_enum
+open Item
 
 let ev = Some (Sdl.Event.create ())
 
@@ -30,7 +33,8 @@ module MGameContext = struct
     faction_controlled_by_player : MFaction.t;
     action_src : MHex.axial_coord option;
     action_dst : MHex.axial_coord option;
-    action_type : MAction_enum.t option;
+    action_layer : MLayer_enum.t option;
+    action_type : MAction_enum.enum option;
     movement_range_selector : MTile.t list;
     to_be_added : MEntity.t list;
     to_be_deleted : MEntity.t list;
@@ -39,6 +43,8 @@ module MGameContext = struct
     frame : int;
 
     (*interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)*)
+    current_layer : MLayer_enum.t;
+    window : Sdl.window
   }
 
   exception Nothing
@@ -60,8 +66,8 @@ module MGameContext = struct
 
 
   (* Return a new camera based on user input *)
-  let get_camera ev camera =
-    MCamera.change_direction camera ev |> MCamera.update_camera
+  let get_camera ev window camera =
+    MCamera.change_direction camera ev |> MCamera.update_camera window
 
   type keyset = {
     up : Sdl.scancode;
@@ -130,7 +136,7 @@ module MGameContext = struct
   let set_action_src e ctx =
     if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
       begin
-        let ent_below = MGrid.get_at_ax ctx.grid ctx.cursor_selector#get_axial MEntity.MILITARY in
+        let ent_below = MGrid.get_at_ax ctx.grid ctx.cursor_selector#get_axial ctx.current_layer in
         if (MFaction.entity_in ent_below ctx.faction_controlled_by_player) then
           Some ctx.cursor_selector#get_axial
         else
@@ -140,6 +146,20 @@ module MGameContext = struct
       None
     else
       ctx.action_src
+
+  let set_action_layer e ctx = 
+    if (not (action_src_is_set ctx)) && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
+      begin
+        let ent_below = MGrid.get_at_ax ctx.grid ctx.cursor_selector#get_axial ctx.current_layer in
+        if (MFaction.entity_in ent_below ctx.faction_controlled_by_player) then
+          Some ctx.current_layer
+        else
+          raise Entity_Not_Owned_By_Player
+
+      end
+    else
+      ctx.action_layer
+
 
   let set_action_dst e ctx =
     if action_type_is_set ctx && action_src_is_set ctx && MKeyboard.key_is_pressed e Sdl.Scancode.return && MAnimation.is_over ctx.animation then
@@ -155,9 +175,11 @@ module MGameContext = struct
       if (action_src_is_set ctx) && MAnimation.is_over ctx.animation then
         begin
           if MKeyboard.key_is_pressed e Sdl.Scancode.p then
-            Some (MAction_enum.MOVE)
+            Some (MAction_enum.MOVE_E)
           else if MKeyboard.key_is_pressed e Sdl.Scancode.o then
-            Some (MAction_enum.ATTACK)
+            Some (MAction_enum.ATTACK_E)
+          else if (MKeyboard.key_is_pressed e Sdl.Scancode.i ) then
+            Some (MAction_enum.USE_ITEM_E)
           else if action_cancelled e then
             None
           else
@@ -175,16 +197,27 @@ module MGameContext = struct
 
   let compute_new_grid e ctx =
     if action_confirmed e ctx then	
-      match ctx.action_src,ctx.action_dst with
-      | Some src, Some dst ->
+      match ctx.action_src,ctx.action_dst,ctx.action_layer with
+      | Some src, Some dst, Some layer ->
         begin
           match ctx.action_type with
           | None -> raise Unspecified_Action_Type
           | Some x ->
-            let action = MAction.create x src dst MEntity.MILITARY  in
+            let action =
+              match x with
+              | MOVE_E ->
+                MAction_enum.create_move src dst layer
+              | ATTACK_E -> 
+                MAction_enum.create_attack src dst layer layer
+              | USE_ITEM_E -> 
+                let item = MGrid.get_item_at_ax ctx.grid dst in
+                let param = MItem.create_healthpack_param src dst layer in
+                MAction_enum.create_use_item item#get_code param 
+              | _ -> raise Not_yet_implemented
+            in
             MAction.execute (Some action) ctx.grid 
         end
-      | _,_ ->  raise Unspecified_Src_Dst
+      | _ ->  raise Unspecified_Src_Dst
     else
       MAction.empty
 
@@ -311,7 +344,7 @@ module MGameContext = struct
       let units = MFaction.get_entity cf in
       let res = List.fold_left ( fun acc1 x1 -> 
           List.fold_left ( fun acc1 x2 ->
-              let action = MAction.create x2 x1#get_axial x1#get_axial x1#get_lt in
+              let action = MAction_enum.action_on_start x2 x1 in
               let res = MAction.execute (Some action) ctx.grid in
               MAction.add res acc1
             ) acc1 x1#get_aos
@@ -334,6 +367,7 @@ module MGameContext = struct
     else
       ctx
 
+  exception Action_src_is_set_but_not_action_layer
 
   (* Update the new context of the game *)
   let update_context context =
@@ -360,7 +394,7 @@ module MGameContext = struct
         | Some e ->
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
-          let camera = get_camera e ctx_before_event.camera in
+          let camera = get_camera e ctx_before_event.window ctx_before_event.camera in
           let cursor_selector_ks = {
             up = Sdl.Scancode.up;
             down = Sdl.Scancode.down;
@@ -369,13 +403,13 @@ module MGameContext = struct
           } in
 
           let cursor_selector = update_cs e ctx_before_event cursor_selector_ks in
-          let action_type, 
+          let action_type,action_layer,
               action_src,action_dst =
             if not (action_confirmed e ctx_before_event) then
-              set_action_type e ctx_before_event,
+              set_action_type e ctx_before_event,set_action_layer e ctx_before_event,
               set_action_src e ctx_before_event,set_action_dst e ctx_before_event
             else
-              None,None,None
+              None,None,None,None
           in
 
           (* If a src is selected, display the range,
@@ -387,13 +421,18 @@ module MGameContext = struct
             match context.action_src with
             | None -> 
               []
-            | Some x ->
+            | (Some x) ->
               begin
                 let c = MCursor.create (MHex.get_r x) (MHex.get_q x) MCursor.SELECTING
                 in
                 let tile_below_src = MGrid.get_tile c#get_r c#get_q context.grid in
                 let tile_below_current = MGrid.get_tile context.cursor_selector#get_r context.cursor_selector#get_q context.grid in
-                let ent_below = MGrid.get_at context.grid c#get_r c#get_q MEntity.MILITARY in
+                let ent_below = 
+                  match context.action_layer with
+                  | None -> raise Action_src_is_set_but_not_action_layer
+                  | Some layer ->
+                    MGrid.get_at context.grid c#get_r c#get_q layer
+                in
                 match action_type,context.action_type with
                 (* Action has been cancelled *)
                 | None,Some e2 -> []
@@ -401,9 +440,9 @@ module MGameContext = struct
                 | Some e1,None->
                   begin
                     match e1 with 
-                    | MAction_enum.MOVE ->
+                    | MAction_enum.MOVE_E ->
                       MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
-                    | MAction_enum.ATTACK ->
+                    | MAction_enum.ATTACK_E | MAction_enum.USE_ITEM_E ->
                       MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                     | _ -> [tile_below_src]
                   end
@@ -419,10 +458,10 @@ module MGameContext = struct
                         | Some e ->
                           begin
                             match e with
-                            | MAction_enum.MOVE ->
+                            | MAction_enum.MOVE_E ->
                               let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp ent_below#get_lt in
                               res
-                            | MAction_enum.ATTACK ->
+                            | MAction_enum.ATTACK_E | MAction_enum.USE_ITEM_E ->
                               [tile_below_dst] 
                             | _ -> context.movement_range_selector
                           end
@@ -435,9 +474,9 @@ module MGameContext = struct
                         | Some e ->
                           begin
                             match e with
-                            | MAction_enum.MOVE ->
+                            | MAction_enum.MOVE_E ->
                               MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
-                            | MAction_enum.ATTACK ->
+                            | MAction_enum.ATTACK_E ->
                               MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                             | _ -> [tile_below_src]
                           end
@@ -490,6 +529,7 @@ module MGameContext = struct
             faction_list = faction_list;
             action_src = action_src;
             action_dst = action_dst;
+            action_layer = action_layer;
             to_be_added = to_be_added;
             movement_range_selector = movement_range_selector;
             animation = new_animation;
