@@ -1,7 +1,7 @@
 open Tsdl
 open Texture_wrapper
 
-module MWdw = struct
+module MWindow = struct
 
     (*Champs de titre*)
 

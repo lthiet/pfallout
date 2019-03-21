@@ -38,7 +38,7 @@ module MGameContext = struct
     new_turn : bool;
     frame : int;
 
-    interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)
+    (*interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)*)
   }
 
   exception Nothing
