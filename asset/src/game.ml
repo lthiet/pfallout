@@ -89,6 +89,14 @@ module MGame = struct
       (* Update the renderer *)
       Sdl.render_present renderer;
 
+      (*
+      (* Display the user interface windows/buttons*)
+      List.iter (
+        fun t ->
+          MInterface.render renderer t ,
+      ) context.interface;
+      *)
+
       (* Continue the game *)
       loop renderer new_context textures
 
@@ -125,7 +133,7 @@ module MGame = struct
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer = 
     if menu_result.start_game then
-      let start = 4 in
+      let start = MMenu.get_map_size menu_result in
       let grid = MGrid.create start in
 
       (* Add some random items *)
@@ -191,7 +199,6 @@ module MGame = struct
         grid = grid;
         cursor_selector = MCursor.create start start MCursor.SELECTING;
         faction_list = [faction1;faction2;faction3];
-        (* faction_list = [faction1]; *)
         faction_controlled_by_player = faction1;
         action_src = None;
         action_dst = None;

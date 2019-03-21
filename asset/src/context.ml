@@ -41,6 +41,8 @@ module MGameContext = struct
     animation : MAnimation.t;
     new_turn : bool;
     frame : int;
+
+    (*interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)*)
     current_layer : MLayer_enum.t;
     window : Sdl.window
   }
