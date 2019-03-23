@@ -129,6 +129,15 @@ module MGame = struct
     MGrid.add_item_at grid hp;
     hp
 
+  let create_random_nuke grid = 
+    let rthp = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
+    let nuke = MItem.create_nuke rthp#get_r rthp#get_q 1 in
+    MGrid.add_item_at grid nuke;
+    nuke
+
+
+
+
 
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer = 
@@ -140,6 +149,8 @@ module MGame = struct
       let _ = create_random_hp grid in
       let _ = create_random_hp grid in
       let _ = create_random_hp grid in
+      let _ = create_random_nuke grid in
+      let _ = create_random_nuke grid in
 
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
@@ -214,17 +225,7 @@ module MGame = struct
         window = MMenu.get_window menu_result;
       } in
 
-      let txt = 
-        let tile = MTexture.load_from_file renderer tile_path in
-        let terrain_feature = MTexture.load_from_file renderer terrain_feature_path in
-        let bg = MTexture.load_from_file renderer bg_path in
-        let curs = MTexture.load_from_file renderer cursor_path in
-        let soldier_eu = MTexture.load_from_file renderer soldier_eu_path in
-        let soldier_pac = MTexture.load_from_file renderer soldier_pac_path in
-        let city = MTexture.load_from_file renderer city_path in
-        let healthpack = MTexture.load_from_file renderer healthpack_path in
-        MTexture_pack.create tile terrain_feature bg curs soldier_eu soldier_pac city healthpack
-      in
+      let txt = MTexture_pack.create renderer in
 
 
       (* Section to play music, WIP *)

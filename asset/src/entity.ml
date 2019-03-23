@@ -9,13 +9,13 @@ open Faction_enum
 open Behaviour_enum
 open Entity_enum
 open Layer_enum
+open Inventory
 
 module MEntity = struct
   type unit_type = MEntity_enum.t 
   type layer_type = MLayer_enum.t
   type attack_type = MELEE | RANGED
   type terrain_type = GROUND | AIR
-
   type status = IDLE | ATTACKING | MOVING
 
   let status_to_string s =
@@ -53,6 +53,12 @@ module MEntity = struct
       method is_low_hp = 
         let threshold = (MEntity_enum.max_hp_of ut)/2 in
         hp <= threshold
+
+      (* Invetory *)
+      val inventory : MInventory.t = MInventory.empty
+      method get_inventory = inventory
+      method set_inventory x = {< inventory = x >}
+      method add_item_to_inventory item = {< inventory = MInventory.add_item inventory item>}
 
       val ap : int = ap (* ARMOR POINT *)
       val mp : int = mp (* MOVEMENT POINT *)
@@ -116,9 +122,12 @@ module MEntity = struct
     not (is_infrastructure t)
 
   let to_string t =
-    (MHex.to_string_ax t#get_axial) ^ " current mp : " ^(string_of_int t#get_current_mp)
+    (MHex.to_string_ax t#get_axial) 
+    ^ " hp : " ^ (string_of_int t#get_hp)
+    ^ " current mp : " ^(string_of_int t#get_current_mp)
     ^ " layer : " ^ (layer_to_string t#get_lt)
     ^ " behaviour : " ^(MBehaviour_enum.to_string t#get_behaviour)
+    ^ " inventory : " ^(MInventory.to_string t#get_inventory)
 
   let entity_textures entity texture =
     (* the faction of the entity *)

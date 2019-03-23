@@ -16,6 +16,7 @@ module MAction_enum = struct
             | CHANGE_BEHAVIOUR_E
             | SPAWN_ENTITY_E
             | USE_ITEM_E
+            | PICKUP_ITEM_E
 
   type t = ATTACK of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t * MLayer_enum.t
          | MOVE of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t 
@@ -24,6 +25,9 @@ module MAction_enum = struct
          | CHANGE_BEHAVIOUR of MHex.axial_coord * MLayer_enum.t
          | SPAWN_ENTITY of MHex.axial_coord * MHex.axial_coord * MEntity_enum.t
          | USE_ITEM of MItem.code * MItem.param
+         (* Src is the entity that picks up the item and and dst it where the item is at,
+         layer is the layer of the entity that will pick it up*)
+         | PICKUP_ITEM of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t
 
   exception Invalid_on_start_action
 
@@ -48,6 +52,9 @@ module MAction_enum = struct
   let create_use_item code param =  
     USE_ITEM (code,param)
 
+  let create_pickup_item src dst layer = 
+    PICKUP_ITEM (src,dst,layer)
+
   exception Unknown_Action
 
   let to_str t =
@@ -59,6 +66,7 @@ module MAction_enum = struct
     | CHANGE_BEHAVIOUR _ -> "CHANGE_BEHAVIOUR"
     | SPAWN_ENTITY _ -> "SPAWN_SOLDIER"
     | USE_ITEM _ -> "USE_ITEM"
+    | PICKUP_ITEM _ -> "PICKUP_ITEM"
 
   let print t =
     match t with

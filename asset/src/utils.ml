@@ -96,6 +96,9 @@ let random_elem_list l =
    but requires to be called nonetheless *)
 exception Not_yet_implemented 
 
+(* Exception for debugging *)
+exception Debugging 
+
 (* Increment a refernce and returns the new value *)
 let incr pt =
   begin

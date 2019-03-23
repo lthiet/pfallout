@@ -11,8 +11,8 @@ module MItem = struct
   type code =
     (* Amount of hp healed *)
     | HEALTHPACK of int
-    (* Radius and damage *)
-    | NUKE of int * int
+    (* Radius *)
+    | NUKE of int
 
   (* The enum is the same as above but without any attributes to it,
      useful when the attributes aren't used*)
@@ -20,10 +20,10 @@ module MItem = struct
     | HEALTHPACK_E
     | NUKE_E
   type param =
-    (* Health pack need a source to know which unit is healed, and a destination to know which item must be consumed *)
+    (* Health pack need a source to know which unit is healed, and a destination to know the owner for which the item must be consumed *)
     | HEALTHPACK_P of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t
     (* Nukes need a source and a destination*)
-    | NUKE_P of MHex.axial_coord * MHex.axial_coord
+    | NUKE_P of MHex.axial_coord 
 
   let create_healthpack_param src dst layer = 
     HEALTHPACK_P(src,dst,layer)
@@ -49,11 +49,35 @@ module MItem = struct
       (* Determines whether or not the item is owned, if it is not owned, then it will be displayed *)
       val owned : bool = false
       method is_owned = owned
+      method set_owned b = {<owned = b>}
     end
   type t = item
 
+  exception Incorrect_Code
+  let get_amount_of_healthpack t =
+    match t#get_code with
+    | HEALTHPACK(amount) -> amount
+    | _ -> raise Incorrect_Code
+
+  let to_string t =
+    let code = t#get_code in
+    let owned = 
+      let tmp = "\n\t owned: " in
+      if t#is_owned then
+        tmp ^ "true"
+      else
+        tmp ^ "false"
+    in
+    match code with
+    | HEALTHPACK (n) -> "HEALTHPACK :\n\t healing capacity of " ^ (string_of_int n) ^ owned
+    | NUKE (n) -> "NUKE : radius of " ^ (string_of_int n) ^ owned
+
+
   let create_healthpack r q heal_amount =
     new item r q (HEALTHPACK heal_amount)
+
+  let create_nuke r q radius =
+    new item r q (NUKE radius)
 
   (* Render the item *)
   let render renderer item texture camera frame_n =
@@ -63,7 +87,13 @@ module MItem = struct
           let tmp1,tmp2 = MHex.axial_to_screen_coord item#get_axial in
           tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
         in
-        let txt = MTexture_pack.get_healthpack texture in
+        let txt = 
+          match item#get_code with
+          | HEALTHPACK _ ->
+            MTexture_pack.get_healthpack texture 
+          | NUKE _ ->
+            MTexture_pack.get_nuke texture 
+        in
         MTexture.render renderer
           ~x:x
           ~y:y

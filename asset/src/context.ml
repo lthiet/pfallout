@@ -180,6 +180,8 @@ module MGameContext = struct
             Some (MAction_enum.ATTACK_E)
           else if (MKeyboard.key_is_pressed e Sdl.Scancode.i ) then
             Some (MAction_enum.USE_ITEM_E)
+          else if (MKeyboard.key_is_pressed e Sdl.Scancode.u ) then
+            Some (MAction_enum.PICKUP_ITEM_E)
           else if action_cancelled e then
             None
           else
@@ -213,6 +215,8 @@ module MGameContext = struct
                 let item = MGrid.get_item_at_ax ctx.grid dst in
                 let param = MItem.create_healthpack_param src dst layer in
                 MAction_enum.create_use_item item#get_code param 
+              | PICKUP_ITEM_E ->
+                MAction_enum.create_pickup_item src dst layer
               | _ -> raise Not_yet_implemented
             in
             MAction.execute (Some action) ctx.grid 
@@ -371,8 +375,12 @@ module MGameContext = struct
 
   (* Update the new context of the game *)
   let update_context context =
-    (* List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
-       print_newline (); *)
+    let () = if context.new_turn then
+        begin
+          List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
+          print_newline ();
+        end
+    in
     (* Event independant context change *)
     let ctx_before_event =
       let animation =
@@ -442,7 +450,9 @@ module MGameContext = struct
                     match e1 with 
                     | MAction_enum.MOVE_E ->
                       MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
-                    | MAction_enum.ATTACK_E | MAction_enum.USE_ITEM_E ->
+                    | MAction_enum.PICKUP_ITEM_E
+                    | MAction_enum.ATTACK_E
+                    | MAction_enum.USE_ITEM_E ->
                       MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                     | _ -> [tile_below_src]
                   end
@@ -461,7 +471,9 @@ module MGameContext = struct
                             | MAction_enum.MOVE_E ->
                               let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp ent_below#get_lt in
                               res
-                            | MAction_enum.ATTACK_E | MAction_enum.USE_ITEM_E ->
+                            | MAction_enum.ATTACK_E
+                            | MAction_enum.PICKUP_ITEM_E
+                            | MAction_enum.USE_ITEM_E ->
                               [tile_below_dst] 
                             | _ -> context.movement_range_selector
                           end
@@ -476,7 +488,9 @@ module MGameContext = struct
                             match e with
                             | MAction_enum.MOVE_E ->
                               MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
-                            | MAction_enum.ATTACK_E ->
+                            | MAction_enum.ATTACK_E
+                            | MAction_enum.USE_ITEM_E
+                            | MAction_enum.PICKUP_ITEM_E ->
                               MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                             | _ -> [tile_below_src]
                           end
