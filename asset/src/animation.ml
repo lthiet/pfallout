@@ -6,7 +6,13 @@ open Fx
 module MAnimation = struct
   type frame = int
 
-  type to_animated = ENTITY of MEntity.t | FX of MFx.t
+  type animation_unit = {
+    entity : MEntity.t;
+    fx : MFx.t;
+    initial_time : int;
+    current_time : int
+  }
+
   type t = {
     to_be_animated : (MEntity.t * int * int) list list;
   }
