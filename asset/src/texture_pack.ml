@@ -10,7 +10,9 @@ module MTexture_pack = struct
     soldier_pac : MTexture.t;
     city : MTexture.t;
     healthpack : MTexture.t;
-    nuke : MTexture.t
+    nuke : MTexture.t;
+    fx_healed : MTexture.t;
+    fx_attacked : MTexture.t
   }
 
   let tile_path = "asset/image/tiles.png"
@@ -22,6 +24,8 @@ module MTexture_pack = struct
   let city_path = "asset/image/city.png"
   let healthpack_path = "asset/image/healthpack.png"
   let nuke_path = "asset/image/nuke.png"
+  let fx_healed_path = "asset/image/fx_healed.png"
+  let fx_attacked_path = "asset/image/fx_attacked.png"
 
   let create renderer = 
     {
@@ -34,6 +38,8 @@ module MTexture_pack = struct
       city = MTexture.load_from_file renderer city_path;
       healthpack = MTexture.load_from_file renderer healthpack_path;
       nuke = MTexture.load_from_file renderer nuke_path;
+      fx_healed = MTexture.load_from_file renderer fx_healed_path;
+      fx_attacked = MTexture.load_from_file renderer fx_attacked_path;
     }
 
   let get_tile t = t.tile
@@ -45,5 +51,7 @@ module MTexture_pack = struct
   let get_city t = t.city
   let get_healthpack t = t.healthpack
   let get_nuke t = t.nuke
+  let get_fx_healed t = t.fx_healed
+  let get_fx_attacked t = t.fx_attacked
 
 end
