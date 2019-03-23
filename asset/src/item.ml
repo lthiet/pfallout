@@ -20,7 +20,7 @@ module MItem = struct
     | HEALTHPACK_E
     | NUKE_E
   type param =
-    (* Health pack need a source to know which unit is healed, and a destination to know which item must be consumed *)
+    (* Health pack need a source to know which unit is healed, and a destination to know the owner for which the item must be consumed *)
     | HEALTHPACK_P of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t
     (* Nukes need a source and a destination*)
     | NUKE_P of MHex.axial_coord 
@@ -52,6 +52,12 @@ module MItem = struct
       method set_owned b = {<owned = b>}
     end
   type t = item
+
+  exception Incorrect_Code
+  let get_amount_of_healthpack t =
+    match t#get_code with
+    | HEALTHPACK(amount) -> amount
+    | _ -> raise Incorrect_Code
 
   let to_string t =
     let code = t#get_code in

@@ -23,8 +23,6 @@ module MTexture_pack = struct
   let healthpack_path = "asset/image/healthpack.png"
   let nuke_path = "asset/image/nuke.png"
 
-
-
   let create renderer = 
     {
       tile = MTexture.load_from_file renderer tile_path;

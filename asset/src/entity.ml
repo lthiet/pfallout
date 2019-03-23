@@ -57,6 +57,7 @@ module MEntity = struct
       (* Invetory *)
       val inventory : MInventory.t = MInventory.empty
       method get_inventory = inventory
+      method set_inventory x = {< inventory = x >}
       method add_item_to_inventory item = {< inventory = MInventory.add_item inventory item>}
 
       val ap : int = ap (* ARMOR POINT *)
@@ -121,9 +122,12 @@ module MEntity = struct
     not (is_infrastructure t)
 
   let to_string t =
-    (MHex.to_string_ax t#get_axial) ^ " current mp : " ^(string_of_int t#get_current_mp)
+    (MHex.to_string_ax t#get_axial) 
+    ^ " hp : " ^ (string_of_int t#get_hp)
+    ^ " current mp : " ^(string_of_int t#get_current_mp)
     ^ " layer : " ^ (layer_to_string t#get_lt)
     ^ " behaviour : " ^(MBehaviour_enum.to_string t#get_behaviour)
+    ^ " inventory : " ^(MInventory.to_string t#get_inventory)
 
   let entity_textures entity texture =
     (* the faction of the entity *)

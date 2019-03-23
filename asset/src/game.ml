@@ -174,13 +174,13 @@ module MGame = struct
 
       let soldier3 = create_random_soldier grid faction_code2 in
       let soldier4 = create_random_soldier grid faction_code2 in
-      let city1 = create_random_city grid faction_code2 in
+      (* let city1 = create_random_city grid faction_code2 in *)
 
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
         MFaction.add_entity soldier3 f
         |> MFaction.add_entity soldier4
-        |> MFaction.add_entity city1
+        (* |> MFaction.add_entity city1 *)
       in
 
       let faction_code3 = 
@@ -189,13 +189,13 @@ module MGame = struct
 
       let soldier6 = create_random_soldier grid faction_code3 in
       let soldier7 = create_random_soldier grid faction_code3 in
-      let city2 = create_random_city grid faction_code3 in
+      (* let city2 = create_random_city grid faction_code3 in *)
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
         MFaction.add_entity soldier6 f
         |> MFaction.add_entity soldier7
-        |> MFaction.add_entity city2
+        (* |> MFaction.add_entity city2 *)
       in
 
       let camera_rect =

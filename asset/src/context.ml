@@ -375,8 +375,12 @@ module MGameContext = struct
 
   (* Update the new context of the game *)
   let update_context context =
-    (* List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
-       print_newline (); *)
+    let () = if context.new_turn then
+        begin
+          List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
+          print_newline ();
+        end
+    in
     (* Event independant context change *)
     let ctx_before_event =
       let animation =

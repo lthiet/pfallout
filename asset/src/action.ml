@@ -11,6 +11,7 @@ open Layer_enum
 open Entity_enum
 open Entity_enum
 open Item
+open Inventory
 
 (* This module computes actions in the game. Each action can modified the state
    of the game (the factions lists and the grid). Each action shall return the newly computed grid,
@@ -63,7 +64,7 @@ module MAction = struct
       in
       let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
 
-      let smu_without_mp = smu#empty_mp in
+      let smu_without_mp = smu#empty_mp#remove_hp 10 in
       let () =
         MGrid.remove_at grid dr dq src_layer;
         MGrid.remove_at grid sr sq dst_layer;
@@ -261,29 +262,84 @@ module MAction = struct
       animation = MAnimation.create []
     }
 
-  let use_healthpack grid amount src dst layer =
-    let sr = MHex.get_r src in
-    let sq = MHex.get_q src in
-    let ent = MGrid.get_at grid sr sq layer in
+  (* One entity uses the healthpack on itself *)
+  let self_use_healthpack grid amount entity inventory = 
+    (* Fetch the coords of the entity *)
+    let axial = entity#get_axial in
+    let r = MHex.get_r axial in
+    let q = MHex.get_q axial in
+
+    (* Compute the new state *)
     let old_ent,new_ent =
-      ent,(ent#add_hp_max amount)#empty_mp
+      entity,((entity#set_inventory inventory)#empty_mp)#add_hp_max amount
     in
+
+    (* Update the grid *)
     let () =
-      MGrid.remove_at grid sr sq layer;
-      MGrid.set_at grid sr sq new_ent layer;
-      MGrid.remove_item_at grid (MHex.get_r dst) (MHex.get_q dst);
+      MGrid.remove_at grid r q old_ent#get_lt;
+      MGrid.add_at grid new_ent;
     in
+
     {
       added = [new_ent];
       deleted = [old_ent];
       animation = MAnimation.create [] 
     }
 
+  exception Source_entity_has_no_healthpack
+  (* One entity use a healthpack to another, they must be on the same layer,
+     we also need to specify which item is used*)
+  let use_healthpack grid item_code src dst layer =
+
+    (* Fetch the source entity *)
+    let sr = MHex.get_r src in
+    let sq = MHex.get_q src in
+    let src_ent = MGrid.get_at grid sr sq layer in
+
+    (* Check if the src ent has the item *)
+    let healthpack,new_inventory = MInventory.fetch_item src_ent#get_inventory item_code in
+    match healthpack with
+    | None -> raise Source_entity_has_no_healthpack
+    | Some healthpack ->
+      let amount = MItem.get_amount_of_healthpack healthpack in
+      if dst = src then
+        self_use_healthpack grid amount src_ent new_inventory
+      else
+        (* Fetch the destination entity *)
+        let dr = MHex.get_r dst in
+        let dq = MHex.get_q dst in
+        let dst_ent = MGrid.get_at grid dr dq layer in
+
+
+        (* Update the source entity *)
+        let old_src_ent,new_src_ent =
+          src_ent,(src_ent#set_inventory new_inventory)#empty_mp
+        in
+        let () =
+          MGrid.remove_at grid sr sq layer;
+          MGrid.set_at grid sr sq new_src_ent layer;
+        in
+
+        (* Update the destination entity *)
+        let old_dst_ent,new_dst_ent =
+          dst_ent,(src_ent#add_hp_max (MItem.get_amount_of_healthpack healthpack))
+        in
+        let () =
+          MGrid.remove_at grid dr dq layer;
+          MGrid.set_at grid dr dq new_dst_ent layer;
+        in
+
+        {
+          deleted = [old_dst_ent;old_src_ent];
+          added = [new_dst_ent;new_src_ent];
+          animation = MAnimation.create [] 
+        }
+
   exception Item_code_and_param_dont_match
   (* This function will direct to the right function for which item it is used *)
   let use_item grid item param = 
     match item,param with
-    | MItem.HEALTHPACK(amount),MItem.HEALTHPACK_P(src,dst,layer) -> use_healthpack grid amount src dst layer
+    | MItem.HEALTHPACK _ ,MItem.HEALTHPACK_P(src,dst,layer) -> use_healthpack grid item src dst layer
     | _ -> raise Not_yet_implemented
 
   exception Entity_is_not_next_to_item
