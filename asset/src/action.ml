@@ -279,9 +279,6 @@ module MAction = struct
       animation = MAnimation.create [] 
     }
 
-
-
-
   exception Item_code_and_param_dont_match
   (* This function will direct to the right function for which item it is used *)
   let use_item grid item param = 
@@ -289,7 +286,40 @@ module MAction = struct
     | MItem.HEALTHPACK(amount),MItem.HEALTHPACK_P(src,dst,layer) -> use_healthpack grid amount src dst layer
     | _ -> raise Not_yet_implemented
 
+  exception Entity_is_not_next_to_item
+  let pickup_item grid src dst layer =
+    (* Fetch the entity *)
+    let ent = MGrid.get_at_ax grid src layer in
+    (* Fetch the item *)
+    let item = MGrid.get_item_at_ax grid dst in
 
+    (* Verify if src can pick up the item *)
+    let tile_src = MGrid.get_tile_ax ent#get_axial grid in
+    let zone = MGrid.range_tile grid tile_src 1 in
+
+    if not (List.exists (fun x -> x#get_axial = item#get_axial) zone ) then 
+      raise Entity_is_not_next_to_item
+    else
+      (* Modify the grid *)
+      let () =
+        (* Remove the old state of the grid *)
+        MGrid.remove_item_at grid (MHex.get_r dst) (MHex.get_q dst);
+        MGrid.remove_at grid (MHex.get_r src) (MHex.get_q src) layer;
+      in
+
+      (* Compute the new state *)
+      let new_item = item#set_owned true in
+      let new_ent = ent#add_item_to_inventory new_item in
+
+      (* Modify the grid and apply the new state *)
+      let () =
+        MGrid.add_at grid new_ent;
+      in
+      {
+        added = [new_ent];
+        deleted = [ent];
+        animation = MAnimation.create []
+      }
 
   exception No_action_specified
 
@@ -304,6 +334,7 @@ module MAction = struct
       | MAction_enum.PASS (src,layer) -> pass grid src layer
       | MAction_enum.SPAWN_ENTITY (src,dst,entity_enum) -> spawn grid src dst entity_enum
       | MAction_enum.USE_ITEM (item,param) -> use_item grid item param
+      | MAction_enum.PICKUP_ITEM (src,dst,layer) -> pickup_item grid src dst layer
       | _ -> raise Not_yet_implemented
 end
 ;;

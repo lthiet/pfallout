@@ -49,8 +49,23 @@ module MItem = struct
       (* Determines whether or not the item is owned, if it is not owned, then it will be displayed *)
       val owned : bool = false
       method is_owned = owned
+      method set_owned b = {<owned = b>}
     end
   type t = item
+
+  let to_string t =
+    let code = t#get_code in
+    let owned = 
+      let tmp = "\n\t owned: " in
+      if t#is_owned then
+        tmp ^ "true"
+      else
+        tmp ^ "false"
+    in
+    match code with
+    | HEALTHPACK (n) -> "HEALTHPACK :\n\t healing capacity of " ^ (string_of_int n) ^ owned
+    | NUKE (n) -> "NUKE : radius of " ^ (string_of_int n) ^ owned
+
 
   let create_healthpack r q heal_amount =
     new item r q (HEALTHPACK heal_amount)

@@ -6,8 +6,17 @@ module MInventory = struct
     item_list : MItem.t list
   }
 
+  let empty = {
+    item_list = []
+  }
+
   (* Returns the item list of an inventory *)
   let get_item_list inventory = inventory.item_list
+
+  let add_item t item =
+    {
+      item_list = item :: t.item_list
+    }
 
   (* Return the first item that is same as enum specified in parameters,
      for example if enum = HEALTHPACK_E then returns the first healthpack found, otherwise, return none *)
