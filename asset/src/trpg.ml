@@ -45,7 +45,7 @@ let initialization () =
   let png_init = Image.init png_load_flags in
 
   (* Init the true text font *)
-  (* manage_result (Ttf.init ()) "Error ttf init %s"; *)
+  manage_result (Ttf.init ()) "Error ttf init %s";
 
   if not (Image.Init.eq png_load_flags png_init) then (
     Sdl.log "Error loader png or ttf"; exit 1
@@ -64,7 +64,7 @@ let close windows surfaces renderers textures lTextures musics sounds =
   Array.iter ( fun x -> Mixer.free_chunk x ) sounds;
   Image.quit ();
   Sdl.quit ();
-  (* Ttf.quit (); *)
+  Ttf.quit ();
   Mixer.quit ()
 
 

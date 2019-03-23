@@ -1,6 +1,6 @@
 open Utils
 open Tsdl
-(* open Tsdl_ttf *)
+open Tsdl_ttf
 open Texture_wrapper
 open Keyboard_wrapper
 open Mouse_wrapper
@@ -28,6 +28,7 @@ module MMenu = struct
   type textures = {
     bg : MTexture.t;
     btn : MTexture.t;
+    btn_start_text : MTexture.t;
     (************)
     btn_settings : MTexture.t;
     settings_bg : MTexture.t;
@@ -36,7 +37,6 @@ module MMenu = struct
     btn_Mmapsize : MTexture.t;
     btn_Lmapsize : MTexture.t;
 
-    (* btn_start_text : MTexture.t *)
   }
 
   (*************)
@@ -198,7 +198,7 @@ module MMenu = struct
         (* Display the start button *)
         MBtn.render renderer new_ctx.btn_start textures.btn;
         (* Display the start button text *)
-        (* MBtn.render_text renderer new_ctx.btn_start textures.btn_start_text; *)
+        MBtn.render_text renderer new_ctx.btn_start textures.btn_start_text;
 
         (****************************)
         MBtn.render renderer new_ctx.btn_settings textures.btn_settings;
@@ -221,17 +221,15 @@ module MMenu = struct
   let btn_Smapsize_path = "asset/image/btn_smap.png"
   let btn_Mmapsize_path = "asset/image/btn_mmap.png"
   let btn_Lmapsize_path = "asset/image/btn_lmap.png" 
-
-
-  (* let font_path = "asset/font/spiderman.ttf" *)
+  let font_path = "asset/font/spiderman.ttf"
 
   let run renderer window = 
-    (* let font = manage_result (Ttf.open_font font_path 70) "Error font %s" in *)
+    let font = manage_result (Ttf.open_font font_path 70) "Error font %s" in
     (* Create the menu *)
     let txt = {
       bg = MTexture.load_from_file renderer menu_bg_path;
       btn = MTexture.load_from_file renderer btn_path;
-      (* btn_start_text = MTexture.load_from_rendered_text renderer font "Start" (Sdl.Color.create 255 255 255 255) *)
+      btn_start_text = MTexture.load_from_rendered_text renderer font "Start" (Sdl.Color.create 255 255 255 255);
       (**********************)
       btn_settings = MTexture.load_from_file renderer btn_settings_path;
       settings_bg = MTexture.load_from_file renderer settings_bg_path;
