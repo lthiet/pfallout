@@ -21,6 +21,7 @@ open Camera
 open Item
 open Layer_enum
 open Sound
+open Fx
 
 
 module MGame = struct
@@ -80,10 +81,17 @@ module MGame = struct
       List.iter (
         fun t ->  
           let pos_x,pos_y = MAnimation.next_coord_currently_animated t in
+          (* Render the entity *)
           MEntity.render renderer 
-            ~x:(Some pos_x)
-            ~y:(Some pos_y)
-            (MAnimation.get_currently_animated t) textures (MCamera.get_rect context.camera) context.frame
+              ~x:(Some pos_x)
+              ~y:(Some pos_y)
+              (MAnimation.get_currently_animated t) textures (MCamera.get_rect context.camera) context.frame;
+
+          let fx = MAnimation.get_current_fx t in
+          match fx with
+          | None -> ()
+          | Some fx -> 
+          MFx.render renderer pos_x pos_y fx textures (MCamera.get_rect context.camera) context.frame;
       ) (MAnimation.get_current_animated_and_next context.animation);
 
       (* Update the renderer *)

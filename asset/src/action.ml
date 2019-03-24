@@ -12,6 +12,7 @@ open Entity_enum
 open Entity_enum
 open Item
 open Inventory
+open Fx
 
 (* This module computes actions in the game. Each action can modified the state
    of the game (the factions lists and the grid). Each action shall return the newly computed grid,
@@ -73,11 +74,11 @@ module MAction = struct
       in
 
       let anim_src = [
-        (smu_without_mp#set_status MEntity.ATTACKING,35,35);
+        MAnimation.create_animation_unit (smu_without_mp#set_status MEntity.ATTACKING) (None) 35
       ] 
       in
       let anim_dst = [
-        (dmu#set_status MEntity.ATTACKING,35,35)
+        MAnimation.create_animation_unit (dmu#set_status MEntity.ATTACKING) (Some (MFx.create MFx.ATTACKED)) 35
       ]
       in
 
@@ -91,8 +92,8 @@ module MAction = struct
           let movement_animation_list =
             List.fold_left (
               fun acc x -> 
-                let new_ent = (smu_without_mp#move x#get_r x#get_q)#set_status MEntity.MOVING in
-                ((new_ent),10,10) :: acc
+                let au = MAnimation.create_animation_unit ((smu_without_mp#move x#get_r x#get_q)#set_status MEntity.MOVING) (None) 10 in
+                au :: acc
             ) [] (List.rev path_taken)
           in
 
@@ -168,7 +169,8 @@ module MAction = struct
         List.fold_left (
           fun acc x -> 
             let new_ent = (old_ent#move x#get_r x#get_q)#set_status MEntity.MOVING in
-            ((new_ent),10,10) :: acc
+            let au = MAnimation.create_animation_unit new_ent (None) 10 in
+            au :: acc
         ) [] (List.rev path_taken)
       in
       let new_ent_minus_current_mp = new_ent#remove_mp mv_cost in
@@ -225,8 +227,8 @@ module MAction = struct
         let first = (new_entity#move city_src#get_r city_src#get_q)#set_status MEntity.MOVING in
         let second = first#move new_entity#get_r new_entity#get_q in
         [
-          (first,10,10);
-          (second,10,10)
+          MAnimation.create_animation_unit first None 10;
+          MAnimation.create_animation_unit second None 10
         ]
       in
       (* Compute the new city *)
@@ -237,7 +239,7 @@ module MAction = struct
         MGrid.add_at grid new_city
       in
       (* The city will disappear while the unit is moving, thus we will create an animation for the city too *)
-      let anim_city = List.init 2 (fun i -> (new_city,10,10)) in
+      let anim_city = List.init 2 (fun i -> MAnimation.create_animation_unit new_city None 10 ) in
       {
         added = [new_entity;new_city];
         deleted = [city_src];
@@ -283,7 +285,7 @@ module MAction = struct
     {
       added = [new_ent];
       deleted = [old_ent];
-      animation = MAnimation.create [] 
+      animation = MAnimation.create [[MAnimation.create_animation_unit new_ent (Some (MFx.create MFx.HEALING)) 70 ]]
     }
 
   exception Source_entity_has_no_healthpack
@@ -332,7 +334,8 @@ module MAction = struct
         {
           deleted = [old_dst_ent;old_src_ent];
           added = [new_dst_ent;new_src_ent];
-          animation = MAnimation.create [] 
+
+          animation = MAnimation.create [[MAnimation.create_animation_unit new_src_ent (Some (MFx.create MFx.HEALING)) 70 ]]
         }
 
   exception Item_code_and_param_dont_match

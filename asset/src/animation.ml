@@ -8,13 +8,25 @@ module MAnimation = struct
 
   type animation_unit = {
     entity : MEntity.t;
-    fx : MFx.t;
+    fx : MFx.t option;
     initial_time : int;
     current_time : int
   }
 
+  let create_animation_unit entity fx time = {
+    entity = entity;
+    fx = fx;
+    initial_time = time;
+    current_time = time;
+  }
+
+  let get_entity au = au.entity
+  let get_fx au = au.fx
+  let get_initial_time au = au.initial_time
+  let get_current_time au = au.current_time
+
   type t = {
-    to_be_animated : (MEntity.t * int * int) list list;
+    to_be_animated : animation_unit list list;
   }
 
   let add t1 t2 =
@@ -48,12 +60,14 @@ module MAnimation = struct
   (* The result that will contains the next elements to be displayed *)
   type res = {
     currently_animated : MEntity.t;
+    current_fx : MFx.t option;
     next_animated : MEntity.t option;
     time_left : int;
     initial_time_left : int;
   }
 
   let get_currently_animated t = t.currently_animated
+  let get_current_fx t = t.current_fx
   let get_next_animated t = t.next_animated
   let get_time_left t = t.time_left
   let get_initial_time_left t = t.time_left
@@ -65,21 +79,21 @@ module MAnimation = struct
       fun acc x ->
         match x with
         | [] -> acc
-        | (entity,n,init_n) :: [] -> {
-            currently_animated = entity;
+        | au :: [] -> {
+            currently_animated = au.entity;
             next_animated = None;
-            time_left = n;
-            initial_time_left = init_n;
+            current_fx = au.fx;
+            time_left = au.current_time;
+            initial_time_left = au.initial_time;
           } :: acc
-        | (first_entity,n,init_n) :: (second_entity,_,_) :: s  -> {
-            currently_animated = first_entity;
-            next_animated = Some second_entity;
-            time_left = n;
-            initial_time_left = init_n;
+        | au1 :: au2 :: s  -> {
+            currently_animated = au1.entity;
+            next_animated = Some (au2.entity);
+            current_fx = au1.fx;
+            time_left = au1.current_time;
+            initial_time_left = au1.initial_time;
           } :: acc
     ) [] t.to_be_animated
-
-  exception Second_is_none
 
   (* The function returns where the first entity has to be
      in terms of screen coordinates *)
@@ -101,10 +115,13 @@ module MAnimation = struct
         fun acc1 x -> 
           let tmp = match x with
             | [] -> []
-            | (x,y,z) :: s->  
-              let new_frame = y - 1 in
+            | au :: s->  
+              let new_frame = au.current_time - 1 in
               if new_frame > 0 then
-                (x,new_frame,z) :: s
+                {
+                  au with current_time = new_frame
+                }
+                :: s
               else
                 s
           in
