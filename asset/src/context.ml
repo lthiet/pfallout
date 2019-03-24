@@ -18,6 +18,7 @@ open Behaviour
 open Camera
 open Layer_enum
 open Item
+open Inventory
 
 let ev = Some (Sdl.Event.create ())
 
@@ -179,9 +180,9 @@ module MGameContext = struct
           else if MKeyboard.key_is_pressed e Sdl.Scancode.o then
             Some (MAction_enum.ATTACK_E)
           else if (MKeyboard.key_is_pressed e Sdl.Scancode.i ) then
-            Some (MAction_enum.USE_ITEM_E)
-          else if (MKeyboard.key_is_pressed e Sdl.Scancode.u ) then
             Some (MAction_enum.PICKUP_ITEM_E)
+          else if (MKeyboard.key_is_pressed e Sdl.Scancode.u ) then
+            Some (MAction_enum.USE_ITEM_E)
           else if action_cancelled e then
             None
           else
@@ -197,6 +198,8 @@ module MGameContext = struct
   exception Unspecified_Src_Dst
   exception Unspecified_Action_Type
 
+  exception No_healthpack
+
   let compute_new_grid e ctx =
     if action_confirmed e ctx then	
       match ctx.action_src,ctx.action_dst,ctx.action_layer with
@@ -211,8 +214,16 @@ module MGameContext = struct
                 MAction_enum.create_move src dst layer
               | ATTACK_E -> 
                 MAction_enum.create_attack src dst layer layer
+              (* TODO : Currently it only uses the healthpack  *)
               | USE_ITEM_E -> 
-                let item = MGrid.get_item_at_ax ctx.grid dst in
+                let entity = MGrid.get_at_ax ctx.grid src layer in
+                let inventory = entity#get_inventory in
+                let healthpack = MInventory.get_item  inventory MItem.HEALTHPACK_E in
+                let item = 
+                  match healthpack with
+                  | Some x -> x
+                  | None -> raise No_healthpack
+                in
                 let param = MItem.create_healthpack_param src dst layer in
                 MAction_enum.create_use_item item#get_code param 
               | PICKUP_ITEM_E ->
@@ -380,7 +391,7 @@ module MGameContext = struct
           List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
           print_newline ();
         end
-    in *)
+       in *)
     (* Event independant context change *)
     let ctx_before_event =
       let animation =
