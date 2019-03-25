@@ -22,6 +22,7 @@ open Item
 open Layer_enum
 open Sound
 open Fx
+open Healthbar
 
 
 module MGame = struct
