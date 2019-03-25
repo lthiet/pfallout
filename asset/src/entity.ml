@@ -10,6 +10,7 @@ open Behaviour_enum
 open Entity_enum
 open Layer_enum
 open Inventory
+open Healthbar
 
 module MEntity = struct
   type unit_type = MEntity_enum.t 
@@ -158,6 +159,8 @@ module MEntity = struct
     | _ ->
       Sdl.Rect.create 0 0 MHex.width MHex.height 
 
+  let get_healthbar entity = 
+    MHealthbar.create (MEntity_enum.max_hp_of entity#get_ut) entity#get_hp
 
   exception Option_coord_need_to_be_both_none_or_some
 
@@ -184,10 +187,20 @@ module MEntity = struct
         | _,_ -> raise Option_coord_need_to_be_both_none_or_some
       in
       let txt = entity_textures e texture in
-      MTexture.render renderer
-        ~clip:(clip)
-        ~x:pos_x
-        ~y:pos_y
-        txt
+      let healthbar = get_healthbar e in
+      let () =
+
+        (* THen render the entity *)
+        MTexture.render renderer
+          ~clip:(clip)
+          ~x:pos_x
+          ~y:pos_y
+          txt;
+
+        (* First render the healthbar *)
+        MHealthbar.render renderer pos_x (pos_y - 40) healthbar;
+
+
+      in ()
 end
 ;;

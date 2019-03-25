@@ -1,6 +1,6 @@
 open Utils
-open Entity
-open Entity_enum
+open Sdl_tools
+open Hex
 (* This module implements the healthbar on the units *)
 
 module MHealthbar = struct
@@ -17,11 +17,9 @@ module MHealthbar = struct
       current_hp = current_hp
     }
 
-  (* Get the healthbar of an entity *)
-  let get_healthbar_of_entity entity = 
-    let max_hp = MEntity_enum.max_hp_of entity#get_ut in
-    let current_hp = entity#get_hp in
-    create max_hp current_hp
+  let red = 255,0,0,255
+  let green = 0,255,0,255
+  let blue = 21, 130, 181,255
 
   let to_couple t = (t.max_hp,t.current_hp)
 
@@ -51,4 +49,21 @@ module MHealthbar = struct
   let get_blue_bar_length t =
     let ratio = hp_ratio_int t in
     min healthbar_length (max (ratio-100) (0))
+
+  let render renderer x y healthbar = 
+    let rbl = get_red_bar_length healthbar in
+    let gbl = get_green_bar_length healthbar in
+    let bbl = get_blue_bar_length healthbar in
+
+    let y = y + 40 in
+    let x = x + (MHex.width/2) - (healthbar_length / 2) in
+
+    (* First render the green bar *)
+    manage_result (draw_filled_rectangle renderer green (y+10, y, x, x+gbl)) "Error : %s";
+
+    (* Then render the red bar *)
+    manage_result (draw_filled_rectangle renderer red (y+10, y, x+healthbar_length, x+healthbar_length-rbl)) "Error : %s";
+
+    (* Finally render the blue bar *)
+    manage_result (draw_filled_rectangle renderer blue (y+10, y, x, x+bbl)) "Error : %s";
 end

@@ -23,9 +23,27 @@ open Layer_enum
 open Sound
 open Fx
 open Healthbar
+open Sdl_tools
+
 
 
 module MGame = struct
+
+  (*  Render all the units in the list that is of layer l*)
+  let render_units renderer textures camera frame faction_list layer =
+    (* Iterate over each faction  *)
+    List.iter (
+      fun x ->
+        (* Iterate over each unit of a faction  *)
+        List.iter (
+          fun y ->
+            if y#check_layer layer then
+
+              (* Render the unit *)
+              MEntity.render renderer y textures (MCamera.get_rect camera) frame;
+        ) (MFaction.get_entity x)
+    ) faction_list
+
   (* Loop the game *)
   let rec loop renderer (context : MGameContext.t) textures = 
     if context.over then
@@ -55,28 +73,10 @@ module MGame = struct
       (* TODO : factorize this if possible *)
 
       (* Render the infrastructures *)
-      List.iter (
-        fun x ->
-          List.iter (
-            fun y ->
-              if y#check_layer MLayer_enum.INFRASTRUCTURE then
-                MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
-          )
-            (MFaction.get_entity x)
-      ) context.faction_list;
-
+      render_units renderer textures context.camera context.frame context.faction_list MLayer_enum.INFRASTRUCTURE;
 
       (* Render the military *)
-      List.iter (
-        fun x ->
-          List.iter (
-            fun y ->
-              if y#check_layer MLayer_enum.MILITARY then
-                MEntity.render renderer y textures (MCamera.get_rect context.camera) context.frame
-          )
-            (MFaction.get_entity x)
-      ) context.faction_list;
-
+      render_units renderer textures context.camera context.frame context.faction_list MLayer_enum.MILITARY;
 
       (* Render the animated *)
       List.iter (
@@ -84,16 +84,18 @@ module MGame = struct
           let pos_x,pos_y = MAnimation.next_coord_currently_animated t in
           (* Render the entity *)
           MEntity.render renderer 
-              ~x:(Some pos_x)
-              ~y:(Some pos_y)
-              (MAnimation.get_currently_animated t) textures (MCamera.get_rect context.camera) context.frame;
+            ~x:(Some pos_x)
+            ~y:(Some pos_y)
+            (MAnimation.get_currently_animated t) textures (MCamera.get_rect context.camera) context.frame;
 
           let fx = MAnimation.get_current_fx t in
           match fx with
           | None -> ()
           | Some fx -> 
-          MFx.render renderer pos_x pos_y fx textures (MCamera.get_rect context.camera) context.frame;
+            MFx.render renderer pos_x pos_y fx textures (MCamera.get_rect context.camera) context.frame;
       ) (MAnimation.get_current_animated_and_next context.animation);
+
+
 
       (* Update the renderer *)
       Sdl.render_present renderer;
