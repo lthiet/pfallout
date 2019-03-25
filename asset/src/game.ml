@@ -22,27 +22,64 @@ open Item
 open Layer_enum
 open Sound
 open Fx
-open Healthbar
 open Sdl_tools
+open Entity_information
+open Tsdl_ttf
 
 
 
 module MGame = struct
 
-  (*  Render all the units in the list that is of layer l*)
-  let render_units renderer textures camera frame faction_list layer =
+  (*  Render all the units in the list that is of layer l as a side effect,
+      also returns the information about these units *)
+  let render_units_and_return_info renderer textures camera frame faction_list layer =
     (* Iterate over each faction  *)
-    List.iter (
-      fun x ->
+    List.fold_left (
+      fun acc1 x1 ->
         (* Iterate over each unit of a faction  *)
-        List.iter (
-          fun y ->
-            if y#check_layer layer then
+        let tmp = List.fold_left (
+            fun acc2 x2 ->
+              if x2#check_layer layer then
+                (* Render the unit *)
+                let x,y = 
+                  MEntity.render renderer x2 textures (MCamera.get_rect camera) frame
+                in
+                let info = MEntity_information.get_info x2 x y in
+                info :: acc2
+              else
+                acc2
+          ) acc1 (MFaction.get_entity x1)
+        in
+        tmp @ acc1
+    ) [] faction_list
 
-              (* Render the unit *)
-              MEntity.render renderer y textures (MCamera.get_rect camera) frame;
-        ) (MFaction.get_entity x)
-    ) faction_list
+  (* Render the animated and return the info of the animated *)
+  let render_animated_and_return_info renderer textures camera frame animation = 
+    List.fold_left (
+      fun acc t ->  
+        let pos_x,pos_y = MAnimation.next_coord_currently_animated t in
+        (* Render the entity *)
+        let entity = MAnimation.get_currently_animated t in
+        let x,y = MEntity.render renderer 
+            ~x:(Some pos_x)
+            ~y:(Some pos_y)
+            (MAnimation.get_currently_animated t) textures (MCamera.get_rect camera) frame
+        in
+
+        (* Render some effects *)
+        let () = 
+          let fx = MAnimation.get_current_fx t in
+          match fx with
+          | None -> ()
+          | Some fx -> 
+            MFx.render renderer pos_x pos_y fx textures (MCamera.get_rect camera) frame;
+        in
+
+        let info = MEntity_information.get_info entity x y in
+        (* Create the info and put it in the acc *)
+        info :: acc
+    ) [] (MAnimation.get_current_animated_and_next animation)
+
 
   (* Loop the game *)
   let rec loop renderer (context : MGameContext.t) textures = 
@@ -70,30 +107,23 @@ module MGame = struct
           MCursor.render renderer (MTexture_pack.get_curs textures) c (MCamera.get_rect context.camera);
       ) context.movement_range_selector;
 
-      (* TODO : factorize this if possible *)
+      (* Store all the information of each entity *)
+      let info =
+        (* Render the infrastructures *)
+        let l1 = render_units_and_return_info renderer textures context.camera context.frame context.faction_list MLayer_enum.INFRASTRUCTURE in
 
-      (* Render the infrastructures *)
-      render_units renderer textures context.camera context.frame context.faction_list MLayer_enum.INFRASTRUCTURE;
+        (* Render the military *)
+        let l2 = render_units_and_return_info renderer textures context.camera context.frame context.faction_list MLayer_enum.MILITARY in
 
-      (* Render the military *)
-      render_units renderer textures context.camera context.frame context.faction_list MLayer_enum.MILITARY;
+        (* Rendert he animated *)
+        let l3 = render_animated_and_return_info renderer textures context.camera context.frame context.animation in
+        l1 @ l2 @ l3
+      in
 
-      (* Render the animated *)
-      List.iter (
-        fun t ->  
-          let pos_x,pos_y = MAnimation.next_coord_currently_animated t in
-          (* Render the entity *)
-          MEntity.render renderer 
-            ~x:(Some pos_x)
-            ~y:(Some pos_y)
-            (MAnimation.get_currently_animated t) textures (MCamera.get_rect context.camera) context.frame;
-
-          let fx = MAnimation.get_current_fx t in
-          match fx with
-          | None -> ()
-          | Some fx -> 
-            MFx.render renderer pos_x pos_y fx textures (MCamera.get_rect context.camera) context.frame;
-      ) (MAnimation.get_current_animated_and_next context.animation);
+      (* Render the info *)
+      List.iter (fun x ->
+          MEntity_information.render renderer textures x
+        ) info;
 
 
 
@@ -111,14 +141,6 @@ module MGame = struct
       (* Continue the game *)
       loop renderer new_context textures
 
-  let tile_path = "asset/image/tiles.png"
-  let terrain_feature_path = "asset/image/features.png"
-  let bg_path = "asset/image/bg.png"
-  let cursor_path = "asset/image/cursors.png"
-  let soldier_eu_path = "asset/image/soldier-eu.png"
-  let soldier_pac_path = "asset/image/soldier-pac.png"
-  let city_path = "asset/image/city.png"
-  let healthpack_path = "asset/image/healthpack.png"
 
   (* Create a random soldier and adds it to the grid *)
   let create_random_soldier grid fc =
@@ -145,10 +167,6 @@ module MGame = struct
     let nuke = MItem.create_nuke rthp#get_r rthp#get_q 1 in
     MGrid.add_item_at grid nuke;
     nuke
-
-
-
-
 
   (* Run the game with the correct paths and context *)
   let run (menu_result:MMenu.result) renderer = 
@@ -237,7 +255,6 @@ module MGame = struct
       } in
 
       let txt = MTexture_pack.create renderer in
-
 
       (* Section to play music, WIP *)
       let () =
