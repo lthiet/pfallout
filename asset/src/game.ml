@@ -136,7 +136,7 @@ module MGame = struct
 
   let create_random_hp grid =
     let rthp = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
-    let hp = MItem.create_healthpack rthp#get_r rthp#get_q 40 in
+    let hp = MItem.create_healthpack rthp#get_r rthp#get_q 35 in
     MGrid.add_item_at grid hp;
     hp
 

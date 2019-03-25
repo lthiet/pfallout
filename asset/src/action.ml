@@ -74,7 +74,7 @@ module MAction = struct
       in
 
       let anim_src = [
-        MAnimation.create_animation_unit (smu_without_mp#set_status MEntity.ATTACKING) (None) 35
+        MAnimation.create_animation_unit (smu#set_status MEntity.ATTACKING) (None) 35
       ] 
       in
       let anim_dst = [
