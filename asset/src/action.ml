@@ -287,8 +287,7 @@ module MAction = struct
       deleted = [old_ent];
       animation = MAnimation.create [[MAnimation.create_animation_unit new_ent (Some (MFx.create MFx.HEALING)) 70 ]]
     }
-
-  exception Source_entity_has_no_healthpack
+  exception Source_entity_doesnt_have_the_item
   (* One entity use a healthpack to another, they must be on the same layer,
      we also need to specify which item is used*)
   let use_healthpack grid item_code src dst layer =
@@ -301,7 +300,7 @@ module MAction = struct
     (* Check if the src ent has the item *)
     let healthpack,new_inventory = MInventory.fetch_item src_ent#get_inventory item_code in
     match healthpack with
-    | None -> raise Source_entity_has_no_healthpack
+    | None -> raise Source_entity_doesnt_have_the_item
     | Some healthpack ->
       let amount = MItem.get_amount_of_healthpack healthpack in
       if dst = src then
@@ -338,11 +337,72 @@ module MAction = struct
           animation = MAnimation.create [[MAnimation.create_animation_unit new_src_ent (Some (MFx.create MFx.HEALING)) 70 ]]
         }
 
+  let use_nuke grid item_code src dst layer =
+    (* Fetch the source entity *)
+    let sr = MHex.get_r src in
+    let sq = MHex.get_q src in
+    let src_ent = MGrid.get_at grid sr sq layer in
+
+    (* Check if the src ent has the item *)
+    let nuke,new_inventory = MInventory.fetch_item src_ent#get_inventory item_code in
+    match nuke with
+    | None -> raise Source_entity_doesnt_have_the_item
+    | Some nuke ->
+      let radius = MItem.get_radius_of_nuke nuke in
+
+      (* Fetch the dst tile *)
+      let center = MGrid.get_tile_ax dst grid in
+      let zone = center :: MGrid.range_tile grid center radius in
+
+      (* Compute the new source unit that doesn't have the nuke anymore *)
+      let new_src_ent = (src_ent#set_inventory new_inventory)#empty_mp in
+
+      (* Compute the added units *)
+      let added =
+        MGrid.remove_at grid (MHex.get_r src) (MHex.get_q src) layer;
+        if not (List.exists ( fun x -> x#get_axial = src_ent#get_axial ) zone) then
+          let () =
+            MGrid.add_at grid new_src_ent
+          in
+          [new_src_ent]
+        else
+          []
+      in
+
+      (*Compute the deleted units*)
+      (* TODO : this is not optimal change *)
+      let aux layer = 
+        List.fold_left (
+          fun acc tile ->
+            try
+              let entity = MGrid.get_at_ax grid tile#get_axial layer in
+              (* Update the grid *)
+              let () =
+                MGrid.remove_at grid entity#get_r entity#get_q entity#get_lt;
+              in
+              entity :: acc
+            with MGrid.Grid_cell_no_entity -> acc
+        ) [] zone
+      in
+      let deleted_military = aux MLayer_enum.MILITARY
+      in
+      let deleted_infrastructure = aux MLayer_enum.INFRASTRUCTURE
+      in
+
+
+      {
+        deleted = src_ent :: (deleted_military @ deleted_infrastructure);
+        added = added;
+        animation = MAnimation.create []
+      }
+
+
   exception Item_code_and_param_dont_match
   (* This function will direct to the right function for which item it is used *)
   let use_item grid item param = 
     match item,param with
     | MItem.HEALTHPACK _ ,MItem.HEALTHPACK_P(src,dst,layer) -> use_healthpack grid item src dst layer
+    | MItem.NUKE _ ,MItem.NUKE_P(src,dst,layer) -> use_nuke grid item src dst layer
     | _ -> raise Not_yet_implemented
 
   exception Entity_is_not_next_to_item
@@ -354,7 +414,7 @@ module MAction = struct
 
     (* Verify if src can pick up the item *)
     let tile_src = MGrid.get_tile_ax ent#get_axial grid in
-    let zone = MGrid.range_tile grid tile_src 1 in
+    let zone = tile_src :: MGrid.range_tile grid tile_src 1 in
 
     if not (List.exists (fun x -> x#get_axial = item#get_axial) zone ) then 
       raise Entity_is_not_next_to_item

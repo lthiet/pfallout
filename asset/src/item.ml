@@ -23,10 +23,13 @@ module MItem = struct
     (* Health pack need a source to know which unit is healed, and a destination to know the owner for which the item must be consumed *)
     | HEALTHPACK_P of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t
     (* Nukes need a source and a destination*)
-    | NUKE_P of MHex.axial_coord 
+    | NUKE_P of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t
 
   let create_healthpack_param src dst layer = 
     HEALTHPACK_P(src,dst,layer)
+
+  let create_nuke_param src dst layer = 
+    NUKE_P(src,dst,layer)
 
   let same_code_and_param code param = 
     match code,param with
@@ -57,6 +60,11 @@ module MItem = struct
   let get_amount_of_healthpack t =
     match t#get_code with
     | HEALTHPACK(amount) -> amount
+    | _ -> raise Incorrect_Code
+
+  let get_radius_of_nuke t =
+    match t#get_code with
+    | NUKE (radius) -> radius
     | _ -> raise Incorrect_Code
 
   let to_string t =

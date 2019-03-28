@@ -15,7 +15,7 @@ module MAction_enum = struct
             | PASS_E
             | CHANGE_BEHAVIOUR_E
             | SPAWN_ENTITY_E
-            | USE_ITEM_E
+            | USE_ITEM_E of MItem.enum
             | PICKUP_ITEM_E
 
   type t = ATTACK of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t * MLayer_enum.t

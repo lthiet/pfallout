@@ -2,6 +2,7 @@ open Texture_wrapper
 open Tsdl
 open Utils
 open Tsdl_ttf
+open Colors
 
 module MTexture_pack = struct
   type textures = {
@@ -40,7 +41,7 @@ module MTexture_pack = struct
   let nuke_path = "asset/image/nuke.png"
   let fx_healed_path = "asset/image/fx_healed.png"
   let fx_attacked_path = "asset/image/fx_attacked.png"
-  let font_path = "asset/font/beneg.ttf"
+  let font_path = "asset/font/good_times.ttf"
 
   let create renderer = 
 
@@ -62,13 +63,13 @@ module MTexture_pack = struct
       nuke = MTexture.load_from_file renderer nuke_path;
       fx_healed = MTexture.load_from_file renderer fx_healed_path;
       fx_attacked = MTexture.load_from_file renderer fx_attacked_path;
-      mp_left_0 = MTexture.load_from_rendered_text renderer font "0" (Sdl.Color.create 255 255 255  255);
-      mp_left_1 = MTexture.load_from_rendered_text renderer font "1" (Sdl.Color.create 255 255 255  255);
-      mp_left_2 = MTexture.load_from_rendered_text renderer font "2" (Sdl.Color.create 255 255 255  255);
+      mp_left_0 = MTexture.load_from_rendered_text renderer font "0" (white);
+      mp_left_1 = MTexture.load_from_rendered_text renderer font "1" (white);
+      mp_left_2 = MTexture.load_from_rendered_text renderer font "2" (white);
       mp_left_outline_size = outline_size;
-      mp_left_0_outline = MTexture.load_from_rendered_text renderer outline_font "0" (Sdl.Color.create 0 0 0  255);
-      mp_left_1_outline = MTexture.load_from_rendered_text renderer outline_font "1" (Sdl.Color.create 0 0 0  255);
-      mp_left_2_outline = MTexture.load_from_rendered_text renderer outline_font "2" (Sdl.Color.create 0 0 0  255);
+      mp_left_0_outline = MTexture.load_from_rendered_text renderer outline_font "0" (black);
+      mp_left_1_outline = MTexture.load_from_rendered_text renderer outline_font "1" (black);
+      mp_left_2_outline = MTexture.load_from_rendered_text renderer outline_font "2" (black);
     }
 
   let get_tile t = t.tile

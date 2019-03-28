@@ -182,7 +182,9 @@ module MGameContext = struct
           else if (MKeyboard.key_is_pressed e Sdl.Scancode.i ) then
             Some (MAction_enum.PICKUP_ITEM_E)
           else if (MKeyboard.key_is_pressed e Sdl.Scancode.u ) then
-            Some (MAction_enum.USE_ITEM_E)
+            Some (MAction_enum.USE_ITEM_E(MItem.HEALTHPACK_E))
+          else if (MKeyboard.key_is_pressed e Sdl.Scancode.y ) then
+            Some (MAction_enum.USE_ITEM_E(MItem.NUKE_E))
           else if action_cancelled e then
             None
           else
@@ -208,23 +210,30 @@ module MGameContext = struct
           match ctx.action_type with
           | None -> raise Unspecified_Action_Type
           | Some x ->
+            (* Determines which action is going to be executed *)
             let action =
               match x with
               | MOVE_E ->
                 MAction_enum.create_move src dst layer
               | ATTACK_E -> 
                 MAction_enum.create_attack src dst layer layer
-              (* TODO : Currently it only uses the healthpack  *)
-              | USE_ITEM_E -> 
+              | USE_ITEM_E (item_e)-> 
                 let entity = MGrid.get_at_ax ctx.grid src layer in
                 let inventory = entity#get_inventory in
-                let healthpack = MInventory.get_item  inventory MItem.HEALTHPACK_E in
+                let item_opt = 
+                  MInventory.get_item  inventory item_e in
                 let item = 
-                  match healthpack with
+                  match item_opt with
                   | Some x -> x
                   | None -> raise No_healthpack
                 in
-                let param = MItem.create_healthpack_param src dst layer in
+                let param = 
+                  match item_e with
+                  | MItem.HEALTHPACK_E ->
+                    MItem.create_healthpack_param src dst layer
+                  | MItem.NUKE_E ->
+                    MItem.create_nuke_param src dst layer
+                in
                 MAction_enum.create_use_item item#get_code param 
               | PICKUP_ITEM_E ->
                 MAction_enum.create_pickup_item src dst layer
@@ -437,6 +446,23 @@ module MGameContext = struct
              has been made that the set of tiles
              will be computed *)
           let movement_range_selector =
+
+            (* Main function that returns the list of the tile selected *)
+            let tiles_set e1 ent_below tile_below_src tile_below_current = 
+              match e1 with 
+              | MAction_enum.MOVE_E ->
+                MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
+              | MAction_enum.PICKUP_ITEM_E ->
+                MGrid.range_tile context.grid tile_below_src 1
+              | MAction_enum.ATTACK_E ->
+                MGrid.range_tile context.grid tile_below_src ent_below#get_ar
+              | MAction_enum.USE_ITEM_E item when item = MItem.HEALTHPACK_E ->
+                MGrid.range_tile context.grid tile_below_src 1 
+              | MAction_enum.USE_ITEM_E item when item = MItem.NUKE_E ->
+                MGrid.range_tile context.grid tile_below_src 5
+              | _ -> [tile_below_src]
+            in
+
             match context.action_src with
             | None -> 
               []
@@ -458,14 +484,7 @@ module MGameContext = struct
                 (* Action has just been set *)
                 | Some e1,None->
                   begin
-                    match e1 with 
-                    | MAction_enum.MOVE_E ->
-                      MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
-                    | MAction_enum.PICKUP_ITEM_E
-                    | MAction_enum.ATTACK_E
-                    | MAction_enum.USE_ITEM_E ->
-                      MGrid.range_tile context.grid tile_below_src ent_below#get_ar
-                    | _ -> [tile_below_src]
+                    tiles_set e1 ent_below tile_below_src tile_below_current
                   end
                 | _,_ -> 
                   begin
@@ -483,9 +502,32 @@ module MGameContext = struct
                               let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp ent_below#get_lt in
                               res
                             | MAction_enum.ATTACK_E
-                            | MAction_enum.PICKUP_ITEM_E
-                            | MAction_enum.USE_ITEM_E ->
+                            | MAction_enum.PICKUP_ITEM_E ->
                               [tile_below_dst] 
+                            | MAction_enum.USE_ITEM_E item when item = MItem.HEALTHPACK_E->
+                              [tile_below_dst] 
+                            | MAction_enum.USE_ITEM_E item when item = MItem.NUKE_E->
+                              begin
+                                (* TODO : do this better *)
+                                (* Fetch the entity that has the nuke *)
+                                let entity = 
+                                  let layer = 
+                                    match context.action_layer with
+                                    | Some layer -> layer
+                                    | None -> raise Exit
+                                  in
+                                  MGrid.get_at_ax context.grid x layer
+                                in
+
+                                let inventory = entity#get_inventory in
+                                let nuke =
+                                  match MInventory.get_item inventory MItem.NUKE_E with
+                                  | Some nuke -> nuke
+                                  | None -> raise Exit
+                                in
+                                let radius = MItem.get_radius_of_nuke nuke in
+                                MGrid.range_tile context.grid tile_below_dst radius
+                              end
                             | _ -> context.movement_range_selector
                           end
                       end
@@ -500,7 +542,7 @@ module MGameContext = struct
                             | MAction_enum.MOVE_E ->
                               MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
                             | MAction_enum.ATTACK_E
-                            | MAction_enum.USE_ITEM_E
+                            | MAction_enum.USE_ITEM_E _ 
                             | MAction_enum.PICKUP_ITEM_E ->
                               MGrid.range_tile context.grid tile_below_src ent_below#get_ar
                             | _ -> [tile_below_src]

@@ -98,14 +98,6 @@ module MGame = struct
       (* Render the tiles *)
       MGrid.render renderer textures context.grid (MCamera.get_rect context.camera) context.frame;
 
-      (* Render the selector ( cursor ) *)
-      MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector (MCamera.get_rect context.camera);
-
-      (* Render the movement range selector *)
-      List.iter (
-        fun x -> let c = MCursor.create x#get_r x#get_q MCursor.POSSIBLE in
-          MCursor.render renderer (MTexture_pack.get_curs textures) c (MCamera.get_rect context.camera);
-      ) context.movement_range_selector;
 
       (* Store all the information of each entity *)
       let info =
@@ -124,6 +116,16 @@ module MGame = struct
       List.iter (fun x ->
           MEntity_information.render renderer textures x
         ) info;
+
+      (* Render the selector ( cursor ) *)
+      MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector (MCamera.get_rect context.camera);
+
+      (* Render the movement range selector *)
+      List.iter (
+        fun x -> let c = MCursor.create x#get_r x#get_q MCursor.POSSIBLE in
+          MCursor.render renderer (MTexture_pack.get_curs textures) c (MCamera.get_rect context.camera);
+      ) context.movement_range_selector;
+
 
 
 
@@ -164,7 +166,7 @@ module MGame = struct
 
   let create_random_nuke grid = 
     let rthp = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
-    let nuke = MItem.create_nuke rthp#get_r rthp#get_q 1 in
+    let nuke = MItem.create_nuke rthp#get_r rthp#get_q 2 in
     MGrid.add_item_at grid nuke;
     nuke
 
