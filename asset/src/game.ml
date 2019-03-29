@@ -215,7 +215,7 @@ module MGame = struct
       in
 
       let faction_code3 = 
-        MFaction_enum.create MFaction_enum.EU
+        MFaction_enum.create MFaction_enum.ASIA
       in
 
       let soldier6 = create_random_soldier grid faction_code3 in
