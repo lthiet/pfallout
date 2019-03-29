@@ -8,9 +8,9 @@ module MBehaviour_enum = struct
         and the range at which the source entity will look for the target entity*)
     | ATTACKING of int * int 
     (* The going to healthpack needs to know where the healthpack item *)
-    | GOING_TO_HEALTHPACK of MHex.axial_coord
-    (* Which healthpack is used *)
-    | USING_HEALTHPACK of MItem.t 
+    | GOING_TO_ITEM of MHex.axial_coord * MItem.enum
+    (* Which item is used *)
+    | USING_ITEM of MItem.t 
     | DEFENDING
     | SPAWNING
     | CONTROLLED_BY_PLAYER
@@ -20,8 +20,8 @@ module MBehaviour_enum = struct
     match t with
     | WANDERING -> "WANDERING"
     | ATTACKING _ -> "ATTACKING"
-    | USING_HEALTHPACK _  -> "USING_HEALTHPACK"
-    | GOING_TO_HEALTHPACK _ -> "GOING TO HEALTHPACK"
+    | USING_ITEM item  -> "USING ITEM" ^ (MItem.to_string item)
+    | GOING_TO_ITEM (_,item) -> "GOING TO ITEM" ^ (MItem.to_string_enum item)
     | DEFENDING -> "DEFENDING"
     | SPAWNING -> "SPAWNING"
     | CONTROLLED_BY_PLAYER -> "CONTROLLED_BY_PLAYER"

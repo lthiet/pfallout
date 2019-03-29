@@ -138,22 +138,22 @@ module MBehaviour = struct
     | x :: s -> 
       MAction_enum.create_spawn_entity entity#get_axial x#get_axial MEntity_enum.SOLDIER
 
-  let go_to_healthpack grid entity dst =
+  let go_to_item grid entity dst item =
     (* Get where the entity is *)
     let tile_src = MGrid.get_tile_ax entity#get_axial grid in
     (* Fetch the surrounding tiles *)
     let tile_vicinity = MGrid.range_tile grid tile_src 1 in
-    (* Check whether or not the HP is found *)
+    (* Check whether or not the item is found *)
     try
-      let found_healthpack_tile = List.find ( fun x -> 
+      let found_item_tile = List.find ( fun x -> 
           try
             let found_item = MGrid.get_item_at_ax grid x#get_axial in
-            MItem.same_code_and_enum found_item#get_code MItem.HEALTHPACK_E
+            MItem.same_code_and_enum found_item#get_code item
           with MGrid.No_item | Invalid_argument _ -> false
         ) tile_vicinity
       in
-      MAction_enum.create_pickup_item entity#get_axial found_healthpack_tile#get_axial entity#get_lt
-    (* No healthpack found in the vicinity, we move towards it*)
+      MAction_enum.create_pickup_item entity#get_axial found_item_tile#get_axial entity#get_lt
+    (* No item found in the vicinity, we move towards it*)
     with Not_found ->
       let tile_dst = MGrid.get_tile_ax dst grid in
       try let closest_dst = MPathfinder.closest_tile tile_src tile_dst grid entity#get_lt in
@@ -164,29 +164,64 @@ module MBehaviour = struct
       with MPathfinder.No_path_found ->
         MAction_enum.create_pass entity#get_axial entity#get_lt
 
-  let use_healthpack grid entity item = 
-    MAction_enum.create_use_item item#get_code (MItem.create_healthpack_param entity#get_axial entity#get_axial entity#get_lt)
+
+  exception No_enemies
+  let use_item grid entity item = 
+    try
+      let param = match item#get_code with
+        | MItem.HEALTHPACK _ ->
+          MItem.create_healthpack_param entity#get_axial entity#get_axial entity#get_lt
+        | MItem.NUKE _ ->
+          begin
+            let nearest_enemies = MGrid.nearby_enemies grid entity 10 entity#get_lt in
+            match nearest_enemies with
+            | x :: s -> MItem.create_nuke_param entity#get_axial x#get_axial entity#get_lt
+            | [] -> raise No_enemies
+          end
+      in
+      MAction_enum.create_use_item item#get_code param
+    with No_enemies ->
+      if entity#can_move then
+        let random_tile = MGrid.get_random_accessible_tile grid entity#get_lt ~center:entity#get_axial ~bound:entity#get_current_mp () in
+        MAction_enum.create_move entity#get_axial random_tile#get_axial entity#get_lt
+      else
+        MAction_enum.create_pass entity#get_axial entity#get_lt
 
   let rec change_behaviour grid entity =
     let not_currently_fleeing =
       match entity#get_behaviour with
-      | MBehaviour_enum.FLEEING 
-      | MBehaviour_enum.USING_HEALTHPACK _  
-      | MBehaviour_enum.GOING_TO_HEALTHPACK _ -> false
+      | MBehaviour_enum.FLEEING  -> false
+      | MBehaviour_enum.USING_ITEM item when MItem.same_code_and_enum item#get_code MItem.HEALTHPACK_E-> false
+      | MBehaviour_enum.GOING_TO_ITEM (_,item) when item = MItem.HEALTHPACK_E -> false
       | _ -> true
     in
     if entity#is_low_hp && not_currently_fleeing then
       MBehaviour_enum.FLEEING
     else
       match entity#get_behaviour with
-      | MBehaviour_enum.USING_HEALTHPACK _ ->
+      | MBehaviour_enum.USING_ITEM item when MItem.same_code_and_enum item#get_code MItem.HEALTHPACK_E ->
         change_behaviour grid (entity#set_behaviour MBehaviour_enum.WANDERING)
+      | MBehaviour_enum.USING_ITEM item when MItem.same_code_and_enum item#get_code MItem.NUKE_E ->
+        begin
+          match MInventory.get_item entity#get_inventory MItem.NUKE_E with
+          (* The entity used its nuke, reset to normal *)
+          | None ->
+            change_behaviour grid (entity#set_behaviour MBehaviour_enum.WANDERING)
+          (* The entity still has the nuke, keep looking for targets *)
+          | Some _ ->
+            entity#get_behaviour
+        end
+
       | MBehaviour_enum.WANDERING -> 
         begin
-          let nearby_enemy = MGrid.nearby_enemies grid entity 4 entity#get_lt in
-          match nearby_enemy with
-          | [] -> MBehaviour_enum.WANDERING
-          |  x :: s -> MBehaviour_enum.ATTACKING (x#get_id,6)
+          let nuke = MGrid.nearby_item_of_type grid entity#get_axial 3 MItem.NUKE_E in
+          match nuke with
+          | Some x -> MBehaviour_enum.GOING_TO_ITEM(x#get_axial,MItem.NUKE_E)
+          | None -> 
+            let nearby_enemy = MGrid.nearby_enemies grid entity 4 entity#get_lt in
+            match nearby_enemy with
+            | [] -> MBehaviour_enum.WANDERING
+            |  x :: s -> MBehaviour_enum.ATTACKING (x#get_id,6)
         end
       | MBehaviour_enum.ATTACKING (target,range)  ->
         begin
@@ -210,24 +245,24 @@ module MBehaviour = struct
           let healthpack = MGrid.nearby_item_of_type grid entity#get_axial 6 MItem.HEALTHPACK_E in
           match healthpack with
           | None -> MBehaviour_enum.FLEEING
-          | Some x -> MBehaviour_enum.GOING_TO_HEALTHPACK(x#get_axial)
+          | Some x -> MBehaviour_enum.GOING_TO_ITEM(x#get_axial,MItem.HEALTHPACK_E)
         end
 
-      (* The entity is currently going to a healthpack *)
-      | MBehaviour_enum.GOING_TO_HEALTHPACK(dst) -> 
+      (* The entity is currently going to an item *)
+      | MBehaviour_enum.GOING_TO_ITEM(dst,item) -> 
         begin
           try
             (* Check if the entity has a healthpack *)
-            match MInventory.get_item entity#get_inventory MItem.HEALTHPACK_E with
+            match MInventory.get_item entity#get_inventory item with
             | None ->
               begin
                 (* The item is found, keep going *)
                 let _ = MGrid.get_item_at_ax grid dst in
-                MBehaviour_enum.GOING_TO_HEALTHPACK(dst)
+                MBehaviour_enum.GOING_TO_ITEM(dst,item)
               end
             | Some x ->
               begin
-                MBehaviour_enum.USING_HEALTHPACK(x)
+                MBehaviour_enum.USING_ITEM(x)
               end
           (* If the healthpack not longer exist, stop looking *)
           with MGrid.No_item -> 
@@ -251,10 +286,10 @@ module MBehaviour = struct
       attack_nearby_enemy grid entity target range
     | MBehaviour_enum.SPAWNING ->
       spawn_unit grid entity
-    | MBehaviour_enum.GOING_TO_HEALTHPACK (dst) ->
-      go_to_healthpack grid entity dst
-    | MBehaviour_enum.USING_HEALTHPACK(item) ->
-      use_healthpack grid entity item
+    | MBehaviour_enum.GOING_TO_ITEM (dst,item) ->
+      go_to_item grid entity dst item
+    | MBehaviour_enum.USING_ITEM(item) ->
+      use_item grid entity item
     | _ -> raise Not_yet_implemented
 
 end

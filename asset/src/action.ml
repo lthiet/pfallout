@@ -358,44 +358,45 @@ module MAction = struct
       let new_src_ent = (src_ent#set_inventory new_inventory)#empty_mp in
 
       (* Compute the added units *)
-      let added =
+      let added,animation_of_src =
         MGrid.remove_at grid (MHex.get_r src) (MHex.get_q src) layer;
         if not (List.exists ( fun x -> x#get_axial = src_ent#get_axial ) zone) then
           let () =
             MGrid.add_at grid new_src_ent
           in
-          [new_src_ent]
+          [new_src_ent],[MAnimation.create_animation_unit new_src_ent None 70]
         else
-          []
+          [],[]
       in
 
       (*Compute the deleted units*)
       (* TODO : this is not optimal change *)
       let aux layer = 
         List.fold_left (
-          fun acc tile ->
+          fun (deleted,animation) tile ->
             try
               let entity = MGrid.get_at_ax grid tile#get_axial layer in
               (* Update the grid *)
               let () =
                 MGrid.remove_at grid entity#get_r entity#get_q entity#get_lt;
               in
-              entity :: acc
+              let anim_unit = MAnimation.create_animation_unit entity (Some (MFx.create MFx.ATTACKED)) 70 in
+              (entity :: deleted),([anim_unit] :: animation)
             with 
-            MGrid.Grid_cell_no_entity 
-            | Invalid_argument _ -> acc
-        ) [] zone
+              MGrid.Grid_cell_no_entity 
+            | Invalid_argument _ -> (deleted,animation)
+        ) ([],[]) zone
       in
-      let deleted_military = aux MLayer_enum.MILITARY
+      let deleted_military,animation_military = aux MLayer_enum.MILITARY
       in
-      let deleted_infrastructure = aux MLayer_enum.INFRASTRUCTURE
+      let deleted_infrastructure,animation_infrastructure = aux MLayer_enum.INFRASTRUCTURE
       in
 
 
       {
         deleted = src_ent :: (deleted_military @ deleted_infrastructure);
         added = added;
-        animation = MAnimation.create []
+        animation = MAnimation.create (animation_of_src :: animation_military @ animation_infrastructure)
       }
 
 

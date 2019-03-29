@@ -19,6 +19,13 @@ module MItem = struct
   type enum =
     | HEALTHPACK_E
     | NUKE_E
+
+  let to_string_enum enum =
+    match enum with 
+    | HEALTHPACK_E -> "HEALTHPACK"
+    | NUKE_E -> "NUKE"
+
+
   type param =
     (* Health pack need a source to know which unit is healed, and a destination to know the owner for which the item must be consumed *)
     | HEALTHPACK_P of MHex.axial_coord * MHex.axial_coord * MLayer_enum.t
