@@ -381,7 +381,9 @@ module MAction = struct
                 MGrid.remove_at grid entity#get_r entity#get_q entity#get_lt;
               in
               entity :: acc
-            with MGrid.Grid_cell_no_entity -> acc
+            with 
+            MGrid.Grid_cell_no_entity 
+            | Invalid_argument _ -> acc
         ) [] zone
       in
       let deleted_military = aux MLayer_enum.MILITARY
