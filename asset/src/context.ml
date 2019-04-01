@@ -24,6 +24,7 @@ let ev = Some (Sdl.Event.create ())
 (* The context module is the main engine of the game. Depending
    on multiples factors, such as input, it modifies the state of the game *)
 module MGameContext = struct
+
   type t = {
     over : bool;
     camera : MCamera.t;
@@ -42,7 +43,8 @@ module MGameContext = struct
     new_turn : bool;
     frame : int;
 
-    (*interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)*)
+    (*interface : MInterface.tree | MInterface.tree*)
+    
     current_layer : MLayer_enum.t;
     window : Sdl.window
   }

@@ -8,7 +8,7 @@ module MBtn = struct
 
   type role =
     | START
-    | QUIT
+    | SETTINGS
     | OPTION
 
   let idle = Sdl.Rect.create 0 0 width height
@@ -49,6 +49,8 @@ module MBtn = struct
     | RELEASED -> true
     | _ -> false
 
+  let get_role btn =
+    btn.role
 
 
   let get_coord btn =
