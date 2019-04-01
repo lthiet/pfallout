@@ -72,7 +72,7 @@ module MGame = struct
           match fx with
           | None -> ()
           | Some fx -> 
-            MFx.render renderer pos_x pos_y fx textures (MCamera.get_rect camera) frame;
+            MFx.render renderer fx textures (MCamera.get_rect camera) frame;
         in
 
         let info = MEntity_information.get_info entity x y in

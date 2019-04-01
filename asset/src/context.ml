@@ -395,12 +395,12 @@ module MGameContext = struct
 
   (* Update the new context of the game *)
   let update_context context =
-    let () = if context.new_turn then
+    (* let () = if context.new_turn then
         begin
           List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
           print_newline ();
         end
-    in
+    in *)
     (* Event independant context change *)
     let ctx_before_event =
       let animation =
@@ -462,7 +462,6 @@ module MGameContext = struct
                 MGrid.range_tile context.grid tile_below_src 5
               | _ -> [tile_below_src]
             in
-
             match context.action_src with
             | None -> 
               []

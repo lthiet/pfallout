@@ -77,9 +77,13 @@ module MAction = struct
         MAnimation.create_animation_unit (smu#set_status MEntity.ATTACKING) (None) 35
       ] 
       in
-      let anim_dst = [
-        MAnimation.create_animation_unit (dmu#set_status MEntity.ATTACKING) (Some (MFx.create MFx.ATTACKED)) 35
-      ]
+      let anim_dst = 
+        let anim_dst_entity =
+          dmu#set_status MEntity.ATTACKING
+        in 
+        [
+          MAnimation.create_animation_unit anim_dst_entity (Some (MFx.create_from_entity anim_dst_entity MFx.ATTACKED)) 35
+        ]
       in
 
       (*if the entity is dead*)
@@ -285,7 +289,7 @@ module MAction = struct
     {
       added = [new_ent];
       deleted = [old_ent];
-      animation = MAnimation.create [[MAnimation.create_animation_unit new_ent (Some (MFx.create MFx.HEALING)) 70 ]]
+      animation = MAnimation.create [[MAnimation.create_animation_unit new_ent (Some (MFx.create_from_entity new_ent MFx.HEALING)) 70 ]]
     }
   exception Source_entity_doesnt_have_the_item
   (* One entity use a healthpack to another, they must be on the same layer,
@@ -334,7 +338,7 @@ module MAction = struct
           deleted = [old_dst_ent;old_src_ent];
           added = [new_dst_ent;new_src_ent];
 
-          animation = MAnimation.create [[MAnimation.create_animation_unit new_src_ent (Some (MFx.create MFx.HEALING)) 70 ]]
+          animation = MAnimation.create [[MAnimation.create_animation_unit new_src_ent (Some (MFx.create_from_entity new_src_ent MFx.HEALING)) 70 ]]
         }
 
   let use_nuke grid item_code src dst layer =
@@ -380,7 +384,7 @@ module MAction = struct
               let () =
                 MGrid.remove_at grid entity#get_r entity#get_q entity#get_lt;
               in
-              let anim_unit = MAnimation.create_animation_unit entity (Some (MFx.create MFx.ATTACKED)) 70 in
+              let anim_unit = MAnimation.create_animation_unit entity (Some (MFx.create_from_entity entity MFx.ATTACKED)) 70 in
               (entity :: deleted),([anim_unit] :: animation)
             with 
               MGrid.Grid_cell_no_entity 

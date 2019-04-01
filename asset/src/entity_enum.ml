@@ -2,7 +2,7 @@ open Utils
 
 (* Determines the type of the entity *)
 module MEntity_enum = struct
-    type t = SOLDIER | SNIPER | CITY | FORGERY
+    type t = SOLDIER | SNIPER | CITY | FORGERY 
 
     let max_hp_of_soldier = 30
     let max_hp_of_city = 100
