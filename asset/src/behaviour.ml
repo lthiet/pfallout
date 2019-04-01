@@ -211,7 +211,6 @@ module MBehaviour = struct
           | Some _ ->
             entity#get_behaviour
         end
-
       | MBehaviour_enum.WANDERING -> 
         begin
           let nuke = MGrid.nearby_item_of_type grid entity#get_axial 3 MItem.NUKE_E in

@@ -17,6 +17,7 @@ module MTexture_pack = struct
     nuke : MTexture.t;
     fx_healed : MTexture.t;
     fx_attacked : MTexture.t;
+    fx_nuke_drop : MTexture.t;
 
     (* Entity informations *)
 
@@ -41,6 +42,7 @@ module MTexture_pack = struct
   let nuke_path = "asset/image/nuke.png"
   let fx_healed_path = "asset/image/fx_healed.png"
   let fx_attacked_path = "asset/image/fx_attacked.png"
+  let fx_nuke_drop_path = "asset/image/nuke_drop.png"
   let font_path = "asset/font/good_times.ttf"
 
   let create renderer = 
@@ -63,6 +65,7 @@ module MTexture_pack = struct
       nuke = MTexture.load_from_file renderer nuke_path;
       fx_healed = MTexture.load_from_file renderer fx_healed_path;
       fx_attacked = MTexture.load_from_file renderer fx_attacked_path;
+      fx_nuke_drop = MTexture.load_from_file renderer fx_nuke_drop_path;
       mp_left_0 = MTexture.load_from_rendered_text renderer font "0" (white);
       mp_left_1 = MTexture.load_from_rendered_text renderer font "1" (white);
       mp_left_2 = MTexture.load_from_rendered_text renderer font "2" (white);
@@ -83,6 +86,7 @@ module MTexture_pack = struct
   let get_nuke t = t.nuke
   let get_fx_healed t = t.fx_healed
   let get_fx_attacked t = t.fx_attacked
+  let get_fx_nuke_drop t = t.fx_nuke_drop
 
   let get_mp_left t n =
     if n = 0 then

@@ -114,7 +114,10 @@ module MGame = struct
 
       (* Render the info *)
       List.iter (fun x ->
-          MEntity_information.render renderer textures x
+          match x with
+          | None -> ()
+          | Some x ->
+            MEntity_information.render renderer textures x
         ) info;
 
       (* Render the selector ( cursor ) *)

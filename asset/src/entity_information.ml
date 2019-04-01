@@ -28,10 +28,14 @@ module MEntity_information = struct
 
   (* It is required to specify the on screen coordinates of the entity *)
   let get_info entity x y = 
-    let healthbar = MHealthbar.create (MEntity_enum.max_hp_of entity#get_ut) entity#get_hp in
-    let mp_left = entity#get_current_mp in
-    let faction_enum = entity#get_faction in
-    create x y healthbar mp_left faction_enum 
+    match entity#get_ut with
+    | MEntity_enum.FX_BINDER -> None
+    | _ ->
+      let healthbar = MHealthbar.create (MEntity_enum.max_hp_of entity#get_ut) entity#get_hp in
+      let mp_left = entity#get_current_mp in
+      let faction_enum = entity#get_faction in
+      let tmp = create x y healthbar mp_left faction_enum in
+      Some tmp
 
   let render renderer textures info = 
     (* render the healthbar *)

@@ -8,7 +8,7 @@ open Camera
 open Hex
 open Entity
 module MFx = struct
-  type code = HEALING | ATTACKED
+  type code = HEALING | ATTACKED | NUKE_DROP
 
   type t = {
     code : code;
@@ -34,9 +34,13 @@ module MFx = struct
     match fx.code with
     | HEALING -> MTexture_pack.get_fx_healed texture
     | ATTACKED -> MTexture_pack.get_fx_attacked texture
+    | NUKE_DROP-> MTexture_pack.get_fx_nuke_drop texture
 
-  let get_clip frame_n =
-    Sdl.Rect.create (MHex.width * (frame_n/7)) 0 MHex.width MHex.height
+  let get_clip fx frame_n =
+    match fx.code with
+    | NUKE_DROP -> Sdl.Rect.create 0 0 MHex.width MHex.height
+    | _ ->
+      Sdl.Rect.create (MHex.width * (frame_n/7)) 0 MHex.width MHex.height
 
 
 
@@ -45,7 +49,13 @@ module MFx = struct
     let texture = fx_to_texture fx texture in
 
     (* let clip = Sdl.Rect.create ((frame_n/3)*texture_width) 0 texture_width texture_height in *)
-    let clip =  get_clip frame_n in
-    MTexture.render renderer ~clip:(Some clip) ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
+    let clip =  get_clip fx frame_n in
+    let angle = 
+      match fx.code with
+      | NUKE_DROP -> 10. *. cos (float_of_int (frame_n/3)) ;
+
+      | _ -> 0.0
+    in
+    MTexture.render renderer ~clip:(Some clip) ~angle:angle ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
 
 end

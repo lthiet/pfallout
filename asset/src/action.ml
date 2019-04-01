@@ -396,11 +396,13 @@ module MAction = struct
       let deleted_infrastructure,animation_infrastructure = aux MLayer_enum.INFRASTRUCTURE
       in
 
+    let animation = MAnimation.create_nuke_drop src_ent dst (deleted_infrastructure @ deleted_military) 40 15 70 in
 
       {
         deleted = src_ent :: (deleted_military @ deleted_infrastructure);
         added = added;
-        animation = MAnimation.create (animation_of_src :: animation_military @ animation_infrastructure)
+        (* animation = MAnimation.create (animation_of_src :: animation_military @ animation_infrastructure) *)
+        animation = animation
       }
 
 

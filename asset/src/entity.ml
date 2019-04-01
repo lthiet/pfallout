@@ -113,6 +113,9 @@ module MEntity = struct
     let new_id = incr identifier in
     new entity new_id r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc
 
+  let create_fx_binder () =
+    new entity (-1) 0 0 0 0 0 0 0 0 0 [] [] (MFaction_enum.EU,-1) MEntity_enum.FX_BINDER MLayer_enum.MILITARY MELEE GROUND 0 MBehaviour_enum.WANDERING
+
   let is_infrastructure t =
     match t#get_ut with
     | MEntity_enum.CITY -> true
@@ -165,36 +168,36 @@ module MEntity = struct
       ?(x:int option = None) 
       ?(y:int option = None)
       e texture camera frame_n =
-    let clip = 
-      if is_military e then
-        let tmp = get_clip frame_n e in 
-        Some tmp
-      else
-        None
-    in
-    let pos_x,pos_y = 
-      match x,y with
-      | None,None ->
-        let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
-        tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
-      | (Some x),(Some y) ->
-        x - Sdl.Rect.x camera,y - Sdl.Rect.y camera
-      | _,_ -> raise Option_coord_need_to_be_both_none_or_some
-    in
+    match e#get_ut with
+    | MEntity_enum.FX_BINDER -> 0,0
+    | _ ->
+      let clip = 
+        if is_military e then
+          let tmp = get_clip frame_n e in 
+          Some tmp
+        else
+          None
+      in
+      let pos_x,pos_y = 
+        match x,y with
+        | None,None ->
+          let tmp1,tmp2 = MHex.axial_to_screen_coord e#get_axial in
+          tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
+        | (Some x),(Some y) ->
+          x - Sdl.Rect.x camera,y - Sdl.Rect.y camera
+        | _,_ -> raise Option_coord_need_to_be_both_none_or_some
+      in
 
       let () =
-    if check_collision e#get_box camera then
-      let txt = entity_textures e texture in
+        if check_collision e#get_box camera then
+          let txt = entity_textures e texture in
 
-        (* Then render the entity *)
-        MTexture.render renderer
-          ~clip:(clip)
-          ~x:pos_x
-          ~y:pos_y
-          txt;
-
-
-
+          (* Then render the entity *)
+          MTexture.render renderer
+            ~clip:(clip)
+            ~x:pos_x
+            ~y:pos_y
+            txt;
       in pos_x,pos_y
 end
 ;;

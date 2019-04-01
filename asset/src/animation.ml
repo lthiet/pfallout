@@ -111,8 +111,8 @@ module MAnimation = struct
     let l = t.to_be_animated in
 
     let new_tba =
-      List.fold_left (
-        fun acc1 x -> 
+      List.fold_right (
+        fun x acc1 -> 
           let tmp = match x with
             | [] -> []
             | au :: s->  
@@ -128,11 +128,44 @@ module MAnimation = struct
           match tmp with
           | [] -> acc1
           | _ -> tmp :: acc1
-      ) [] l
+      ) l []
     in
 
     {
       to_be_animated = new_tba
     }
+
+  (* Some functions to create specific animations *)
+  let create_nuke_drop src_ent dst victims height_drop duration_drop duration_damage =
+    let drop_animation = 
+      (* The list of anims for the victims *)
+      let l1,src_in_victim = List.fold_left ( 
+          fun (acc,src_in_victim) x -> 
+            let au = create_animation_unit x None duration_drop in
+            let au_attacked = create_animation_unit x (Some(MFx.create_from_entity x MFx.ATTACKED)) duration_damage in
+            (
+              ((List.init height_drop (fun x -> au)) @ [au_attacked]):: acc),(src_in_victim || x = src_ent)
+        ) ([],false) victims
+      in
+
+      (* The list of the src if not in the victims *)
+      let l2 = if not src_in_victim then
+          [create_animation_unit src_ent None (duration_drop * height_drop + duration_damage)]
+        else
+          []
+      in
+
+      (* The bomb dropping *)
+      let l3 = 
+        let screen_x,screen_y = MHex.axial_to_screen_coord dst in
+        let total_length = (duration_drop*height_drop) in
+        List.init total_length ( fun i -> create_animation_unit (MEntity.create_fx_binder ()) (Some(MFx.create MFx.NUKE_DROP screen_x (screen_y - total_length + i))) 1) 
+      in
+      l3 :: l2 :: l1
+    in
+    create drop_animation
+
+
+
 end
 ;;
