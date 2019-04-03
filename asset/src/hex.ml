@@ -174,6 +174,7 @@ struct
     let cu = axial_to_cube ax in
     range_cu n cu
 
+  (* TODO : remove *)
   let distance_cu c1 c2 =
     (abs (c1.x - c2.x) + abs (c1.y - c2.y) + abs (c1.z - c2.z))/2
 
@@ -226,6 +227,22 @@ struct
     in
     aux [] n
 
+  let dist_cube c1 c2 =
+    let x = 
+      let tmp = c1.x - c2.x in
+      tmp * tmp
+    in
+
+    let y = 
+      let tmp = c1.y - c2.y in
+      tmp * tmp
+    in
+
+    let z = 
+      let tmp = c1.z - c2.z in
+      tmp * tmp
+    in
+    round (sqrt (float_of_int (x+y+z)))
 
 end
 ;;

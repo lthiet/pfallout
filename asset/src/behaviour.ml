@@ -157,7 +157,7 @@ module MBehaviour = struct
     with Not_found ->
       let tile_dst = MGrid.get_tile_ax dst grid in
       try
-        let closest_dst = MPathfinder.a_star tile_src tile_dst grid entity#get_lt in
+        let closest_dst = MPathfinder.closest_tile tile_src tile_dst grid entity#get_lt in
         if closest_dst#get_axial = tile_src#get_axial then
           MAction_enum.create_pass entity#get_axial entity#get_lt
         else

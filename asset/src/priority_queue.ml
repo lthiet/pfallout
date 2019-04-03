@@ -30,11 +30,11 @@ module MPriority_queue = struct
     | Empty -> true
     | _ -> false
 
-  let rec contains e q =
+  let rec exists f q =
     match q with
     | Empty -> false
     | Node (_,a,l,r) ->
-      a = e || contains e l || contains e r
+      (f a) || exists f l || exists f r
 
 end
 ;;

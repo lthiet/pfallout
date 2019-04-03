@@ -106,6 +106,15 @@ let incr pt =
     !pt
   end
 
+let rec remove_f l acc f =
+  match l with
+  | [] -> acc
+  | x :: s -> 
+    if f x then
+      remove_f s acc f
+    else
+      remove_f s (x :: acc) f
+
 let debug str =
   print_newline ();
   print_string str;
