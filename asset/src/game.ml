@@ -187,7 +187,7 @@ module MGame = struct
       let _ = create_random_nuke grid in
 
       let faction_code1 = 
-        MFaction_enum.create MFaction_enum.EU
+        MFaction_enum.create MFaction_enum.USA
       in 
       let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in

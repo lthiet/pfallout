@@ -12,6 +12,7 @@ module MTexture_pack = struct
     curs : MTexture.t;
     soldier_eu : MTexture.t;
     soldier_pac : MTexture.t;
+    soldier_us : MTexture.t;
     city : MTexture.t;
     healthpack : MTexture.t;
     nuke : MTexture.t;
@@ -37,6 +38,7 @@ module MTexture_pack = struct
   let cursor_path = "asset/image/cursors.png"
   let soldier_eu_path = "asset/image/soldier-eu.png"
   let soldier_pac_path = "asset/image/soldier-pac.png"
+  let soldier_us_path = "asset/image/soldier-us.png"
   let city_path = "asset/image/city.png"
   let healthpack_path = "asset/image/healthpack.png"
   let nuke_path = "asset/image/nuke.png"
@@ -60,6 +62,7 @@ module MTexture_pack = struct
       curs = MTexture.load_from_file renderer cursor_path;
       soldier_eu = MTexture.load_from_file renderer soldier_eu_path;
       soldier_pac = MTexture.load_from_file renderer soldier_pac_path;
+      soldier_us = MTexture.load_from_file renderer soldier_us_path;
       city = MTexture.load_from_file renderer city_path;
       healthpack = MTexture.load_from_file renderer healthpack_path;
       nuke = MTexture.load_from_file renderer nuke_path;
@@ -81,6 +84,7 @@ module MTexture_pack = struct
   let get_curs t = t.curs
   let get_soldier_eu t = t.soldier_eu
   let get_soldier_pac t = t.soldier_pac
+  let get_soldier_us t = t.soldier_us
   let get_city t = t.city
   let get_healthpack t = t.healthpack
   let get_nuke t = t.nuke

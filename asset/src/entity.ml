@@ -143,6 +143,8 @@ module MEntity = struct
           MTexture_pack.get_soldier_eu texture
         | MFaction_enum.ASIA,_ ->
           MTexture_pack.get_soldier_pac texture
+        | MFaction_enum.USA,_ ->
+          MTexture_pack.get_soldier_us texture
         | _ -> raise Not_yet_implemented
       end
     else
@@ -153,13 +155,17 @@ module MEntity = struct
 
 
   let get_clip frame_n e =
-    match e#get_status with
-    | MOVING ->
-      Sdl.Rect.create (MHex.width * (frame_n/7)) 0 MHex.width MHex.height
-    | ATTACKING ->
-      Sdl.Rect.create (MHex.width * (frame_n/7)) MHex.height MHex.width MHex.height
-    | _ ->
-      Sdl.Rect.create 0 0 MHex.width MHex.height 
+    (* TODO : textures wip *)
+    match e#get_faction with
+    | MFaction_enum.USA,_ -> Sdl.Rect.create 0 0 MHex.width MHex.height
+    | _ -> 
+      match e#get_status with
+      | MOVING ->
+        Sdl.Rect.create (MHex.width * (frame_n/7)) 0 MHex.width MHex.height
+      | ATTACKING ->
+        Sdl.Rect.create (MHex.width * (frame_n/7)) MHex.height MHex.width MHex.height
+      | _ ->
+        Sdl.Rect.create 0 0 MHex.width MHex.height 
 
   exception Option_coord_need_to_be_both_none_or_some
 
