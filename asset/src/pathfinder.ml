@@ -143,15 +143,16 @@ module MPathfinder = struct
 
   type 'a node =
     {
-      elem : 'a;
-      cost_so_far : int;
-      came_from : ('a node) option
+      state : 'a;
+      g : int;
+      f : int;
+      father : ('a node) option
     }
 
-  let rec next_move (start:MTile.t) (current:MTile.t node) =
-    match current.came_from with
-    | None -> Some (current.elem)
-    | Some x when x.elem = start -> Some(current.elem)
+  let rec next_move start current =
+    match current.father with
+    | None -> Some (current.state)
+    | Some x when x.state = start -> Some(current.state)
     | Some x -> next_move start x
 
   let eligible_tile grid tile layer =
@@ -163,109 +164,96 @@ module MPathfinder = struct
     in
     check1 && check2
 
+  let rec state_already_in set state =
+    match set with
+    | [] -> false
+    | x :: s -> 
+      if x.state = state then
+        true
+      else
+        state_already_in s state
+
+  (* Iterate through the frontier and poll the next state to check,
+     return : the new frontier and the next state to compute*)
+  let pollMin frontier =
+    match frontier with
+    | [] -> raise Empty_list
+    | x :: s ->
+      let rec aux frontier new_frontier min_state =
+        match frontier with
+        (* Look done, return the values *)
+        | [] -> new_frontier,min_state
+        | y :: r ->
+          (* Check if the next state is more interesting, ie better cost *)
+          let new_min_state,state_put_back =
+            if y.f < min_state.f then
+              y,min_state
+            else
+              min_state,y
+          in
+          aux r (state_put_back::new_frontier) new_min_state
+      in
+      aux s [] x
+
+  let rec a_star_loop (start:MTile.t) (goal:MTile.t) grid layer frontier already_dev = 
+    (* No path found *)
+    if (List.length frontier) <= 0 then
+      None
+
+    (* Frontier isn't empty*)
+    else
+      let current = pollMin frontier in
+      None
+
   (* Returns the next tile to get closer to the goal *)
   let a_star (start:MTile.t) (goal:MTile.t) grid layer =
-    (* Initialisation *)
-    let frontier = 
-      let tmp = MPriority_queue.empty
-      in
-      let elem : MTile.t node =  {
-        elem = start;
-        cost_so_far = 0;
-        came_from = None
-      } in
-      MPriority_queue.insert tmp 0 elem
-    in
+    (* Init *)
+    (* The list of state already seen *)
+    let already_dev = [] in
+    (* The initial state *)
+    let state_init = {
+      state = start;
+      g = 0;
+      f = MHex.dist_cube start#get_cube goal#get_cube;
+      father = None
+    } in
+    let frontier = [state_init] in
+    a_star_loop start goal grid layer frontier already_dev
 
-    let rec aux frontier already_seen =
-      (* If there are no more in the frontier, there are no path *)
-      if MPriority_queue.is_empty frontier then
-        None
-      else
-        (* Fetch the next tile to process *)
-        let _,current,frontier_without_current = MPriority_queue.extract frontier in
-
-        (* We found the goal, construct the path *)
-        if current.elem = goal then 
-          next_move start current
-        else
-          (* We will process for the current tile, add it to already seen *)
-          let already_seen = current :: already_seen in
-          (* Compute the neighbouring tiles *)
-          let succ_s = MGrid.neighbours_list current.elem grid in
-
-          (*We will iterate over the list of successors  *)
-          let res_frontier,res_already_seen = List.fold_left (
-              (* Each time we loop at a successor we update the frontier and already seen *)
-              fun (frontier_acc,already_seen_acc) (s:MTile.t) -> 
-
-                (* Get the successor if he's in alreadu seen *)
-                let succ_from_already_seen = 
-                  List.find_opt ( fun x -> x.elem = s ) already_seen
-                in
-                let succ_found_in_already_seen = 
-                  match succ_from_already_seen with
-                  | None -> false
-                  | _ -> true
-                in
-
-                (* The successor is not in frontier AND not in already seen*)
-                if not (succ_found_in_already_seen || (MPriority_queue.exists (fun x -> x.elem = s) frontier_acc)) then
-                  (* The successor cannot be accessed or there is someone *)
-                  if not (eligible_tile grid s layer) then
-                    (* Don't update the frontier or already seen *)
-                    frontier_acc,already_seen_acc
-                  else
-                    (* The successor is a potential candidate, we compute its values *)
-                    let new_best : MTile.t node = {
-                      elem = s;
-                      cost_so_far = current.cost_so_far + s#get_movement_cost;
-                      came_from = Some current
-                    } in
-                    (* Cost so far + heuristic *)
-                    let potential_cost = new_best.cost_so_far + (MHex.distance_cu s#get_cube goal#get_cube) in 
-                    let new_frontier = MPriority_queue.insert frontier_acc potential_cost new_best
-                    in
-                    (* Return the updated frontier, already seen not updated*)
-                    new_frontier,already_seen_acc
-                else if succ_found_in_already_seen then
-                  begin
-                    let () = debug "truc" in
-                    match succ_from_already_seen with
-                    | None -> raise Exit
-                    | Some succ -> 
-                      let new_cost =  current.cost_so_far + succ.elem#get_movement_cost in
-                      if (new_cost < succ.cost_so_far) then
-                        let new_frontier,new_already_seen =
-                          List.fold_left (
-                            fun (new_frontier_acc,new_already_seen_acc) x ->
-                              let f = ( fun alseen -> alseen.elem = x ) in
-                              if List.exists f already_seen_acc then
-                                let new_already_seen_acc = remove_f new_already_seen_acc [] f in
-                                let new_frontier_acc = MPriority_queue.insert new_frontier_acc (new_cost + MHex.dist_cube goal#get_cube x#get_cube ) {elem = x; cost_so_far = x#get_movement_cost + current.cost_so_far;came_from = Some current } in
-                                new_frontier_acc,new_already_seen_acc
-                              else
-                                new_frontier_acc,new_already_seen_acc
-                          ) (frontier,[]) succ_s
-                        in
-                        (* Return *)
-                        new_frontier,new_already_seen
-                      else  
-                        (* Return *)
-                        frontier_acc,already_seen_acc
-                  end
-                else
-                  (* Return *)
-                  frontier_acc,already_seen_acc
-            ) (frontier_without_current,already_seen) succ_s
-          in
-          aux res_frontier res_already_seen
-    in
-    aux frontier []
 
   let closest_tile src dst grid layer =
     match a_star src dst grid layer with
     | None -> raise No_path_found
     | Some x -> x
+
+
+  (* Tests *)
+  let () =
+    let l = [
+      {
+        state = 1;
+        g = 0;
+        f = 4;
+        father = None;
+      };
+      {
+        state = 1;
+        g = 0;
+        f = 6;
+        father = None;
+      };
+      {
+        state = 1;
+        g = 0;
+        f = 1;
+        father = None;
+      };
+    ] in
+    let truc,bidule = pollMin l in
+    print_int bidule.f;
+    print_newline ();
+    print_newline ();
+    List.iter (fun x ->
+        print_int x.f;print_newline();) truc;
 end
 ;;
