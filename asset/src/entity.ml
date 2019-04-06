@@ -53,6 +53,7 @@ module MEntity = struct
       method is_low_hp = 
         let threshold = (MEntity_enum.max_hp_of ut)/2 in
         hp <= threshold
+      method is_dead = hp <= 0
 
       (* Invetory *)
       val inventory : MInventory.t = MInventory.empty
@@ -100,9 +101,9 @@ module MEntity = struct
           {< current_mp = tmp>}
         else
           raise Unsifficient_mp
-      method remove_hp damage = {< hp = self#get_hp-damage>}
+      method remove_hp damage = {< hp = max 0 (self#get_hp-damage)>}
       method refill_mp = {<current_mp = self#get_mp>}
-      method can_move = self#get_current_mp <> 0
+      method can_move = self#get_current_mp > 0
       method empty_mp = {<current_mp = 0>}
       method check_layer l = self#get_lt = l
       method check_unit_type ut = self#get_ut = ut

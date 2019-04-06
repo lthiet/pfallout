@@ -152,17 +152,21 @@ module MPathfinder = struct
   let rec next_move start current =
     match current.father with
     | None -> Some (current.state)
-    | Some x when x.state = start -> Some(current.state)
-    | Some x -> next_move start x
+    | Some x when x.state = start -> 
+      Some(current.state)
+    | Some x -> 
+      next_move start x
 
-  let eligible_tile grid tile layer =
-    let check1 = tile#is_impassable in
+  let eligible_tile grid goal tile layer avoid_set =
+    let check1 = not tile#is_impassable in
     let check2 =
       try 
         let _ = MGrid.get_at_ax grid tile#get_axial layer in false
       with MGrid.Grid_cell_no_entity | Invalid_argument _ -> true
     in
-    check1 && check2
+    let check3 = goal = tile in
+    let check4 = not (List.exists (fun x -> x = tile) avoid_set) in
+    (check1 && check2 && check4) || check3 
 
   let rec state_already_in set state =
     match set with
@@ -173,6 +177,7 @@ module MPathfinder = struct
       else
         state_already_in s state
 
+  (* Given a state, return the node that corresponds to that state and removes it *)
   let find_node_of_state_and_remove set state =
     let rec aux set state acc_set acc_node =
       match set with
@@ -213,52 +218,83 @@ module MPathfinder = struct
       in
       aux s [] x
 
+
+
   (* Iterate through successors and add them to the frontier, remove them from already if we found a better path to them *)
-  let add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current = 
-    let rec aux frontier already_dev acc_frontier acc_already_dev successors =
+  let add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current avoid_set= 
+    (* Modify frontier and already state *)
+    let rec aux frontier already_dev successors =
       match successors with
-      | [] -> acc_frontier,acc_already_dev
+      | [] -> frontier,already_dev
       | x_succ :: s_succ ->
         (* Compute the new frontier and already dev *)
         let new_frontier,new_already_dev = 
-          (* The successor is not already seen, create a new node *)
-          if not (state_already_in frontier x_succ || state_already_in already_dev x_succ) then
-            let node_succ = {
-              state = x_succ;
-              g = current.g + x_succ#get_movement_cost;
-              f = MHex.dist_cube x_succ#get_cube goal#get_cube;
-              father = Some current
-            } in
-            node_succ :: acc_frontier,acc_already_dev
-            (* The succ is already seen, there might be a new  *)
+          if not (eligible_tile grid goal x_succ layer avoid_set) then
+            frontier,already_dev
           else
-            acc_frontier,acc_already_dev
+            let new_cost = current.g + x_succ#get_movement_cost in
+            let new_state = {state = x_succ;g = new_cost; f = new_cost + MHex.dist_cube x_succ#get_cube goal#get_cube;father = Some current} in
+            if state_already_in already_dev x_succ then
+              begin
+                let node_succ_to_be_replaced,already_dev_without_replaced_succ = find_node_of_state_and_remove already_dev x_succ in
+                (* Remove from already dev and put it in frontier *)
+                if node_succ_to_be_replaced.g > new_cost then
+                  new_state :: frontier,already_dev_without_replaced_succ
+                  (* No modif *)
+                else
+                  frontier,already_dev
+              end
+              (* The succ is already seen in frontier, modify it *)
+            else if state_already_in frontier x_succ then 
+              begin
+                let node_succ_to_be_replaced,frontier_without_replaced_succ = find_node_of_state_and_remove frontier x_succ in
+                (* Better cost, modify *)
+                if node_succ_to_be_replaced.g > new_cost then
+                  new_state::frontier_without_replaced_succ,already_dev
+                  (* No modif *)
+                else
+                  frontier,already_dev
+                  (* The successor is not already seen or frontier, create a new node *)
+              end
+            else
+              begin
+                let node_succ = {
+                  state = x_succ;
+                  g = current.g + x_succ#get_movement_cost;
+                  f = MHex.dist_cube x_succ#get_cube goal#get_cube;
+                  father = Some current
+                } in
+                node_succ :: frontier,already_dev
+              end
         in
-        acc_frontier,acc_already_dev
+        (* Look the other succesors *)
+        aux new_frontier new_already_dev s_succ
     in
-    aux frontier_without_current already_dev_with_current [] [] successors
+    aux frontier_without_current already_dev_with_current successors
 
 
 
-  let rec a_star_loop (start:MTile.t) (goal:MTile.t) grid layer frontier already_dev = 
+  let rec a_star_loop (start:MTile.t) (goal:MTile.t) grid layer frontier already_dev avoid_set = 
     (* No path found *)
     if (List.length frontier) <= 0 then
-      None
-
-    (* Frontier isn't empty*)
+      raise No_path_found
+      (* Frontier isn't empty*)
     else
       (* Poll the most interesting state *)
       let frontier_without_current,current = pollMin frontier in
-      (* Add it to the already developed *)
-      let already_dev_with_current = current :: already_dev in
-      let successors = MGrid.neighbours_list current.state grid in
-      (* Iterate through each succesor and update the frontier and already dev accordingly *)
-      let _ = add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current in
-      None
+      if current.state = goal then
+        current
+      else
+        (* Add it to the already developed *)
+        let already_dev_with_current = current :: already_dev in
+        let successors = MGrid.neighbours_list current.state grid in
+        (* Iterate through each succesor and update the frontier and already dev accordingly *)
+        let frontier_with_new_successors,already_dev_with_new_successors = add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current avoid_set in 
+        a_star_loop start goal grid layer frontier_with_new_successors already_dev_with_new_successors avoid_set
 
 
 
-  (* Returns the next tile to get closer to the goal *)
+  (* Returns current, which can be extracted as a next step or a path, list of tile *)
   let a_star (start:MTile.t) (goal:MTile.t) grid layer =
     (* Init *)
     (* The list of state already seen *)
@@ -271,51 +307,38 @@ module MPathfinder = struct
       father = None
     } in
     let frontier = [state_init] in
-    a_star_loop start goal grid layer frontier already_dev
+    let avoid_set =
+      let ent = MGrid.get_at_ax grid start#get_axial layer in
+      let tmp = MGrid.neighbours_list start grid in
+      List.fold_left (
+        fun acc x ->
+          if x#get_movement_cost > ent#get_current_mp then
+            x :: acc
+          else
+            acc
+      ) [] tmp
+    in
+    a_star_loop start goal grid layer frontier already_dev avoid_set
 
 
-  let closest_tile src dst grid layer =
-    match a_star src dst grid layer with
+
+  (* Returns the path src and dst, also return the cost *)
+  let path_to n = 
+    let rec aux acc node =
+      match node with
+      | None -> acc
+      | Some x -> aux (x.state :: acc) x.father
+    in
+    aux [] (Some n),n.g
+
+  let a_star_path_to src dst grid layer =
+    let n = a_star src dst grid layer in
+    path_to n
+
+  let a_star_next_move src dst grid layer =
+    match next_move src (a_star src dst grid layer) with
     | None -> raise No_path_found
     | Some x -> x
-
-
-  (* Tests *)
-  let () =
-    let l = [
-      {
-        state = 1;
-        g = 0;
-        f = 4;
-        father = None;
-      };
-      {
-        state = 2;
-        g = 0;
-        f = 6;
-        father = None;
-      };
-      {
-        state = 3;
-        g = 0;
-        f = 1;
-        father = None;
-      };
-    ] in
-    let truc,bidule = pollMin l in
-    print_int bidule.f;
-    print_newline ();
-    print_newline ();
-    List.iter (fun x ->
-        print_int x.f;print_newline();) truc;
-
-    let toto,tata = find_node_of_state_and_remove l 3 in
-    print_newline ();
-    print_int toto.state;
-    print_newline ();
-    print_newline ();
-    List.iter (fun x ->
-        print_int x.state;print_newline();) tata;
 
 end
 ;;

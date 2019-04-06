@@ -55,23 +55,16 @@ module MAction = struct
     in
     let smu, dmu = 
       MGrid.get_at grid sr sq src_layer,
-      MGrid.get_at grid dr dq dst_layer in
+      MGrid.get_at grid dr dq dst_layer
+    in
     if smu#get_current_mp <= 0 then
       raise Not_enough_point
     else
-      let satks = smu#get_atks
-      in
-      let dhp,ddefs = dmu#get_hp,dmu#get_defs
-      in
-      let damage = if ((satks - ddefs)>0) then (satks-ddefs) else 0 in
-
-      (* Check whether or not the source ent is ranged or melee *)
-      let smu_without_mp = smu#empty_mp#remove_hp 10 in
+      let new_src_ent = (smu#empty_mp)#remove_hp dmu#get_defs in
+      let new_dst_ent = dmu#remove_hp smu#get_atks in
       let () =
         MGrid.remove_at grid dr dq src_layer;
         MGrid.remove_at grid sr sq dst_layer;
-        MGrid.add_at grid smu_without_mp;
-        MGrid.add_at grid (dmu#remove_hp damage) 
       in
 
       let anim_src = [
@@ -87,45 +80,41 @@ module MAction = struct
         ]
       in
 
-      (*if the entity is dead*)
-      if (dhp<=damage) then 
-        begin
-          let smu_on_top = smu_without_mp#move dr dq in
-          let start = MGrid.get_tile_ax src grid in
-          let goal = MGrid.get_tile_ax dst grid in
-          let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid 2 src_layer in
-          let movement_animation_list =
-            List.fold_left (
-              fun acc x -> 
-                let au = MAnimation.create_animation_unit ((smu_without_mp#move x#get_r x#get_q)#set_status MEntity.MOVING) (None) 10 in
-                au :: acc
-            ) [] (List.rev path_taken)
+      let new_deleted_dst,new_added_dst =
+        if new_dst_ent#is_dead then
+          [dmu],[]
+        else
+          let () = MGrid.add_at grid new_dst_ent in
+          [dmu],[new_dst_ent]
+      in
+      let new_deleted_src,new_added_src,new_anim_src =
+        if new_src_ent#is_dead then
+          [smu],[],[]
+        else
+          let new_src_moved,anim= 
+            let tmp = 
+              new_src_ent#move dr dq 
+            in
+            let anim = [
+              MAnimation.create_animation_unit ((new_src_ent)#set_status MEntity.MOVING) (None) 10
+              ;
+              MAnimation.create_animation_unit ((tmp)#set_status MEntity.MOVING) (None) 10
+            ]
+            in
+            if new_dst_ent#is_dead then
+              tmp,anim
+            else
+              new_src_ent,[]
           in
+          let () = MGrid.add_at grid new_src_moved in
+          [smu],[new_src_moved],anim
+      in
 
-          let () =
-            MGrid.remove_at grid dr dq dst_layer;
-            MGrid.remove_at grid sr sq src_layer;
-            MGrid.add_at grid smu_on_top
-          in
-          {
-            added = [smu_on_top];
-            deleted = [dmu;smu];
-            animation = MAnimation.create [anim_src @ movement_animation_list;anim_dst]
-          }
-        end
-        (*if the entity isn't dead*)
-      else
-        let new_dmu = dmu#remove_hp damage
-        in 
-        let () =
-          MGrid.remove_at grid dr dq dst_layer;
-          MGrid.set_at grid dr dq new_dmu dst_layer;
-        in
-        {
-          added = [smu_without_mp;new_dmu];
-          deleted = [dmu;smu];
-          animation = MAnimation.create [anim_src;anim_dst]
-        }
+      {
+        added = new_added_dst @ new_added_src;
+        deleted = new_deleted_dst @ new_deleted_src;
+        animation = MAnimation.create [anim_src @ new_anim_src;anim_dst] 
+      }
 
   (* Refill a unit movement point *)
   let refill_mp grid src layer =
@@ -169,7 +158,7 @@ module MAction = struct
 
       let start = MGrid.get_tile old_ent#get_r old_ent#get_q grid in
       let goal = MGrid.get_tile new_ent#get_r new_ent#get_q grid in
-      let path_taken,mv_cost = MPathfinder.dijkstra_path start goal grid old_ent#get_current_mp layer in
+      let path_taken,mv_cost = MPathfinder.a_star_path_to start goal grid layer in
       let movement_animation_list =
         List.fold_left (
           fun acc x -> 
@@ -398,7 +387,7 @@ module MAction = struct
           [] 
       in
 
-      let animation = MAnimation.create_nuke_drop src_ent dst (deleted_infrastructure @ deleted_military) 40 15 70 in
+      let animation = MAnimation.create_nuke_drop src_ent dst (deleted_infrastructure @ deleted_military) 200 1 70 in
 
       {
         deleted = src_ent :: (deleted_military @ deleted_infrastructure);

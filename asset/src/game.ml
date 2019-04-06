@@ -187,7 +187,7 @@ module MGame = struct
       let _ = create_random_nuke grid in
 
       let faction_code1 = 
-        MFaction_enum.create MFaction_enum.USA
+        MFaction_enum.create MFaction_enum.EU
       in 
       let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
@@ -208,28 +208,28 @@ module MGame = struct
 
       let soldier3 = create_random_soldier grid faction_code2 in
       let soldier4 = create_random_soldier grid faction_code2 in
-      (* let city1 = create_random_city grid faction_code2 in *)
+      let city1 = create_random_city grid faction_code2 in
 
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
         MFaction.add_entity soldier3 f
         |> MFaction.add_entity soldier4
-        (* |> MFaction.add_entity city1 *)
+        |> MFaction.add_entity city1
       in
 
       let faction_code3 = 
-        MFaction_enum.create MFaction_enum.EU
+        MFaction_enum.create MFaction_enum.USA
       in
 
       let soldier6 = create_random_soldier grid faction_code3 in
       let soldier7 = create_random_soldier grid faction_code3 in
-      (* let city2 = create_random_city grid faction_code3 in *)
+      let city2 = create_random_city grid faction_code3 in
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
         MFaction.add_entity soldier6 f
         |> MFaction.add_entity soldier7
-        (* |> MFaction.add_entity city2 *)
+        |> MFaction.add_entity city2
       in
 
       let camera_rect =

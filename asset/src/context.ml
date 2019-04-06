@@ -498,7 +498,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE_E ->
-                              let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp ent_below#get_lt in
+                              let res,_ = MPathfinder.a_star_path_to tile_below_src tile_below_dst context.grid ent_below#get_lt in
                               res
                             | MAction_enum.ATTACK_E
                             | MAction_enum.PICKUP_ITEM_E ->
