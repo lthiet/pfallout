@@ -173,6 +173,24 @@ module MPathfinder = struct
       else
         state_already_in s state
 
+  let find_node_of_state_and_remove set state =
+    let rec aux set state acc_set acc_node =
+      match set with
+      | [] -> 
+        begin
+          match acc_node with
+          | None -> raise Not_found
+          | Some x -> x,acc_set
+        end
+      | x :: s -> 
+        if x.state = state then
+          aux s state acc_set (Some x)
+        else
+          aux s state (x :: acc_set) acc_node
+    in
+    aux set state [] None
+
+
   (* Iterate through the frontier and poll the next state to check,
      return : the new frontier and the next state to compute*)
   let pollMin frontier =
@@ -195,6 +213,33 @@ module MPathfinder = struct
       in
       aux s [] x
 
+  (* Iterate through successors and add them to the frontier, remove them from already if we found a better path to them *)
+  let add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current = 
+    let rec aux frontier already_dev acc_frontier acc_already_dev successors =
+      match successors with
+      | [] -> acc_frontier,acc_already_dev
+      | x_succ :: s_succ ->
+        (* Compute the new frontier and already dev *)
+        let new_frontier,new_already_dev = 
+          (* The successor is not already seen, create a new node *)
+          if not (state_already_in frontier x_succ || state_already_in already_dev x_succ) then
+            let node_succ = {
+              state = x_succ;
+              g = current.g + x_succ#get_movement_cost;
+              f = MHex.dist_cube x_succ#get_cube goal#get_cube;
+              father = Some current
+            } in
+            node_succ :: acc_frontier,acc_already_dev
+            (* The succ is already seen, there might be a new  *)
+          else
+            acc_frontier,acc_already_dev
+        in
+        acc_frontier,acc_already_dev
+    in
+    aux frontier_without_current already_dev_with_current [] [] successors
+
+
+
   let rec a_star_loop (start:MTile.t) (goal:MTile.t) grid layer frontier already_dev = 
     (* No path found *)
     if (List.length frontier) <= 0 then
@@ -202,8 +247,16 @@ module MPathfinder = struct
 
     (* Frontier isn't empty*)
     else
-      let current = pollMin frontier in
+      (* Poll the most interesting state *)
+      let frontier_without_current,current = pollMin frontier in
+      (* Add it to the already developed *)
+      let already_dev_with_current = current :: already_dev in
+      let successors = MGrid.neighbours_list current.state grid in
+      (* Iterate through each succesor and update the frontier and already dev accordingly *)
+      let _ = add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current in
       None
+
+
 
   (* Returns the next tile to get closer to the goal *)
   let a_star (start:MTile.t) (goal:MTile.t) grid layer =
@@ -237,13 +290,13 @@ module MPathfinder = struct
         father = None;
       };
       {
-        state = 1;
+        state = 2;
         g = 0;
         f = 6;
         father = None;
       };
       {
-        state = 1;
+        state = 3;
         g = 0;
         f = 1;
         father = None;
@@ -255,5 +308,14 @@ module MPathfinder = struct
     print_newline ();
     List.iter (fun x ->
         print_int x.f;print_newline();) truc;
+
+    let toto,tata = find_node_of_state_and_remove l 3 in
+    print_newline ();
+    print_int toto.state;
+    print_newline ();
+    print_newline ();
+    List.iter (fun x ->
+        print_int x.state;print_newline();) tata;
+
 end
 ;;
