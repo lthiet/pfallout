@@ -156,14 +156,11 @@ module MEntity = struct
 
   let get_clip frame_n e =
     (* TODO : textures wip *)
-    match e#get_faction with
-    | MFaction_enum.USA,_ -> Sdl.Rect.create 0 0 MHex.width MHex.height
-    | _ -> 
       match e#get_status with
       | MOVING ->
         Sdl.Rect.create (MHex.width * (frame_n/7)) 0 MHex.width MHex.height
       | ATTACKING ->
-        Sdl.Rect.create (MHex.width * (frame_n/7)) MHex.height MHex.width MHex.height
+        Sdl.Rect.create (141 * (frame_n/7)) MHex.height MHex.width MHex.height
       | _ ->
         Sdl.Rect.create 0 0 MHex.width MHex.height 
 
