@@ -144,7 +144,7 @@ module MPathfinder = struct
   type 'a node =
     {
       elem : 'a;
-      cost : int;
+      cost_so_far : int;
       came_from : ('a node) option
     }
 
@@ -159,7 +159,7 @@ module MPathfinder = struct
     let check2 =
       try 
         let _ = MGrid.get_at_ax grid tile#get_axial layer in false
-      with MGrid.Grid_cell_no_entity -> true
+      with MGrid.Grid_cell_no_entity | Invalid_argument _ -> true
     in
     check1 && check2
 
@@ -171,7 +171,7 @@ module MPathfinder = struct
       in
       let elem : MTile.t node =  {
         elem = start;
-        cost = 0;
+        cost_so_far = 0;
         came_from = None
       } in
       MPriority_queue.insert tmp 0 elem
@@ -183,7 +183,7 @@ module MPathfinder = struct
         None
       else
         (* Fetch the next tile to process *)
-        let _,current,frontier = MPriority_queue.extract frontier in
+        let _,current,frontier_without_current = MPriority_queue.extract frontier in
 
         (* We found the goal, construct the path *)
         if current.elem = goal then 
@@ -196,7 +196,10 @@ module MPathfinder = struct
 
           (*We will iterate over the list of successors  *)
           let res_frontier,res_already_seen = List.fold_left (
+              (* Each time we loop at a successor we update the frontier and already seen *)
               fun (frontier_acc,already_seen_acc) (s:MTile.t) -> 
+
+                (* Get the successor if he's in alreadu seen *)
                 let succ_from_already_seen = 
                   List.find_opt ( fun x -> x.elem = s ) already_seen
                 in
@@ -205,44 +208,56 @@ module MPathfinder = struct
                   | None -> false
                   | _ -> true
                 in
-                if not (MPriority_queue.exists (fun x -> x.elem = s) frontier) then
+
+                (* The successor is not in frontier AND not in already seen*)
+                if not (succ_found_in_already_seen || (MPriority_queue.exists (fun x -> x.elem = s) frontier_acc)) then
+                  (* The successor cannot be accessed or there is someone *)
                   if not (eligible_tile grid s layer) then
+                    (* Don't update the frontier or already seen *)
                     frontier_acc,already_seen_acc
                   else
+                    (* The successor is a potential candidate, we compute its values *)
                     let new_best : MTile.t node = {
                       elem = s;
-                      cost = current.cost + s#get_movement_cost;
+                      cost_so_far = current.cost_so_far + s#get_movement_cost;
                       came_from = Some current
                     } in
-                    let new_frontier = MPriority_queue.insert frontier_acc (new_best.cost + (MHex.distance_cu s#get_cube goal#get_cube)) new_best
+                    (* Cost so far + heuristic *)
+                    let potential_cost = new_best.cost_so_far + (MHex.distance_cu s#get_cube goal#get_cube) in 
+                    let new_frontier = MPriority_queue.insert frontier_acc potential_cost new_best
                     in
+                    (* Return the updated frontier, already seen not updated*)
                     new_frontier,already_seen_acc
                 else if succ_found_in_already_seen then
                   begin
+                    let () = debug "truc" in
                     match succ_from_already_seen with
                     | None -> raise Exit
                     | Some succ -> 
-                      let new_cost =  current.cost + succ.elem#get_movement_cost in
-                      if (new_cost < succ.cost) then
+                      let new_cost =  current.cost_so_far + succ.elem#get_movement_cost in
+                      if (new_cost < succ.cost_so_far) then
                         let new_frontier,new_already_seen =
                           List.fold_left (
                             fun (new_frontier_acc,new_already_seen_acc) x ->
                               let f = ( fun alseen -> alseen.elem = x ) in
                               if List.exists f already_seen_acc then
                                 let new_already_seen_acc = remove_f new_already_seen_acc [] f in
-                                let new_frontier_acc = MPriority_queue.insert new_frontier_acc (new_cost + MHex.dist_cube goal#get_cube x#get_cube ) {elem = x; cost = x#get_movement_cost + current.cost;came_from = Some current } in
+                                let new_frontier_acc = MPriority_queue.insert new_frontier_acc (new_cost + MHex.dist_cube goal#get_cube x#get_cube ) {elem = x; cost_so_far = x#get_movement_cost + current.cost_so_far;came_from = Some current } in
                                 new_frontier_acc,new_already_seen_acc
                               else
                                 new_frontier_acc,new_already_seen_acc
                           ) (frontier,[]) succ_s
                         in
+                        (* Return *)
                         new_frontier,new_already_seen
                       else  
+                        (* Return *)
                         frontier_acc,already_seen_acc
                   end
                 else
+                  (* Return *)
                   frontier_acc,already_seen_acc
-            ) (frontier,already_seen) succ_s
+            ) (frontier_without_current,already_seen) succ_s
           in
           aux res_frontier res_already_seen
     in

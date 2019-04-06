@@ -8,7 +8,7 @@ module MPriority_queue = struct
     match queue with
       Empty -> Node(prio, elt, Empty, Empty)
     | Node(p, e, left, right) ->
-      if prio <= p
+      if prio >= p
       then Node(prio, elt, insert right p e, left)
       else Node(p, e, insert right prio elt, left)
   exception Queue_is_empty
@@ -35,6 +35,11 @@ module MPriority_queue = struct
     | Empty -> false
     | Node (_,a,l,r) ->
       (f a) || exists f l || exists f r
+
+  let rec size f =
+    match f with
+    | Empty -> 0
+    | Node (_,a,l,r) -> 1 + size l + size r
 
 end
 ;;
