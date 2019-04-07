@@ -77,7 +77,7 @@ module MTexture = struct
       renderer
       ?(clip_src: Sdl.rect option = None)
       ?(clip_dst: Sdl.rect option = None)
-      ?(scale:int = 2)
+      ?(scale:int = 4)
       ?(x:int = 0)
       ?(y:int = 0)
       ?(angle:float = 0.)

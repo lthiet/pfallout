@@ -48,20 +48,20 @@ module MHealthbar = struct
     let ratio = hp_ratio_int t in
     min healthbar_length (max (ratio-100) (0))
 
-  let render renderer x y healthbar = 
+  let render renderer scale x y healthbar = 
     let rbl = get_red_bar_length healthbar in
     let gbl = get_green_bar_length healthbar in
     let bbl = get_blue_bar_length healthbar in
 
-    let y = y + 40 in
-    let x = x + (MHex.width/2) - (healthbar_length / 2) in
+    let y = (y + 40) in
+    let x = (x + (MHex.width/2) - (healthbar_length / 2)) in
 
     (* First render the green bar *)
-    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.green) (y+10, y, x, x+gbl)) "Error : %s";
+    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.green) ((y+10)*scale, y*scale, x*scale, (x+gbl)*scale)) "Error : %s";
 
     (* Then render the red bar *)
-    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.red) (y+10, y, x+healthbar_length, x+healthbar_length-rbl)) "Error : %s";
+    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.red) ((y+10)*scale, y*scale, (x+healthbar_length)*scale, scale*(x+healthbar_length-rbl))) "Error : %s";
 
     (* Finally render the blue bar *)
-    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.blue) (y+10, y, x, x+bbl)) "Error : %s";
+    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.blue) ((y+10)*scale, y*scale, x*scale, scale*(x+bbl))) "Error : %s";
 end

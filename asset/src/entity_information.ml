@@ -46,7 +46,7 @@ module MEntity_information = struct
 
   let render renderer textures info = 
     (* render the healthbar *)
-    MHealthbar.render renderer info.x (info.y - 40) info.healthbar;
+    MHealthbar.render renderer 4 info.x (info.y - 40) info.healthbar;
 
     (* create the texture for the mp left *)
     let outline_size = 8 in
