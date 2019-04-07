@@ -167,7 +167,7 @@ module MGrid = struct
       infrastructure_grid = create_none_grid level_radius;
     }
 
-  let render renderer txt_pack grid camera frame_n = 
+  let render renderer txt_pack grid scale camera frame_n = 
 
     let tile_texture =
       MTexture_pack.get_tile txt_pack
@@ -177,14 +177,14 @@ module MGrid = struct
     in
     Array.iter (fun x ->
         Array.iter (fun y ->
-            MTile.render renderer y tile_texture terrain_feature_texture camera
+            MTile.render renderer y tile_texture terrain_feature_texture scale camera
           ) x
       ) grid.tile_grid;
     Array.iter (fun x ->
         Array.iter (fun y ->
             match y with
             | Some e ->
-              MItem.render renderer e txt_pack camera frame_n
+              MItem.render renderer e txt_pack scale camera frame_n
             | None -> ()
           ) x
       ) grid.item_grid;

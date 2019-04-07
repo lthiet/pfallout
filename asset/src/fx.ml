@@ -45,7 +45,7 @@ module MFx = struct
 
 
   (* Render the fx *)
-  let render renderer fx texture camera frame_n =
+  let render renderer fx texture scale camera frame_n =
     let texture = fx_to_texture fx texture in
 
     (* let clip = Sdl.Rect.create ((frame_n/3)*texture_width) 0 texture_width texture_height in *)
@@ -56,6 +56,6 @@ module MFx = struct
 
       | _ -> 0.0
     in
-    MTexture.render renderer ~clip_src:(Some clip) ~angle:angle ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
+    MTexture.render renderer ~clip_src:(Some clip) ~scale:scale ~angle:angle ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
 
 end

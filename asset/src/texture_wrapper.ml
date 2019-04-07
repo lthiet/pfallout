@@ -77,7 +77,7 @@ module MTexture = struct
       renderer
       ?(clip_src: Sdl.rect option = None)
       ?(clip_dst: Sdl.rect option = None)
-      ?(scale:int = 4)
+      ?(scale:float = 1.)
       ?(x:int = 0)
       ?(y:int = 0)
       ?(angle:float = 0.)
@@ -93,9 +93,17 @@ module MTexture = struct
         (Sdl.Rect.w r),(Sdl.Rect.h r)
     in
 
+    let scaled_x,scaled_y,scaled_w,scaled_h =
+      scale_to x scale,
+      scale_to y scale,
+      scale_to w scale,
+      scale_to h scale
+    in
+
+
 
     (* Set rendering space and render to screen *)
-    let renderQuad = make_rect (x*scale) (y*scale) (w*scale) (h*scale) in
+    let renderQuad = make_rect scaled_x scaled_y scaled_w scaled_h in
 
     (* Render *)
     match clip_src with 

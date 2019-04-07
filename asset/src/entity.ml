@@ -171,7 +171,7 @@ module MEntity = struct
   let render renderer 
       ?(x:int option = None) 
       ?(y:int option = None)
-      e texture camera frame_n =
+      e texture scale camera frame_n =
     match e#get_ut with
     | MEntity_enum.FX_BINDER -> 0,0
     | _ ->
@@ -201,6 +201,7 @@ module MEntity = struct
             ~clip_src:(clip)
             ~x:pos_x
             ~y:pos_y
+            ~scale:scale
             txt;
       in pos_x,pos_y
 end

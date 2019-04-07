@@ -44,9 +44,9 @@ module MEntity_information = struct
       let tmp = create id x y healthbar mp_left faction_enum in
       Some tmp
 
-  let render renderer textures info = 
+  let render renderer textures scale info = 
     (* render the healthbar *)
-    MHealthbar.render renderer 4 info.x (info.y - 40) info.healthbar;
+    MHealthbar.render renderer scale info.x (info.y - 40) info.healthbar;
 
     (* create the texture for the mp left *)
     let outline_size = 8 in
@@ -57,8 +57,8 @@ module MEntity_information = struct
     let y_mp = info.y + 120 in
 
     (* render the mp left *)
-    MTexture.render renderer ~x:x_mp ~y:y_mp txt_outline;
-    MTexture.render renderer ~x:(outline_size+x_mp) ~y:(outline_size+y_mp) txt;
+    MTexture.render renderer ~x:x_mp ~y:y_mp ~scale:scale txt_outline;
+    MTexture.render renderer ~x:(outline_size+x_mp) ~y:(outline_size+y_mp) ~scale:scale txt;
 
     (* Free *)
     MTexture.free txt;
@@ -73,7 +73,7 @@ module MEntity_information = struct
     let y_id = info.y in
 
     (* Free *)
-    MTexture.render renderer ~x:x_id ~y:y_id txt_id;
+    MTexture.render renderer ~x:x_id ~y:y_id ~scale:scale txt_id;
     MTexture.free txt_id;
     Ttf.close_font font_id;
 

@@ -127,15 +127,15 @@ module MMenu = struct
           in		
 
           {context with
-            over = context.over;
-            btn_start = context.btn_start;
-            settings = settings;
-            btn_settings = context.btn_settings;
-            map_size = map_size;
-            btn_return = btn_return;
-            btn_Smapsize = btn_Smapsize;
-            btn_Mmapsize = btn_Mmapsize;
-            btn_Lmapsize = btn_Lmapsize
+           over = context.over;
+           btn_start = context.btn_start;
+           settings = settings;
+           btn_settings = context.btn_settings;
+           map_size = map_size;
+           btn_return = btn_return;
+           btn_Smapsize = btn_Smapsize;
+           btn_Mmapsize = btn_Mmapsize;
+           btn_Lmapsize = btn_Lmapsize
           }						
         )
 
@@ -152,7 +152,7 @@ module MMenu = struct
   }
 
   let get_window result = result.window
-	let get_map_size result = result.map_size
+  let get_map_size result = result.map_size
 
   let compute_result ctx =
     {
@@ -171,7 +171,8 @@ module MMenu = struct
       manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
       manage_result (Sdl.render_clear renderer) "Error : %s";
 
-      let scale = 1 in
+      (* TODO : do something else for menu, rect that covers the whole screen eg *)
+      let scale = 1. in
 
       (***********)
       (* Load the settings menu *)

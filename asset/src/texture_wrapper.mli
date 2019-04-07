@@ -11,7 +11,7 @@ module MTexture : sig
   val render : Sdl.renderer 
     -> ?clip_src:Sdl.rect option
     -> ?clip_dst:Sdl.rect option
-    -> ?scale:int
+    -> ?scale:float
     -> ?x:int
     -> ?y:int
     -> ?angle:float
