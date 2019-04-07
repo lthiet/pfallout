@@ -157,7 +157,7 @@ module MPathfinder = struct
     | Some x -> 
       next_move start x
 
-  let eligible_tile grid goal tile layer avoid_set =
+  let eligible_tile grid goal tile layer =
     let check1 = not tile#is_impassable in
     let check2 =
       try 
@@ -165,8 +165,7 @@ module MPathfinder = struct
       with MGrid.Grid_cell_no_entity | Invalid_argument _ -> true
     in
     let check3 = goal = tile in
-    let check4 = not (List.exists (fun x -> x = tile) avoid_set) in
-    (check1 && check2 && check4) || check3 
+    (check1 && check2) || check3 
 
   let rec state_already_in set state =
     match set with
@@ -221,7 +220,7 @@ module MPathfinder = struct
 
 
   (* Iterate through successors and add them to the frontier, remove them from already if we found a better path to them *)
-  let add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current avoid_set= 
+  let add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current= 
     (* Modify frontier and already state *)
     let rec aux frontier already_dev successors =
       match successors with
@@ -229,7 +228,7 @@ module MPathfinder = struct
       | x_succ :: s_succ ->
         (* Compute the new frontier and already dev *)
         let new_frontier,new_already_dev = 
-          if not (eligible_tile grid goal x_succ layer avoid_set) then
+          if not (eligible_tile grid goal x_succ layer) then
             frontier,already_dev
           else
             let new_cost = current.g + x_succ#get_movement_cost in
@@ -274,7 +273,7 @@ module MPathfinder = struct
 
 
 
-  let rec a_star_loop (start:MTile.t) (goal:MTile.t) grid layer frontier already_dev avoid_set = 
+  let rec a_star_loop (start:MTile.t) (goal:MTile.t) grid layer frontier already_dev = 
     (* No path found *)
     if (List.length frontier) <= 0 then
       raise No_path_found
@@ -289,8 +288,8 @@ module MPathfinder = struct
         let already_dev_with_current = current :: already_dev in
         let successors = MGrid.neighbours_list current.state grid in
         (* Iterate through each succesor and update the frontier and already dev accordingly *)
-        let frontier_with_new_successors,already_dev_with_new_successors = add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current avoid_set in 
-        a_star_loop start goal grid layer frontier_with_new_successors already_dev_with_new_successors avoid_set
+        let frontier_with_new_successors,already_dev_with_new_successors = add_successor_to_frontier goal grid layer frontier_without_current already_dev_with_current successors current in 
+        a_star_loop start goal grid layer frontier_with_new_successors already_dev_with_new_successors
 
 
 
@@ -307,18 +306,7 @@ module MPathfinder = struct
       father = None
     } in
     let frontier = [state_init] in
-    let avoid_set =
-      let ent = MGrid.get_at_ax grid start#get_axial layer in
-      let tmp = MGrid.neighbours_list start grid in
-      List.fold_left (
-        fun acc x ->
-          if x#get_movement_cost > ent#get_current_mp then
-            x :: acc
-          else
-            acc
-      ) [] tmp
-    in
-    a_star_loop start goal grid layer frontier already_dev avoid_set
+    a_star_loop start goal grid layer frontier already_dev
 
 
 
@@ -335,10 +323,16 @@ module MPathfinder = struct
     let n = a_star src dst grid layer in
     path_to n
 
+  (* Returns the next move if want to go from src to dst, if the entity dont have enough mp, then stay in place *)
   let a_star_next_move src dst grid layer =
     match next_move src (a_star src dst grid layer) with
     | None -> raise No_path_found
-    | Some x -> x
+    | Some x -> 
+    let src_ent = MGrid.get_at_ax grid src#get_axial layer in
+    if x#get_movement_cost > src_ent#get_mp then
+      src
+    else
+      x
 
 end
 ;;

@@ -56,6 +56,6 @@ module MFx = struct
 
       | _ -> 0.0
     in
-    MTexture.render renderer ~clip:(Some clip) ~angle:angle ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
+    MTexture.render renderer ~clip_src:(Some clip) ~angle:angle ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
 
 end

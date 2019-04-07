@@ -451,7 +451,7 @@ module MGameContext = struct
             let tiles_set e1 ent_below tile_below_src tile_below_current = 
               match e1 with 
               | MAction_enum.MOVE_E ->
-                MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
+                MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_mp ent_below#get_lt
               | MAction_enum.PICKUP_ITEM_E ->
                 MGrid.range_tile context.grid tile_below_src 1
               | MAction_enum.ATTACK_E ->
@@ -539,7 +539,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE_E ->
-                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
+                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_mp ent_below#get_lt
                             | MAction_enum.ATTACK_E
                             | MAction_enum.USE_ITEM_E _ 
                             | MAction_enum.PICKUP_ITEM_E ->

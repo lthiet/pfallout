@@ -115,12 +115,12 @@ module MTile = struct
         tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
       in
       MTexture.render renderer
-        ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))
+        ~clip_src:( Some (match_tile_type_to_clip tile#get_tile_type))
         ~x:x
         ~y:y
         tile_texture;
       MTexture.render renderer
-        ~clip:(Some (match_terrain_feature_to_clip tile#get_terrain_feature))
+        ~clip_src:(Some (match_terrain_feature_to_clip tile#get_terrain_feature))
         ~x:x
         ~y:y
         terrain_feature_texture

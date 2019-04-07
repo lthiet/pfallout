@@ -57,7 +57,7 @@ module MAction = struct
       MGrid.get_at grid sr sq src_layer,
       MGrid.get_at grid dr dq dst_layer
     in
-    if smu#get_current_mp <= 0 then
+    if smu#get_mp <= 0 then
       raise Not_enough_point
     else
       let new_src_ent = (smu#empty_mp)#remove_hp dmu#get_defs in
@@ -94,7 +94,7 @@ module MAction = struct
           let new_src_moved,anim= 
             let tmp = 
               new_src_ent#move dr dq 
-            in
+            in 
             let anim = [
               MAnimation.create_animation_unit ((new_src_ent)#set_status MEntity.MOVING) (None) 10
               ;

@@ -1,6 +1,7 @@
 open Utils
 open Sdl_tools
 open Hex
+open Colors
 (* This module implements the healthbar on the units *)
 
 module MHealthbar = struct
@@ -17,9 +18,6 @@ module MHealthbar = struct
       current_hp = current_hp
     }
 
-  let red = 255,0,0,255
-  let green = 0,255,0,255
-  let blue = 21, 130, 181,255
 
   let to_couple t = (t.max_hp,t.current_hp)
 
@@ -59,11 +57,11 @@ module MHealthbar = struct
     let x = x + (MHex.width/2) - (healthbar_length / 2) in
 
     (* First render the green bar *)
-    manage_result (draw_filled_rectangle renderer green (y+10, y, x, x+gbl)) "Error : %s";
+    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.green) (y+10, y, x, x+gbl)) "Error : %s";
 
     (* Then render the red bar *)
-    manage_result (draw_filled_rectangle renderer red (y+10, y, x+healthbar_length, x+healthbar_length-rbl)) "Error : %s";
+    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.red) (y+10, y, x+healthbar_length, x+healthbar_length-rbl)) "Error : %s";
 
     (* Finally render the blue bar *)
-    manage_result (draw_filled_rectangle renderer blue (y+10, y, x, x+bbl)) "Error : %s";
+    manage_result (draw_filled_rectangle renderer (MColor.to_quadruple MColor.blue) (y+10, y, x, x+bbl)) "Error : %s";
 end

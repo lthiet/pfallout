@@ -171,19 +171,21 @@ module MMenu = struct
       manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
       manage_result (Sdl.render_clear renderer) "Error : %s";
 
+      let scale = 1 in
+
       (***********)
       (* Load the settings menu *)
       if new_ctx.settings then (
         (* Display the settings background *)
-        MTexture.render renderer textures.settings_bg;
+        MTexture.render ~scale:scale renderer textures.settings_bg;
         (* Display the return button *)
-        MBtn.render renderer new_ctx.btn_return textures.btn_return;
+        MBtn.render renderer scale new_ctx.btn_return textures.btn_return;
         (* Display the small mapsize button *)
-        MBtn.render renderer new_ctx.btn_Smapsize textures.btn_Smapsize;
+        MBtn.render renderer scale new_ctx.btn_Smapsize textures.btn_Smapsize;
         (* Display the medium mapsize button *)
-        MBtn.render renderer new_ctx.btn_Mmapsize textures.btn_Mmapsize;
+        MBtn.render renderer scale new_ctx.btn_Mmapsize textures.btn_Mmapsize;
         (* Display the large mapsize button *)
-        MBtn.render renderer new_ctx.btn_Lmapsize textures.btn_Lmapsize;
+        MBtn.render renderer scale new_ctx.btn_Lmapsize textures.btn_Lmapsize;
 
         (* Update the renderer *)
         Sdl.render_present renderer;
@@ -194,14 +196,14 @@ module MMenu = struct
       (* Load the start menu *)
       else (
         (* Display the menu background *)
-        MTexture.render renderer textures.bg;
+        MTexture.render ~scale:scale renderer textures.bg;
         (* Display the start button *)
-        MBtn.render renderer new_ctx.btn_start textures.btn;
+        MBtn.render renderer scale new_ctx.btn_start textures.btn;
         (* Display the start button text *)
-        MBtn.render_text renderer new_ctx.btn_start textures.btn_start_text;
+        MBtn.render_text renderer scale new_ctx.btn_start textures.btn_start_text;
 
         (****************************)
-        MBtn.render renderer new_ctx.btn_settings textures.btn_settings;
+        MBtn.render renderer scale new_ctx.btn_settings textures.btn_settings;
 
         (* Update the renderer *)
         Sdl.render_present renderer;

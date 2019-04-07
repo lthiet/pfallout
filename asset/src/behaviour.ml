@@ -22,7 +22,7 @@ module MBehaviour = struct
     try 
       let new_tile = 
         (* Get all the reachable tiles *)
-        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_current_mp entity#get_lt |> MGrid.free_tile_list grid entity#get_lt in
+        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_mp entity#get_lt |> MGrid.free_tile_list grid entity#get_lt in
 
         (* Recursively get tile that are empty *)
         let rec aux () =
@@ -194,7 +194,7 @@ module MBehaviour = struct
       MAction_enum.create_use_item item#get_code param
     with No_enemies ->
       if entity#can_move then
-        let random_tile = MGrid.get_random_accessible_tile grid entity#get_lt ~center:entity#get_axial ~bound:entity#get_current_mp () in
+        let random_tile = MGrid.get_random_accessible_tile grid entity#get_lt ~center:entity#get_axial ~bound:entity#get_mp () in
         MAction_enum.create_move entity#get_axial random_tile#get_axial entity#get_lt
       else
         MAction_enum.create_pass entity#get_axial entity#get_lt
