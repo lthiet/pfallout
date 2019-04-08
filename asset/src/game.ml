@@ -25,7 +25,7 @@ open Fx
 open Sdl_tools
 open Entity_information
 open Tsdl_ttf
-
+open Interface
 
 
 module MGame = struct
@@ -133,8 +133,6 @@ module MGame = struct
 
 
 
-      (* Update the renderer *)
-      Sdl.render_present renderer;
 
       (*
       (* Display the user interface windows/buttons*)
@@ -143,6 +141,14 @@ module MGame = struct
           MInterface.render renderer t ,
       ) context.interface;
       *)
+
+      (* Display the interface *)
+      MInterface.render renderer context.interface textures;
+
+      (* Update the renderer *)
+      Sdl.render_present renderer;
+
+
 
       (* Continue the game *)
       loop renderer new_context textures
@@ -258,7 +264,8 @@ module MGame = struct
         frame = 0;
         current_layer = MLayer_enum.MILITARY;
         window = MMenu.get_window menu_result;
-        scale = 1.
+        scale = 1.;
+        interface = MInterface.create_window 400 400 600 600
       } in
 
       let txt = MTexture_pack.create renderer in

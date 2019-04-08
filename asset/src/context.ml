@@ -46,7 +46,10 @@ module MGameContext = struct
     scale : float;
     (*interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)*)
     current_layer : MLayer_enum.t;
-    window : Sdl.window
+    window : Sdl.window;
+
+    (* debug & test *)
+    interface : MInterface.t
   }
 
   exception Nothing
@@ -408,6 +411,21 @@ module MGameContext = struct
     in
     ctx.scale +. offset
 
+  (* TODO : debug, remove this *)
+  let get_interface e ctx =
+    let interface = ctx.interface in
+    if MKeyboard.key_is_pressed e Sdl.Scancode.y then
+      MInterface.incr_h interface (-10)
+    else if MKeyboard.key_is_pressed e Sdl.Scancode.h then
+      MInterface.incr_h interface 10
+    else if MKeyboard.key_is_pressed e Sdl.Scancode.g then
+      MInterface.incr_w interface (-10)
+    else if MKeyboard.key_is_pressed e Sdl.Scancode.j then
+      MInterface.incr_w interface 10
+    else
+      interface
+
+
 
 
   (* Update the new context of the game *)
@@ -440,6 +458,9 @@ module MGameContext = struct
           }
         (* Otherwise, check the event *)
         | Some e ->
+
+          let interface = get_interface e ctx_before_event in
+
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let scale = get_scale e ctx_before_event in
@@ -622,7 +643,8 @@ module MGameContext = struct
             animation = new_animation;
             action_type = action_type;
             new_turn = new_turn;
-            scale = scale
+            scale = scale;
+            interface = interface
           }
       else
         ctx_before_event

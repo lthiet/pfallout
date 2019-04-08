@@ -138,6 +138,8 @@ let rect_to_string rect =
   "w :" ^ (string_of_int w) ^ " " ^
   "h :" ^ (string_of_int h) ^ " "
 
+let division_eclid r q =
+  r/q,r mod q
 
 
 

@@ -10,7 +10,6 @@ module MTexture : sig
   val free : t -> unit
   val render : Sdl.renderer 
     -> ?clip_src:Sdl.rect option
-    -> ?clip_dst:Sdl.rect option
     -> ?scale:float
     -> ?x:int
     -> ?y:int

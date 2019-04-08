@@ -89,7 +89,10 @@ module MTile = struct
   type t = tile
 
   let tile_to_string t =
-   (MHex.axial_to_string t#get_axial) ^ " type : " ^ (tile_type_to_string t#get_tile_type) ^ " feature : " ^ (terrain_feature_to_string t#get_terrain_feature)
+    (MHex.axial_to_string t#get_axial) ^ " type : " ^ (tile_type_to_string t#get_tile_type) ^ " feature : " ^ (terrain_feature_to_string t#get_terrain_feature)
+
+  let compare t1 t2 =
+    (t1#get_r*10 - t2#get_r*10) + (t1#get_q -t2#get_q)
 
 
   (* Match a tile type to a clip to get the texture from *)

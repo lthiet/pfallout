@@ -5,6 +5,12 @@ module MTree = struct
       children : 'a tree list
     }
 
+  let create elem children =
+    {
+      elem = elem;
+      children = children
+    }
+
   let get_elem t = t.elem
   let get_children t = t.children
 
@@ -15,5 +21,4 @@ module MTree = struct
   let rec fold t f acc =
     let acc_e = f acc t.elem in
     List.fold_left (fun acc_l x -> fold x f acc_l) acc_e t.children
-
 end

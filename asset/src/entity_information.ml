@@ -74,10 +74,10 @@ module MEntity_information = struct
         (* let font_id = MFont_pack.open_font MFont_pack.good_times 50 in
         let txt_id = MTexture.load_from_rendered_text renderer font_id (string_of_int info.id) MColor.green in
         let x_id = info.x in
-        let y_id = info.y in
+        let y_id = info.y in *)
 
         (* Free *)
-        MTexture.render renderer ~x:x_id ~y:y_id ~scale:scale txt_id;
+        (* MTexture.render renderer ~x:x_id ~y:y_id ~scale:scale txt_id;
         MTexture.free txt_id;
         Ttf.close_font font_id; *)
       end

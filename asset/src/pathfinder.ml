@@ -4,7 +4,11 @@ open Grid
 open Utils
 open Priority_queue
 
+(* TODO : hashtbl for tile *)
+module TileHashtbl = Map.Make (MTile)
+
 module MPathfinder = struct
+
   (* TODO : functionalize *)
   let reachable_tile center grid movement =
     let visited = Hashtbl.create 23 in
@@ -328,11 +332,11 @@ module MPathfinder = struct
     match next_move src (a_star src dst grid layer) with
     | None -> raise No_path_found
     | Some x -> 
-    let src_ent = MGrid.get_at_ax grid src#get_axial layer in
-    if x#get_movement_cost > src_ent#get_mp then
-      src
-    else
-      x
+      let src_ent = MGrid.get_at_ax grid src#get_axial layer in
+      if x#get_movement_cost > src_ent#get_mp then
+        src
+      else
+        x
 
 end
 ;;

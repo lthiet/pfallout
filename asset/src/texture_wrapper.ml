@@ -76,7 +76,6 @@ module MTexture = struct
   let render
       renderer
       ?(clip_src: Sdl.rect option = None)
-      ?(clip_dst: Sdl.rect option = None)
       ?(scale:float = 1.)
       ?(x:int = 0)
       ?(y:int = 0)
