@@ -22,7 +22,7 @@ module MBehaviour = struct
     try 
       let new_tile = 
         (* Get all the reachable tiles *)
-        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_current_mp entity#get_lt |> MGrid.free_tile_list grid entity#get_lt in
+        let reachable = MPathfinder.dijkstra_reachable tile_src tile_src grid entity#get_mp entity#get_lt |> MGrid.free_tile_list grid entity#get_lt in
 
         (* Recursively get tile that are empty *)
         let rec aux () =
@@ -63,6 +63,7 @@ module MBehaviour = struct
                   None
             ) None nearest_enemies
           in
+
           match nearest_target with
           (* The target is found, go to it*)
           | Some target ->
@@ -70,7 +71,7 @@ module MBehaviour = struct
               let src = MGrid.get_tile entity#get_r entity#get_q grid in
               try
                 let dst = MGrid.get_tile target#get_r target#get_q grid in
-                let closest_dst = MPathfinder.closest_tile src dst grid entity#get_lt in
+                let closest_dst = MPathfinder.a_star_next_move src dst grid entity#get_lt in
                 if closest_dst = src then
                   MAction_enum.create_pass entity#get_axial entity#get_lt
                 else
@@ -83,7 +84,7 @@ module MBehaviour = struct
             let src = MGrid.get_tile entity#get_r entity#get_q grid in
             try
               let dst = MGrid.get_tile x#get_r x#get_q grid in
-              let closest_dst = MPathfinder.closest_tile src dst grid entity#get_lt in
+              let closest_dst = MPathfinder.a_star_next_move src dst grid entity#get_lt in
               if closest_dst = src then
                 MAction_enum.create_pass entity#get_axial entity#get_lt
               else
@@ -122,6 +123,15 @@ module MBehaviour = struct
       in
       MAction_enum.create_attack entity#get_axial enemy_to_attack#get_axial entity#get_lt enemy_to_attack#get_lt
 
+  let flee_or_fight grid entity = 
+    let neighbouring_enemies = MGrid.nearby_enemies grid entity 1 entity#get_lt in
+    match neighbouring_enemies with
+    (* There is no enemy in the nearest vicinity, we will look further *)
+    | [] -> move_to_random_location grid entity
+    | x :: s -> 
+      MAction_enum.create_attack entity#get_axial x#get_axial entity#get_lt x#get_lt
+
+
   let spawn_unit grid entity =
     let tile_below = MGrid.get_tile_ax entity#get_axial grid in
     (* Compute the tile next to it *)
@@ -157,7 +167,8 @@ module MBehaviour = struct
     with Not_found ->
       let tile_dst = MGrid.get_tile_ax dst grid in
       try
-        let closest_dst = MPathfinder.closest_tile tile_src tile_dst grid entity#get_lt in
+        let closest_dst = MPathfinder.a_star_next_move tile_src tile_dst grid entity#get_lt in
+
         if closest_dst#get_axial = tile_src#get_axial then
           MAction_enum.create_pass entity#get_axial entity#get_lt
         else
@@ -183,7 +194,7 @@ module MBehaviour = struct
       MAction_enum.create_use_item item#get_code param
     with No_enemies ->
       if entity#can_move then
-        let random_tile = MGrid.get_random_accessible_tile grid entity#get_lt ~center:entity#get_axial ~bound:entity#get_current_mp () in
+        let random_tile = MGrid.get_random_accessible_tile grid entity#get_lt ~center:entity#get_axial ~bound:entity#get_mp () in
         MAction_enum.create_move entity#get_axial random_tile#get_axial entity#get_lt
       else
         MAction_enum.create_pass entity#get_axial entity#get_lt
@@ -279,9 +290,10 @@ module MBehaviour = struct
   (* Main function *)
   let compute_behaviour grid entity = 
     match entity#get_behaviour with
-    | MBehaviour_enum.WANDERING
-    | MBehaviour_enum.FLEEING ->
+    | MBehaviour_enum.WANDERING ->
       move_to_random_location grid entity
+    | MBehaviour_enum.FLEEING ->
+      flee_or_fight grid entity
     | MBehaviour_enum.ATTACKING (target,range)->
       attack_nearby_enemy grid entity target range
     | MBehaviour_enum.SPAWNING ->

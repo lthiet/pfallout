@@ -44,7 +44,7 @@ module MCursor = struct
   let render renderer texture cursor camera =
     if cursor#is_not_hidden then
       MTexture.render renderer
-        ~clip:( Some (match_status_to_clip cursor#get_status))
+        ~clip_src:( Some (match_status_to_clip cursor#get_status))
         ~x:((get_screen_x cursor)- Sdl.Rect.x camera)
         ~y:((get_screen_y cursor)- Sdl.Rect.y camera)
         texture

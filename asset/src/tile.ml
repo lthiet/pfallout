@@ -108,21 +108,23 @@ module MTile = struct
     Sdl.Rect.create (i*tw) 0 tw th
 
   (* Render a tile *)
-  let render renderer tile tile_texture terrain_feature_texture camera =
+  let render renderer tile tile_texture terrain_feature_texture scale camera =
     if check_collision tile#get_box camera && (not tile#is_lake) then
       let x,y = 
         let tmp1,tmp2 = MHex.axial_to_screen_coord tile#get_axial in
         tmp1 - Sdl.Rect.x camera,tmp2 - Sdl.Rect.y camera
       in
       MTexture.render renderer
-        ~clip:( Some (match_tile_type_to_clip tile#get_tile_type))
+        ~clip_src:( Some (match_tile_type_to_clip tile#get_tile_type))
         ~x:x
         ~y:y
+        ~scale:scale
         tile_texture;
       MTexture.render renderer
-        ~clip:(Some (match_terrain_feature_to_clip tile#get_terrain_feature))
+        ~clip_src:(Some (match_terrain_feature_to_clip tile#get_terrain_feature))
         ~x:x
         ~y:y
+        ~scale:scale
         terrain_feature_texture
     else
       ()

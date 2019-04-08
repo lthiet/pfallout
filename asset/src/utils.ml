@@ -115,6 +115,11 @@ let rec remove_f l acc f =
     else
       remove_f s (x :: acc) f
 
+let scale_to x r =
+  round ((float_of_int x) *. r)
+
+let inverse r = 1. /. r
+
 let debug str =
   print_newline ();
   print_string str;

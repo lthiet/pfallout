@@ -42,7 +42,7 @@ module MGameContext = struct
     animation : MAnimation.t;
     new_turn : bool;
     frame : int;
-
+    scale : float;
     (*interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)*)
     current_layer : MLayer_enum.t;
     window : Sdl.window
@@ -318,6 +318,8 @@ module MGameContext = struct
       frame = (ctx.frame + 1) mod 21
     }
 
+
+
   (* for each cpu unit we will update their behaviour *)
   let update_cpu_behaviour ctx = 
     if not (is_player_turn ctx) && MAnimation.is_over ctx.animation then
@@ -393,6 +395,20 @@ module MGameContext = struct
 
   exception Action_src_is_set_but_not_action_layer
 
+
+  let get_scale e ctx =
+    let offset = 
+      if MKeyboard.key_is_pressed e Sdl.Scancode.z then
+        0.1
+      else if MKeyboard.key_is_pressed e Sdl.Scancode.x then
+        -0.1
+      else
+        0.
+    in
+    ctx.scale +. offset
+
+
+
   (* Update the new context of the game *)
   let update_context context =
     (* let () = if context.new_turn then
@@ -400,7 +416,7 @@ module MGameContext = struct
           List.iter (fun x -> print_string (MFaction.to_string x)) context.faction_list;
           print_newline ();
         end
-    in *)
+       in *)
     (* Event independant context change *)
     let ctx_before_event =
       let animation =
@@ -422,6 +438,7 @@ module MGameContext = struct
         | Some e ->
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
+          let scale = get_scale e ctx_before_event in
           let camera = get_camera e ctx_before_event.window ctx_before_event.camera in
           let cursor_selector_ks = {
             up = Sdl.Scancode.up;
@@ -451,7 +468,7 @@ module MGameContext = struct
             let tiles_set e1 ent_below tile_below_src tile_below_current = 
               match e1 with 
               | MAction_enum.MOVE_E ->
-                MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
+                MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_mp ent_below#get_lt
               | MAction_enum.PICKUP_ITEM_E ->
                 MGrid.range_tile context.grid tile_below_src 1
               | MAction_enum.ATTACK_E ->
@@ -498,7 +515,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE_E ->
-                              let res,_ = MPathfinder.dijkstra_path tile_below_src tile_below_dst context.grid ent_below#get_current_mp ent_below#get_lt in
+                              let res,_ = MPathfinder.a_star_path_to tile_below_src tile_below_dst context.grid ent_below#get_lt in
                               res
                             | MAction_enum.ATTACK_E
                             | MAction_enum.PICKUP_ITEM_E ->
@@ -539,7 +556,7 @@ module MGameContext = struct
                           begin
                             match e with
                             | MAction_enum.MOVE_E ->
-                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_current_mp ent_below#get_lt
+                              MPathfinder.dijkstra_reachable tile_below_src tile_below_current context.grid ent_below#get_mp ent_below#get_lt
                             | MAction_enum.ATTACK_E
                             | MAction_enum.USE_ITEM_E _ 
                             | MAction_enum.PICKUP_ITEM_E ->
@@ -600,7 +617,8 @@ module MGameContext = struct
             movement_range_selector = movement_range_selector;
             animation = new_animation;
             action_type = action_type;
-            new_turn = new_turn
+            new_turn = new_turn;
+            scale = scale
           }
       else
         ctx_before_event

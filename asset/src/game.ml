@@ -32,29 +32,29 @@ module MGame = struct
 
   (*  Render all the units in the list that is of layer l as a side effect,
       also returns the information about these units *)
-  let render_units_and_return_info renderer textures camera frame faction_list layer =
+  let render_units_and_return_info renderer textures scale camera frame faction_list layer =
     (* Iterate over each faction  *)
     List.fold_left (
-      fun acc1 x1 ->
+      fun acc1 faction ->
         (* Iterate over each unit of a faction  *)
         let tmp = List.fold_left (
-            fun acc2 x2 ->
-              if x2#check_layer layer then
+            fun acc2 entity ->
+              if entity#check_layer layer then
                 (* Render the unit *)
                 let x,y = 
-                  MEntity.render renderer x2 textures (MCamera.get_rect camera) frame
+                  MEntity.render renderer entity textures scale (MCamera.get_rect camera) frame
                 in
-                let info = MEntity_information.get_info x2 x y in
+                let info = MEntity_information.get_info entity x y in
                 info :: acc2
               else
                 acc2
-          ) acc1 (MFaction.get_entity x1)
+          ) acc1 (MFaction.get_entity faction)
         in
         tmp @ acc1
     ) [] faction_list
 
   (* Render the animated and return the info of the animated *)
-  let render_animated_and_return_info renderer textures camera frame animation = 
+  let render_animated_and_return_info renderer textures scale camera frame animation = 
     List.fold_left (
       fun acc t ->  
         let pos_x,pos_y = MAnimation.next_coord_currently_animated t in
@@ -63,7 +63,7 @@ module MGame = struct
         let x,y = MEntity.render renderer 
             ~x:(Some pos_x)
             ~y:(Some pos_y)
-            (MAnimation.get_currently_animated t) textures (MCamera.get_rect camera) frame
+            (MAnimation.get_currently_animated t) textures scale (MCamera.get_rect camera) frame
         in
 
         (* Render some effects *)
@@ -72,7 +72,7 @@ module MGame = struct
           match fx with
           | None -> ()
           | Some fx -> 
-            MFx.render renderer fx textures (MCamera.get_rect camera) frame;
+            MFx.render renderer fx textures scale (MCamera.get_rect camera) frame;
         in
 
         let info = MEntity_information.get_info entity x y in
@@ -93,22 +93,22 @@ module MGame = struct
       manage_result (Sdl.render_clear renderer) "Error : %s";
 
       (* Render the background *)
-      MBackground.render renderer (MTexture_pack.get_bg textures) (MCamera.get_rect context.camera);
+      MBackground.render renderer (MTexture_pack.get_bg textures) context.scale (MCamera.get_rect context.camera);
 
       (* Render the tiles *)
-      MGrid.render renderer textures context.grid (MCamera.get_rect context.camera) context.frame;
+      MGrid.render renderer textures context.grid context.scale (MCamera.get_rect context.camera) context.frame;
 
 
       (* Store all the information of each entity *)
       let info =
         (* Render the infrastructures *)
-        let l1 = render_units_and_return_info renderer textures context.camera context.frame context.faction_list MLayer_enum.INFRASTRUCTURE in
+        let l1 = render_units_and_return_info renderer textures context.scale context.camera context.frame context.faction_list MLayer_enum.INFRASTRUCTURE in
 
         (* Render the military *)
-        let l2 = render_units_and_return_info renderer textures context.camera context.frame context.faction_list MLayer_enum.MILITARY in
+        let l2 = render_units_and_return_info renderer textures context.scale context.camera context.frame context.faction_list MLayer_enum.MILITARY in
 
         (* Rendert he animated *)
-        let l3 = render_animated_and_return_info renderer textures context.camera context.frame context.animation in
+        let l3 = render_animated_and_return_info renderer textures context.scale context.camera context.frame context.animation in
         l1 @ l2 @ l3
       in
 
@@ -117,7 +117,7 @@ module MGame = struct
           match x with
           | None -> ()
           | Some x ->
-            MEntity_information.render renderer textures x
+            MEntity_information.render renderer textures context.scale x
         ) info;
 
       (* Render the selector ( cursor ) *)
@@ -187,7 +187,7 @@ module MGame = struct
       let _ = create_random_nuke grid in
 
       let faction_code1 = 
-        MFaction_enum.create MFaction_enum.USA
+        MFaction_enum.create MFaction_enum.EU
       in 
       let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
       let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
@@ -207,30 +207,29 @@ module MGame = struct
       in
 
       let soldier3 = create_random_soldier grid faction_code2 in
-      (* let soldier4 = create_random_soldier grid faction_code2 in *)
-      (* let city1 = create_random_city grid faction_code2 in *)
+      let soldier4 = create_random_soldier grid faction_code2 in
+      let city1 = create_random_city grid faction_code2 in
 
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
         MFaction.add_entity soldier3 f
-        (* |> MFaction.add_entity soldier4 *)
-        (* |> MFaction.add_entity city1 *)
+        |> MFaction.add_entity soldier4
+        |> MFaction.add_entity city1
       in
 
       let faction_code3 = 
-        MFaction_enum.create MFaction_enum.EU
+        MFaction_enum.create MFaction_enum.USA
       in
 
-      (* let soldier6 = create_random_soldier grid faction_code3 in *)
-      (* let soldier7 = create_random_soldier grid faction_code3 in *)
-      (* let city2 = create_random_city grid faction_code3 in *)
+      let soldier6 = create_random_soldier grid faction_code3 in
+      let soldier7 = create_random_soldier grid faction_code3 in
+      let city2 = create_random_city grid faction_code3 in
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
-        (* MFaction.add_entity soldier6 f *)
-        (* |> MFaction.add_entity soldier7 *)
-        (* |> MFaction.add_entity city2 *)
-        f
+        MFaction.add_entity soldier6 f
+        |> MFaction.add_entity soldier7
+        |> MFaction.add_entity city2
       in
 
       let camera_rect =
@@ -258,6 +257,7 @@ module MGame = struct
         frame = 0;
         current_layer = MLayer_enum.MILITARY;
         window = MMenu.get_window menu_result;
+        scale = 1.
       } in
 
       let txt = MTexture_pack.create renderer in

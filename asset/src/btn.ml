@@ -56,17 +56,18 @@ module MBtn = struct
 
 
   (* Render a btn *)
-  let render renderer btn texture = 
+  let render renderer scale btn texture = 
 
     (* Render the button *)
     let clip = status_to_clip btn.status in
     MTexture.render renderer
-      ~clip: (Some clip)
+      ~clip_src: (Some clip)
+      ~scale:scale
       ~x:btn.x
       ~y:btn.y
       texture
 
-  let render_text renderer btn texture = 
+  let render_text renderer scale btn texture = 
     let offset_base = 10 in 
     let offset_pressed = if is_pressed btn then
         10
@@ -77,6 +78,7 @@ module MBtn = struct
     in
     let final_offset = offset_base + offset_pressed in
     MTexture.render renderer
+      ~scale:scale
       ~x:(btn.x + final_offset)
       ~y:(btn.y + offset_base)
       texture

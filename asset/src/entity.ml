@@ -34,7 +34,7 @@ module MEntity = struct
 
 
   exception Unsifficient_mp
-  class entity id r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
+  class entity id r q hp ap mp atks defs ar pa aos faction ut lt at tt pc behaviour = 
     object(self)
       inherit game_object r q as super
 
@@ -53,6 +53,7 @@ module MEntity = struct
       method is_low_hp = 
         let threshold = (MEntity_enum.max_hp_of ut)/2 in
         hp <= threshold
+      method is_dead = hp <= 0
 
       (* Invetory *)
       val inventory : MInventory.t = MInventory.empty
@@ -62,7 +63,6 @@ module MEntity = struct
 
       val ap : int = ap (* ARMOR POINT *)
       val mp : int = mp (* MOVEMENT POINT *)
-      val current_mp : int = current_mp (* CURRENT MOVEMENT POINT *)
       val atks : int = atks (* STRENGTH ON ATTACK *)
       val defs : int = defs (* STRENGTH ON DEFENSE *)
       val ar : int = ar (* ATTACK RANGE *)
@@ -77,7 +77,6 @@ module MEntity = struct
       val behaviour : MBehaviour_enum.t = behaviour
       method get_ap = ap
       method get_mp = mp
-      method get_current_mp = current_mp
       method get_atks = atks
       method get_defs = defs
       method get_pa = pa
@@ -95,26 +94,28 @@ module MEntity = struct
       method get_behaviour = behaviour
       method check_status s = self#get_status = s
       method remove_mp n = 
-        let tmp = self#get_current_mp-n in
-        if tmp >= 0 then
-          {< current_mp = tmp>}
-        else
-          raise Unsifficient_mp
-      method remove_hp damage = {< hp = self#get_hp-damage>}
-      method refill_mp = {<current_mp = self#get_mp>}
-      method can_move = self#get_current_mp <> 0
-      method empty_mp = {<current_mp = 0>}
+        (* TODO : put exception not enough MP *)
+        let tmp = self#get_mp-n in
+        let () = 
+          if tmp < 0 then
+            debug ("Unit " ^ (string_of_int id) ^ " did not have enough movement points")
+        in
+        {< mp = tmp>}
+      method remove_hp damage = {< hp = max 0 (self#get_hp-damage)>}
+      method refill_mp = {<mp = MEntity_enum.max_mp_of ut>}
+      method can_move = self#get_mp > 0
+      method empty_mp = {<mp = 0>}
       method check_layer l = self#get_lt = l
       method check_unit_type ut = self#get_ut = ut
     end
   type t = entity
 
-  let create r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc = 
+  let create r q hp ap mp atks defs ar pa aos faction ut lt at tt pc = 
     let new_id = incr identifier in
-    new entity new_id r q hp ap mp current_mp atks defs ar pa aos faction ut lt at tt pc
+    new entity new_id r q hp ap mp atks defs ar pa aos faction ut lt at tt pc
 
   let create_fx_binder () =
-    new entity (-1) 0 0 0 0 0 0 0 0 0 [] [] (MFaction_enum.EU,-1) MEntity_enum.FX_BINDER MLayer_enum.MILITARY MELEE GROUND 0 MBehaviour_enum.WANDERING
+    new entity (-1) 0 0 0 0 0 0 0 0 [] [] (MFaction_enum.EU,-1) MEntity_enum.FX_BINDER MLayer_enum.MILITARY MELEE GROUND 0 MBehaviour_enum.WANDERING
 
   let is_infrastructure t =
     match t#get_ut with
@@ -127,7 +128,7 @@ module MEntity = struct
   let to_string t =
     (MHex.to_string_ax t#get_axial) 
     ^ " hp : " ^ (string_of_int t#get_hp)
-    ^ " current mp : " ^(string_of_int t#get_current_mp)
+    ^ " mp : " ^(string_of_int t#get_mp)
     ^ " layer : " ^ (layer_to_string t#get_lt)
     ^ " behaviour : " ^(MBehaviour_enum.to_string t#get_behaviour)
     ^ " inventory : " ^(MInventory.to_string t#get_inventory)
@@ -170,7 +171,7 @@ module MEntity = struct
   let render renderer 
       ?(x:int option = None) 
       ?(y:int option = None)
-      e texture camera frame_n =
+      e texture scale camera frame_n =
     match e#get_ut with
     | MEntity_enum.FX_BINDER -> 0,0
     | _ ->
@@ -197,9 +198,10 @@ module MEntity = struct
 
           (* Then render the entity *)
           MTexture.render renderer
-            ~clip:(clip)
+            ~clip_src:(clip)
             ~x:pos_x
             ~y:pos_y
+            ~scale:scale
             txt;
       in pos_x,pos_y
 end

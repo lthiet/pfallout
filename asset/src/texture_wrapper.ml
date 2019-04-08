@@ -75,7 +75,9 @@ module MTexture = struct
   (* Render the texture t with renderer at position x and y on the rectangle clip *)
   let render
       renderer
-      ?(clip: Sdl.rect option = None)
+      ?(clip_src: Sdl.rect option = None)
+      ?(clip_dst: Sdl.rect option = None)
+      ?(scale:float = 1.)
       ?(x:int = 0)
       ?(y:int = 0)
       ?(angle:float = 0.)
@@ -84,19 +86,27 @@ module MTexture = struct
       t =
     (* Get the width and height of the portion of the texture if it exists *)
     let w,h =
-      match clip with
+      match clip_src with
       | None ->
         t.mWidth, t.mHeight
       | Some r ->
         (Sdl.Rect.w r),(Sdl.Rect.h r)
     in
 
+    let scaled_x,scaled_y,scaled_w,scaled_h =
+      scale_to x scale,
+      scale_to y scale,
+      scale_to w scale,
+      scale_to h scale
+    in
+
+
 
     (* Set rendering space and render to screen *)
-    let renderQuad = make_rect x y w h in
+    let renderQuad = make_rect scaled_x scaled_y scaled_w scaled_h in
 
     (* Render *)
-    match clip with 
+    match clip_src with 
     | None ->
       manage_result (
         Sdl.render_copy_ex renderer t.mTexture angle center flip ~dst:renderQuad 

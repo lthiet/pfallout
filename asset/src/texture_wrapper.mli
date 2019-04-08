@@ -9,7 +9,9 @@ module MTexture : sig
   val load_from_rendered_text : Sdl.renderer -> Ttf.font -> string -> Sdl.color -> t
   val free : t -> unit
   val render : Sdl.renderer 
-    -> ?clip:Sdl.rect option
+    -> ?clip_src:Sdl.rect option
+    -> ?clip_dst:Sdl.rect option
+    -> ?scale:float
     -> ?x:int
     -> ?y:int
     -> ?angle:float

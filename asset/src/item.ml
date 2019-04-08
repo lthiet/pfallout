@@ -95,7 +95,7 @@ module MItem = struct
     new item r q (NUKE radius)
 
   (* Render the item *)
-  let render renderer item texture camera frame_n =
+  let render renderer item texture scale camera frame_n =
     if not item#is_owned then
       if check_collision item#get_box camera then
         let x,y = 
@@ -112,6 +112,7 @@ module MItem = struct
         MTexture.render renderer
           ~x:x
           ~y:y
+          ~scale:scale
           txt
 end
 ;;

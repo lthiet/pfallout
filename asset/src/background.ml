@@ -5,7 +5,7 @@ open Utils
 (* Constants *)
 module MBackground = struct
 
-  let render renderer texture camera = 
+  let render renderer texture scale camera = 
     let t = texture in
     let t_w = MTexture.get_w t in
     let t_h = MTexture.get_h t in
@@ -19,6 +19,7 @@ module MBackground = struct
         MTexture.render renderer
           ~x:(i*t_w - c_x)
           ~y:(j*t_h - c_y)
+          ~scale:scale
           texture
       done;
     done;
