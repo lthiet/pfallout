@@ -4,24 +4,24 @@ open Tsdl_ttf
 open Texture_wrapper
 open Keyboard_wrapper
 open Mouse_wrapper
-open Btn
+open Button
 
 module MMenu = struct
   let ev = Some (Sdl.Event.create ())
 
   type context = {
     over : bool;
-    btn_start : MBtn.t;
+    btn_start : MButton.t;
 
     (******************)
     settings : bool;
-    btn_settings : MBtn.t;
+    btn_settings : MButton.t;
     map_size : int;
 
-    btn_return : MBtn.t;
-    btn_Smapsize : MBtn.t;
-    btn_Mmapsize : MBtn.t;
-    btn_Lmapsize : MBtn.t;
+    btn_return : MButton.t;
+    btn_Smapsize : MButton.t;
+    btn_Mmapsize : MButton.t;
+    btn_Lmapsize : MButton.t;
     window : Sdl.window
   }
 
@@ -42,17 +42,17 @@ module MMenu = struct
   (*************)
   (*Checks is the mouse is above a button*)
   let check_mouse_above_button button event =
-    let x,y,w,h = MBtn.get_coord button in
+    let x,y,w,h = MButton.get_coord button in
     if MMouse.is_inside event x y w h then (
       if check_ev_type event Sdl.Event.mouse_button_down then
         {
           button with
-          status = MBtn.PRESSED
+          status = MButton.PRESSED
         }
       else if check_ev_type event Sdl.Event.mouse_button_up then
         {
           button with
-          status = MBtn.RELEASED
+          status = MButton.RELEASED
         }
       else
         button
@@ -60,7 +60,7 @@ module MMenu = struct
     else
       {
         button with
-        status = MBtn.IDLE
+        status = MButton.IDLE
       }
 
   let update_context context = 
@@ -82,11 +82,11 @@ module MMenu = struct
           let btn_settings = check_mouse_above_button context.btn_settings e
           in
 
-          let settings = MBtn.is_released btn_settings
+          let settings = MButton.is_released btn_settings
           in
 
           (* If the user clicks the red cross button, the game closes *)
-          let over = check_ev_type e Sdl.Event.quit || MBtn.is_released btn_start in
+          let over = check_ev_type e Sdl.Event.quit || MButton.is_released btn_start in
           { context with
             over = over;
             btn_start = btn_start;
@@ -117,12 +117,12 @@ module MMenu = struct
           let btn_Lmapsize = check_mouse_above_button context.btn_Lmapsize e
           in
 
-          let settings = not (MBtn.is_released btn_return)
+          let settings = not (MButton.is_released btn_return)
           in
 
-          let map_size = if MBtn.is_released btn_Smapsize then 4
-            else if MBtn.is_released btn_Mmapsize then 6
-            else if MBtn.is_released btn_Lmapsize then 8
+          let map_size = if MButton.is_released btn_Smapsize then 4
+            else if MButton.is_released btn_Mmapsize then 6
+            else if MButton.is_released btn_Lmapsize then 8
             else context.map_size
           in		
 
@@ -156,7 +156,7 @@ module MMenu = struct
 
   let compute_result ctx =
     {
-      start_game = MBtn.is_released ctx.btn_start;
+      start_game = MButton.is_released ctx.btn_start;
 
       (*****************)
       map_size = ctx.map_size;
@@ -180,13 +180,13 @@ module MMenu = struct
         (* Display the settings background *)
         MTexture.render ~scale:scale renderer textures.settings_bg;
         (* Display the return button *)
-        MBtn.render renderer scale new_ctx.btn_return textures.btn_return;
+        MButton.render renderer scale new_ctx.btn_return textures.btn_return;
         (* Display the small mapsize button *)
-        MBtn.render renderer scale new_ctx.btn_Smapsize textures.btn_Smapsize;
+        MButton.render renderer scale new_ctx.btn_Smapsize textures.btn_Smapsize;
         (* Display the medium mapsize button *)
-        MBtn.render renderer scale new_ctx.btn_Mmapsize textures.btn_Mmapsize;
+        MButton.render renderer scale new_ctx.btn_Mmapsize textures.btn_Mmapsize;
         (* Display the large mapsize button *)
-        MBtn.render renderer scale new_ctx.btn_Lmapsize textures.btn_Lmapsize;
+        MButton.render renderer scale new_ctx.btn_Lmapsize textures.btn_Lmapsize;
 
         (* Update the renderer *)
         Sdl.render_present renderer;
@@ -199,12 +199,12 @@ module MMenu = struct
         (* Display the menu background *)
         MTexture.render ~scale:scale renderer textures.bg;
         (* Display the start button *)
-        MBtn.render renderer scale new_ctx.btn_start textures.btn;
+        MButton.render renderer scale new_ctx.btn_start textures.btn;
         (* Display the start button text *)
-        MBtn.render_text renderer scale new_ctx.btn_start textures.btn_start_text;
+        MButton.render_text renderer scale new_ctx.btn_start textures.btn_start_text;
 
         (****************************)
-        MBtn.render renderer scale new_ctx.btn_settings textures.btn_settings;
+        MButton.render renderer scale new_ctx.btn_settings textures.btn_settings;
 
         (* Update the renderer *)
         Sdl.render_present renderer;
@@ -243,13 +243,13 @@ module MMenu = struct
     } in
     let ctx  = {
       over = false;
-      btn_start = MBtn.create (960+ (MBtn.width/2)) 750 MBtn.START;
+      btn_start = MButton.create (960+ (MButton.width/2)) 750;
       settings = false;
-      btn_settings = MBtn.create (960- 3*(MBtn.width/2)) 750 MBtn.OPTION;
-      btn_return = MBtn.create (960- (MBtn.width/2)) 750 MBtn.OPTION; (**********MBTN OPTION INUTILE ?*********)
-      btn_Smapsize = MBtn.create (480 - (MBtn.width/2)) 200 MBtn.OPTION;
-      btn_Mmapsize = MBtn.create (960- (MBtn.width/2)) 80 MBtn.OPTION;
-      btn_Lmapsize = MBtn.create (1440- (MBtn.width/2)) 200 MBtn.OPTION;
+      btn_settings = MButton.create (960- 3*(MButton.width/2)) 750 ;
+      btn_return = MButton.create (960- (MButton.width/2)) 750 ; (**********MButton OPTION INUTILE ?*********)
+      btn_Smapsize = MButton.create (480 - (MButton.width/2)) 200 ;
+      btn_Mmapsize = MButton.create (960- (MButton.width/2)) 80 ;
+      btn_Lmapsize = MButton.create (1440- (MButton.width/2)) 200 ;
       map_size = 6;
       window = window
     } in

@@ -1,11 +1,24 @@
+open Button
+open Window
+open Tree
+
+(* Implements the interface of the game *)
 
 module MInterface = struct
 
-    type t = 
-        |Fenetre of Mwdw.t
-        |Btn of Mbtn.t;
+  (* A single element from the interface *)
+  type t = {
+      (* All the coordinates are relative to the parent *)
+      x : int; 
+      y : int;
+      w : int;
+      h : int;
+  }
 
-    let render renderer interface texture =
-        match interface with
-        | Fenetre -> Mwdw.render renderer interface texture
-        | Btn -> MBtn.render renderer interface texture
+  (* The whole interface currently displayed,
+     only the interface at the top of the list can
+     be interacted with, the rest is only displayed *)
+  type structure = t MTree.tree list
+end
+
+

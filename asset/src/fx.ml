@@ -53,7 +53,6 @@ module MFx = struct
     let angle = 
       match fx.code with
       | NUKE_DROP -> 10. *. cos (float_of_int (frame_n/3)) ;
-
       | _ -> 0.0
     in
     MTexture.render renderer ~clip_src:(Some clip) ~scale:scale ~angle:angle ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture

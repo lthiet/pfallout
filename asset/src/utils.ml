@@ -34,20 +34,6 @@ let check_key_scan ks i =
 let check_ev_type e t =
   Sdl.Event.get e Sdl.Event.typ = t
 
-let check_collision a b =
-  let la = Sdl.Rect.x a in
-  let lb = Sdl.Rect.x b in
-  let ra = la + Sdl.Rect.w a in
-  let rb = lb + Sdl.Rect.w b in
-  let ta = Sdl.Rect.y a in
-  let tb = Sdl.Rect.y b in
-  let ba = ta + Sdl.Rect.h a in
-  let bb = tb + Sdl.Rect.h b in
-  if ba <= tb || ta >= bb || ra <= lb || la >= rb then
-    false
-  else
-    true
-
 let char_is_number c =
   match c with
   | '0'
@@ -119,6 +105,41 @@ let scale_to x r =
   round ((float_of_int x) *. r)
 
 let inverse r = 1. /. r
+
+let scale_rect rect r =
+  let x,y,w,h =
+    Sdl.Rect.x rect,
+    Sdl.Rect.y rect,
+    Sdl.Rect.w rect,
+    Sdl.Rect.h rect
+  in
+  let x',y',w',h' =
+    scale_to x r,
+    scale_to y r,
+    scale_to w r,
+    scale_to h r
+  in
+  Sdl.Rect.create x' y' w' h'
+
+
+
+let check_collision a b =
+  Sdl.has_intersection a b
+
+let rect_to_string rect =
+  let x,y,w,h =
+    Sdl.Rect.x rect,
+    Sdl.Rect.y rect,
+    Sdl.Rect.w rect,
+    Sdl.Rect.h rect
+  in
+  "x :" ^ (string_of_int x) ^ " " ^
+  "y :" ^ (string_of_int y) ^ " " ^
+  "w :" ^ (string_of_int w) ^ " " ^
+  "h :" ^ (string_of_int h) ^ " "
+
+
+
 
 let debug str =
   print_newline ();

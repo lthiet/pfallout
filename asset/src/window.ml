@@ -26,5 +26,6 @@ module MWindow = struct
         ~x:wdw.x
         ~y:wdw.y
         texture
+end
 
 

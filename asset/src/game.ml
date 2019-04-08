@@ -41,10 +41,10 @@ module MGame = struct
             fun acc2 entity ->
               if entity#check_layer layer then
                 (* Render the unit *)
-                let x,y = 
+                let x,y,displayed = 
                   MEntity.render renderer entity textures scale (MCamera.get_rect camera) frame
                 in
-                let info = MEntity_information.get_info entity x y in
+                let info = MEntity_information.get_info entity x y displayed in
                 info :: acc2
               else
                 acc2
@@ -60,7 +60,7 @@ module MGame = struct
         let pos_x,pos_y = MAnimation.next_coord_currently_animated t in
         (* Render the entity *)
         let entity = MAnimation.get_currently_animated t in
-        let x,y = MEntity.render renderer 
+        let x,y,displayed = MEntity.render renderer 
             ~x:(Some pos_x)
             ~y:(Some pos_y)
             (MAnimation.get_currently_animated t) textures scale (MCamera.get_rect camera) frame
@@ -75,7 +75,7 @@ module MGame = struct
             MFx.render renderer fx textures scale (MCamera.get_rect camera) frame;
         in
 
-        let info = MEntity_information.get_info entity x y in
+        let info = MEntity_information.get_info entity x y displayed in
         (* Create the info and put it in the acc *)
         info :: acc
     ) [] (MAnimation.get_current_animated_and_next animation)
@@ -87,28 +87,29 @@ module MGame = struct
       ()
     else
       let new_context = MGameContext.update_context context in
+      let scaled_camera = MCamera.scale context.camera context.scale in
 
       (* Clear *)
       manage_result (Sdl.set_render_draw_color renderer 255 255 255 255) "Error : %s";
       manage_result (Sdl.render_clear renderer) "Error : %s";
 
       (* Render the background *)
-      MBackground.render renderer (MTexture_pack.get_bg textures) context.scale (MCamera.get_rect context.camera);
+      MBackground.render renderer (MTexture_pack.get_bg textures) context.scale (MCamera.get_rect scaled_camera);
 
       (* Render the tiles *)
-      MGrid.render renderer textures context.grid context.scale (MCamera.get_rect context.camera) context.frame;
+      MGrid.render renderer textures context.grid context.scale (MCamera.get_rect scaled_camera) context.frame;
 
 
       (* Store all the information of each entity *)
       let info =
         (* Render the infrastructures *)
-        let l1 = render_units_and_return_info renderer textures context.scale context.camera context.frame context.faction_list MLayer_enum.INFRASTRUCTURE in
+        let l1 = render_units_and_return_info renderer textures context.scale scaled_camera context.frame context.faction_list MLayer_enum.INFRASTRUCTURE in
 
         (* Render the military *)
-        let l2 = render_units_and_return_info renderer textures context.scale context.camera context.frame context.faction_list MLayer_enum.MILITARY in
+        let l2 = render_units_and_return_info renderer textures context.scale scaled_camera context.frame context.faction_list MLayer_enum.MILITARY in
 
         (* Rendert he animated *)
-        let l3 = render_animated_and_return_info renderer textures context.scale context.camera context.frame context.animation in
+        let l3 = render_animated_and_return_info renderer textures context.scale scaled_camera context.frame context.animation in
         l1 @ l2 @ l3
       in
 
@@ -121,12 +122,12 @@ module MGame = struct
         ) info;
 
       (* Render the selector ( cursor ) *)
-      MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector (MCamera.get_rect context.camera);
+      MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector context.scale (MCamera.get_rect scaled_camera);
 
       (* Render the movement range selector *)
       List.iter (
         fun x -> let c = MCursor.create x#get_r x#get_q MCursor.POSSIBLE in
-          MCursor.render renderer (MTexture_pack.get_curs textures) c (MCamera.get_rect context.camera);
+          MCursor.render renderer (MTexture_pack.get_curs textures) c context.scale (MCamera.get_rect scaled_camera);
       ) context.movement_range_selector;
 
 

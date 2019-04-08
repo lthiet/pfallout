@@ -1,15 +1,10 @@
 open Tsdl
 open Texture_wrapper
 
-module MBtn = struct
+module MButton = struct
 
   let width = 400
   let height = 260
-
-  type role =
-    | START
-    | QUIT
-    | OPTION
 
   let idle = Sdl.Rect.create 0 0 width height
   let pressed = Sdl.Rect.create width 0 width height
@@ -28,14 +23,12 @@ module MBtn = struct
   type t = {
     x : int;
     y : int;
-    role : role;
     status : status
   }
 
-  let create x y role = {
+  let create x y = {
     x = x;
     y = y;
-    role = role;
     status = IDLE;
   }
 
@@ -48,8 +41,6 @@ module MBtn = struct
     match btn.status with
     | RELEASED -> true
     | _ -> false
-
-
 
   let get_coord btn =
     btn.x,btn.y,width,height

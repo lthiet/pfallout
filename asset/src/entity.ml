@@ -173,7 +173,7 @@ module MEntity = struct
       ?(y:int option = None)
       e texture scale camera frame_n =
     match e#get_ut with
-    | MEntity_enum.FX_BINDER -> 0,0
+    | MEntity_enum.FX_BINDER -> 0,0,false
     | _ ->
       let clip = 
         if is_military e then
@@ -192,8 +192,9 @@ module MEntity = struct
         | _,_ -> raise Option_coord_need_to_be_both_none_or_some
       in
 
+      let displayed = check_collision e#get_box camera in
       let () =
-        if check_collision e#get_box camera then
+        if displayed then
           let txt = entity_textures e texture in
 
           (* Then render the entity *)
@@ -203,6 +204,6 @@ module MEntity = struct
             ~y:pos_y
             ~scale:scale
             txt;
-      in pos_x,pos_y
+      in pos_x,pos_y,displayed
 end
 ;;

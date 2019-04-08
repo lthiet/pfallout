@@ -19,6 +19,7 @@ open Camera
 open Layer_enum
 open Item
 open Inventory
+open Interface
 
 let ev = Some (Sdl.Event.create ())
 
@@ -67,7 +68,7 @@ module MGameContext = struct
 
 
   (* Return a new camera based on user input *)
-  let get_camera ev window camera =
+  let get_camera ev window camera scale =
     MCamera.change_direction camera ev |> MCamera.update_camera window
 
   type keyset = {
@@ -431,15 +432,18 @@ module MGameContext = struct
     (* Get the next event in the queue *)
     let ctx_with_event = if (Sdl.poll_event ev) then
         match ev with
-        (* If no event, nothing to do *)
+        (* If no event, nothing to do, except update camera position *)
         | None ->
-          ctx_before_event
+          {
+            ctx_before_event with
+            camera = MCamera.update_camera context.window context.camera
+          }
         (* Otherwise, check the event *)
         | Some e ->
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let scale = get_scale e ctx_before_event in
-          let camera = get_camera e ctx_before_event.window ctx_before_event.camera in
+          let camera = get_camera e ctx_before_event.window ctx_before_event.camera scale in
           let cursor_selector_ks = {
             up = Sdl.Scancode.up;
             down = Sdl.Scancode.down;

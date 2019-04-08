@@ -95,4 +95,24 @@ module MCamera = struct
     else
       c
 
+  let scale t r= 
+    let rect = t.rect in
+    let x,y,w,h =
+      Sdl.Rect.x rect,
+      Sdl.Rect.y rect,
+      Sdl.Rect.w rect,
+      Sdl.Rect.h rect
+    in
+    let x',y',w',h' =
+      scale_to x r,
+      scale_to y r,
+      scale_to w (inverse r),
+      scale_to h (inverse r)
+    in
+    {
+      t with
+      rect =  Sdl.Rect.create x' y' w' h'
+    }
+
+
 end

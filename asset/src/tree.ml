@@ -1,30 +1,19 @@
-(* Adapted from : https://gist.github.com/owainlewis/3829544 *)
-
 module MTree = struct
   type 'a tree = 
-      Leaf | Node of 'a * 'a tree list
+    {
+      elem : 'a;
+      children : 'a tree list
+    }
 
-  let empty = Leaf
+  let get_elem t = t.elem
+  let get_children t = t.children
 
-  exception Empty_tree
-  let get_father t = 
-    match t with
-    | Leaf -> raise Empty_tree
-    | Node (a,l) -> a
+  let rec iter t f =
+    let () = f t.elem in
+    List.iter ( fun x -> iter x f ) t.children
 
-
-  let get_sons t = 
-    match t with
-    | Leaf -> raise Empty_tree
-    | Node (a,l) -> l
-
-  let create x =
-    Node(x,[])
-
-  let add_sons l t =
-    Node((get_father t),l)
-
-
-
+  let rec fold t f acc =
+    let acc_e = f acc t.elem in
+    List.fold_left (fun acc_l x -> fold x f acc_l) acc_e t.children
 
 end
