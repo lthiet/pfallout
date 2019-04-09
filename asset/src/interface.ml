@@ -3,7 +3,6 @@ open Tsdl
 open Utils
 open Texture_pack
 open Texture_wrapper
-open Event_listener
 
 (* Implements the interface of the game *)
 (* All interface textures must have a corner, top, left and center texture, they may also have multiple state if needed *)
@@ -30,7 +29,6 @@ module MInterface = struct
     h : int;
     kind : kind;
     role : role;
-    event_listeners : MEvent_listener.t list
   }
 
   let modify t x y w h =
@@ -76,36 +74,7 @@ module MInterface = struct
       h = h;
       kind = COMPOSED;
       role = WINDOW;
-      event_listeners = []
     }
-
-  let add_event_listener evl t =
-    {
-      t with
-      event_listeners = evl :: t.event_listeners
-    }
-
-  let remove_event_listener evl t =
-    let l = List.fold_left 
-        ( fun acc x -> 
-            if x = evl then
-              acc
-            else
-              x :: acc
-        )
-        [] t.event_listeners
-    in
-    {
-      t with
-      event_listeners = l
-    }
-
-  let compute_event_listener interface event= 
-    List.fold_left (
-      fun acc x ->
-        (MEvent_listener.compute_event x event) :: acc
-    ) [] interface.event_listeners
-
 
   type rects = {
     corner_top_left: Sdl.rect;

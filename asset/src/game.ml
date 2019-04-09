@@ -247,25 +247,33 @@ module MGame = struct
         in
         Sdl.Rect.create (start*MHex.size) (start*MHex.size) sw sh in
 
-      let evl = MEvent_listener.create Sdl.Event.key_down
-          ( fun event -> 
-              if MKeyboard.get_scancode event = Sdl.Scancode.y then
-                MEvent_listener.WINDOW_RESIZE(0,-10)
-              else if MKeyboard.get_scancode event = Sdl.Scancode.h then
-                MEvent_listener.WINDOW_RESIZE(0,10)
-              else if MKeyboard.get_scancode event = Sdl.Scancode.g then
-                MEvent_listener.WINDOW_RESIZE(-10,0)
-              else if MKeyboard.get_scancode event = Sdl.Scancode.j then
-                MEvent_listener.WINDOW_RESIZE(10,0)
-              else
-                MEvent_listener.WINDOW_RESIZE(0,0)
-          )
+      let interface =
+        MInterface.create_window 300 300 518 387
       in
 
-      let interface =
-        let tmp = MInterface.create_window 300 300 518 387
-                  |> MInterface.add_event_listener evl in
-        [MTree.create tmp []]
+      let interface_tree = 
+        let x = MTree.create interface [] in
+        [x]
+      in
+
+      let evl = MEvent_listener.create Sdl.Event.key_down interface
+          (fun ev evl param -> 
+             let old_interface = MEvent_listener.get_interface evl in
+             let pressed_key = MKeyboard.get_scancode ev in
+             let offset = 10 in
+             let res = 
+               if pressed_key = Sdl.Scancode.h then
+                 MInterface.incr_h old_interface offset
+               else if pressed_key = Sdl.Scancode.y then
+                 MInterface.incr_h old_interface (-offset)
+               else if pressed_key = Sdl.Scancode.j then
+                 MInterface.incr_w old_interface offset
+               else if pressed_key = Sdl.Scancode.g then
+                 MInterface.incr_w old_interface (-offset)
+               else
+                 old_interface
+             in MEvent_listener.WINDOW_RESIZE_O(res)
+          )
       in
 
       let ctx : MGameContext.t = {
@@ -288,7 +296,8 @@ module MGame = struct
         current_layer = MLayer_enum.MILITARY;
         window = MMenu.get_window menu_result;
         scale = 1.;
-        interface = interface
+        interface = interface_tree;
+        event_listeners = [evl]
       } in
 
       let txt = MTexture_pack.create renderer in

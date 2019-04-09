@@ -49,7 +49,7 @@ module MGameContext = struct
     interface : MInterface.structure;
     current_layer : MLayer_enum.t;
     window : Sdl.window;
-
+    event_listeners : MEvent_listener.t list
   }
 
   exception Nothing
@@ -442,39 +442,41 @@ module MGameContext = struct
           }
         (* Otherwise, check the event *)
         | Some e ->
-          let foreground_interface,background_interface = 
-            match context.interface with
-            | [] -> raise No_interface
-            | x :: s -> x,s
-          in
-          let interface = MTree.get_elem foreground_interface
-          in
-          let offset_w,offset_h = 
-            let l = MInterface.compute_event_listener interface e in
+          let new_interface =
+            let l = context.event_listeners in
             match l with
             | [] -> raise Exit
-            | x :: s -> 
+            | x :: _ -> 
               begin
-                match x with
+                let tmp = MEvent_listener.compute_event x e MEvent_listener.WINDOW_RESIZE_P
+                in
+                match tmp with
                 | None -> 
                   begin
-                    0,0
+                    match context.interface with
+                    | [] -> raise Exit
+                    | x :: _ ->
+                      MTree.get_elem x
                   end
                 | Some k ->
                   begin
                     match k with
-                    | MEvent_listener.WINDOW_RESIZE(w,h) -> w,h
+                    | MEvent_listener.WINDOW_RESIZE_O j -> j
                   end
               end
           in
-          let new_window = 
-            let tmp = MInterface.incr_w interface offset_w in
-            MInterface.incr_h tmp offset_h
+          let interface = 
+            let tmp = MTree.create new_interface [] in
+            [tmp]
           in
-          let new_interface = 
-            let tmp = MTree.create new_window [] in
-            tmp :: background_interface
+
+          let evl = 
+            match context.event_listeners with
+            | x :: s -> x
+            | [] -> raise Exit
           in
+          let new_evl = [MEvent_listener.set_interface evl new_interface] in
+
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let scale = get_scale e ctx_before_event in
@@ -658,7 +660,8 @@ module MGameContext = struct
             action_type = action_type;
             new_turn = new_turn;
             scale = scale;
-            interface = new_interface;
+            interface = interface;
+            event_listeners = new_evl;
           }
       else
         ctx_before_event
