@@ -26,6 +26,8 @@ open Sdl_tools
 open Entity_information
 open Tsdl_ttf
 open Interface
+open Tree
+open Event_listener
 
 
 module MGame = struct
@@ -143,7 +145,7 @@ module MGame = struct
       *)
 
       (* Display the interface *)
-      MInterface.render renderer context.interface textures;
+      MInterface.render_struct renderer context.interface textures;
 
       (* Update the renderer *)
       Sdl.render_present renderer;
@@ -245,6 +247,27 @@ module MGame = struct
         in
         Sdl.Rect.create (start*MHex.size) (start*MHex.size) sw sh in
 
+      let evl = MEvent_listener.create Sdl.Event.key_down
+          ( fun event -> 
+              if MKeyboard.get_scancode event = Sdl.Scancode.y then
+                MEvent_listener.WINDOW_RESIZE(0,-10)
+              else if MKeyboard.get_scancode event = Sdl.Scancode.h then
+                MEvent_listener.WINDOW_RESIZE(0,10)
+              else if MKeyboard.get_scancode event = Sdl.Scancode.g then
+                MEvent_listener.WINDOW_RESIZE(-10,0)
+              else if MKeyboard.get_scancode event = Sdl.Scancode.j then
+                MEvent_listener.WINDOW_RESIZE(10,0)
+              else
+                MEvent_listener.WINDOW_RESIZE(0,0)
+          )
+      in
+
+      let interface =
+        let tmp = MInterface.create_window 300 300 518 387
+                  |> MInterface.add_event_listener evl in
+        [MTree.create tmp []]
+      in
+
       let ctx : MGameContext.t = {
         over = false;
         camera = MCamera.create camera_rect;
@@ -265,7 +288,7 @@ module MGame = struct
         current_layer = MLayer_enum.MILITARY;
         window = MMenu.get_window menu_result;
         scale = 1.;
-        interface = MInterface.create_window 400 400 600 600
+        interface = interface
       } in
 
       let txt = MTexture_pack.create renderer in

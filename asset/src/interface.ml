@@ -1,10 +1,9 @@
-open Button
-open Window
 open Tree
 open Tsdl
 open Utils
 open Texture_pack
 open Texture_wrapper
+open Event_listener
 
 (* Implements the interface of the game *)
 (* All interface textures must have a corner, top, left and center texture, they may also have multiple state if needed *)
@@ -18,9 +17,9 @@ module MInterface = struct
     (* Composed has mutiple part that compose its image, ie corner, top, left etc... *)
     | COMPOSED
 
-  type role =
-    | WINDOW 
+  type role = 
     | BUTTON
+    | WINDOW
 
   (* A single element from the interface *)
   type t = {
@@ -30,7 +29,8 @@ module MInterface = struct
     w : int;
     h : int;
     kind : kind;
-    role : role
+    role : role;
+    event_listeners : MEvent_listener.t list
   }
 
   let modify t x y w h =
@@ -75,8 +75,36 @@ module MInterface = struct
       w = w;
       h = h;
       kind = COMPOSED;
-      role = WINDOW
+      role = WINDOW;
+      event_listeners = []
     }
+
+  let add_event_listener evl t =
+    {
+      t with
+      event_listeners = evl :: t.event_listeners
+    }
+
+  let remove_event_listener evl t =
+    let l = List.fold_left 
+        ( fun acc x -> 
+            if x = evl then
+              acc
+            else
+              x :: acc
+        )
+        [] t.event_listeners
+    in
+    {
+      t with
+      event_listeners = l
+    }
+
+  let compute_event_listener interface event= 
+    List.fold_left (
+      fun acc x ->
+        (MEvent_listener.compute_event x event) :: acc
+    ) [] interface.event_listeners
 
 
   type rects = {
@@ -98,6 +126,7 @@ module MInterface = struct
     | WINDOW -> window_rect
     | BUTTON -> raise Not_yet_implemented
 
+
   let render renderer interface textures =
     let txt = MTexture_pack.get_ui textures in
     let rects = match_role_to_rect interface.role in
@@ -111,8 +140,6 @@ module MInterface = struct
     MTexture.render renderer ~clip_src:(Some rects.corner_top_left) ~x:(interface.x-200) ~y:(interface.y+interface.h) ~flip:Sdl.Flip.vertical txt;
     (* Bottom right *)
     MTexture.render renderer ~clip_src:(Some rects.corner_top_left) ~x:(interface.x+interface.w) ~y:(interface.y+interface.h) ~flip:(Sdl.Flip.(+) Sdl.Flip.vertical Sdl.Flip.horizontal) txt;
-
-
 
     (* Render the horizontal bars *)
     let nb_horizontal_bar,horizontal_offset = division_eclid interface.w 200 in
@@ -208,6 +235,11 @@ module MInterface = struct
      only the interface at the top of the list can
      be interacted with, the rest is only displayed *)
   type structure = t MTree.tree list
+
+  let render_struct renderer interface_struct textures =
+    List.iter (fun x ->
+        MTree.iter x (fun y ->
+            render renderer y textures
+          )
+      ) interface_struct;
 end
-
-

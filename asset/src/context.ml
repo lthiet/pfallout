@@ -20,6 +20,8 @@ open Layer_enum
 open Item
 open Inventory
 open Interface
+open Tree
+open Event_listener
 
 let ev = Some (Sdl.Event.create ())
 
@@ -44,12 +46,10 @@ module MGameContext = struct
     new_turn : bool;
     frame : int;
     scale : float;
-    (*interface : MInterface.t list (**il faut coder les ajouts d'interfaces. lorsqu'on clique sur esc, on ouvre une fenetre *)*)
+    interface : MInterface.structure;
     current_layer : MLayer_enum.t;
     window : Sdl.window;
 
-    (* debug & test *)
-    interface : MInterface.t
   }
 
   exception Nothing
@@ -411,23 +411,7 @@ module MGameContext = struct
     in
     ctx.scale +. offset
 
-  (* TODO : debug, remove this *)
-  let get_interface e ctx =
-    let interface = ctx.interface in
-    if MKeyboard.key_is_pressed e Sdl.Scancode.y then
-      MInterface.incr_h interface (-10)
-    else if MKeyboard.key_is_pressed e Sdl.Scancode.h then
-      MInterface.incr_h interface 10
-    else if MKeyboard.key_is_pressed e Sdl.Scancode.g then
-      MInterface.incr_w interface (-10)
-    else if MKeyboard.key_is_pressed e Sdl.Scancode.j then
-      MInterface.incr_w interface 10
-    else
-      interface
-
-
-
-
+  exception No_interface
   (* Update the new context of the game *)
   let update_context context =
     (* let () = if context.new_turn then
@@ -458,9 +442,39 @@ module MGameContext = struct
           }
         (* Otherwise, check the event *)
         | Some e ->
-
-          let interface = get_interface e ctx_before_event in
-
+          let foreground_interface,background_interface = 
+            match context.interface with
+            | [] -> raise No_interface
+            | x :: s -> x,s
+          in
+          let interface = MTree.get_elem foreground_interface
+          in
+          let offset_w,offset_h = 
+            let l = MInterface.compute_event_listener interface e in
+            match l with
+            | [] -> raise Exit
+            | x :: s -> 
+              begin
+                match x with
+                | None -> 
+                  begin
+                    0,0
+                  end
+                | Some k ->
+                  begin
+                    match k with
+                    | MEvent_listener.WINDOW_RESIZE(w,h) -> w,h
+                  end
+              end
+          in
+          let new_window = 
+            let tmp = MInterface.incr_w interface offset_w in
+            MInterface.incr_h tmp offset_h
+          in
+          let new_interface = 
+            let tmp = MTree.create new_window [] in
+            tmp :: background_interface
+          in
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let scale = get_scale e ctx_before_event in
@@ -644,7 +658,7 @@ module MGameContext = struct
             action_type = action_type;
             new_turn = new_turn;
             scale = scale;
-            interface = interface
+            interface = new_interface;
           }
       else
         ctx_before_event
