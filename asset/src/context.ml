@@ -21,7 +21,6 @@ open Item
 open Inventory
 open Interface
 open Tree
-open Event_listener
 
 let ev = Some (Sdl.Event.create ())
 
@@ -49,7 +48,6 @@ module MGameContext = struct
     interface : MInterface.structure;
     current_layer : MLayer_enum.t;
     window : Sdl.window;
-    event_listeners : MEvent_listener.t list
   }
 
   exception Nothing
@@ -442,41 +440,6 @@ module MGameContext = struct
           }
         (* Otherwise, check the event *)
         | Some e ->
-          let new_interface =
-            let l = context.event_listeners in
-            match l with
-            | [] -> raise Exit
-            | x :: _ -> 
-              begin
-                let tmp = MEvent_listener.compute_event x e MEvent_listener.WINDOW_RESIZE_P
-                in
-                match tmp with
-                | None -> 
-                  begin
-                    match context.interface with
-                    | [] -> raise Exit
-                    | x :: _ ->
-                      MTree.get_elem x
-                  end
-                | Some k ->
-                  begin
-                    match k with
-                    | MEvent_listener.WINDOW_RESIZE_O j -> j
-                  end
-              end
-          in
-          let interface = 
-            let tmp = MTree.create new_interface [] in
-            [tmp]
-          in
-
-          let evl = 
-            match context.event_listeners with
-            | x :: s -> x
-            | [] -> raise Exit
-          in
-          let new_evl = [MEvent_listener.set_interface evl new_interface] in
-
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let scale = get_scale e ctx_before_event in
@@ -660,8 +623,6 @@ module MGameContext = struct
             action_type = action_type;
             new_turn = new_turn;
             scale = scale;
-            interface = interface;
-            event_listeners = new_evl;
           }
       else
         ctx_before_event

@@ -27,7 +27,6 @@ open Entity_information
 open Tsdl_ttf
 open Interface
 open Tree
-open Event_listener
 
 
 module MGame = struct
@@ -256,26 +255,6 @@ module MGame = struct
         [x]
       in
 
-      let evl = MEvent_listener.create Sdl.Event.key_down interface
-          (fun ev evl param -> 
-             let old_interface = MEvent_listener.get_interface evl in
-             let pressed_key = MKeyboard.get_scancode ev in
-             let offset = 10 in
-             let res = 
-               if pressed_key = Sdl.Scancode.h then
-                 MInterface.incr_h old_interface offset
-               else if pressed_key = Sdl.Scancode.y then
-                 MInterface.incr_h old_interface (-offset)
-               else if pressed_key = Sdl.Scancode.j then
-                 MInterface.incr_w old_interface offset
-               else if pressed_key = Sdl.Scancode.g then
-                 MInterface.incr_w old_interface (-offset)
-               else
-                 old_interface
-             in MEvent_listener.WINDOW_RESIZE_O(res)
-          )
-      in
-
       let ctx : MGameContext.t = {
         over = false;
         camera = MCamera.create camera_rect;
@@ -297,7 +276,6 @@ module MGame = struct
         window = MMenu.get_window menu_result;
         scale = 1.;
         interface = interface_tree;
-        event_listeners = [evl]
       } in
 
       let txt = MTexture_pack.create renderer in

@@ -3,13 +3,14 @@ open Tsdl
 open Utils
 open Texture_pack
 open Texture_wrapper
+open Keyboard_wrapper
 
 (* Implements the interface of the game *)
 (* All interface textures must have a corner, top, left and center texture, they may also have multiple state if needed *)
 (* Some interface may feature a different corner for bottom or right, as well as bottom border and right texture *)
 
+(* Each interface has some event that it listens to, when "collided" with an event, it will return an interact product type *)
 module MInterface = struct
-
   type kind = 
     (* Simple is just one image that is rendered completely*)
     | SIMPLE
@@ -20,6 +21,49 @@ module MInterface = struct
     | BUTTON
     | WINDOW
 
+  type event_param =
+    | KEY_DOWN of Sdl.scancode
+    | NONE
+
+  type interaction =
+    (* The width and height offset to change the main window *)
+    | RESIZE_WINDOW of int * int
+    (* The ID of the window to close, possibly not needed *)
+    | CLOSE_WINDOW of int 
+
+  type event_listener = 
+    {
+      event_param : event_param;
+      interaction : interaction
+    }
+
+  type interaction_result = 
+    {
+      resize_window : int * int;
+      close_window : int list
+    }
+
+
+  let add_interaction l =
+    let init =
+      {
+        resize_window = 0,0;
+        close_window = []
+      }
+    in
+    List.fold_left (
+      fun acc x ->
+        match x with
+        | RESIZE_WINDOW (w,h) ->
+          let old_w,old_h = acc.resize_window in
+          {acc with
+           resize_window = (old_w+w,old_h+h)}
+        | CLOSE_WINDOW id ->
+          {acc with
+           close_window = id :: acc.close_window}
+    ) init l
+
+
   (* A single element from the interface *)
   type t = {
     (* All the coordinates are relative to the parent *)
@@ -29,6 +73,7 @@ module MInterface = struct
     h : int;
     kind : kind;
     role : role;
+    event_listeners : event_listener list
   }
 
   let modify t x y w h =
@@ -74,8 +119,51 @@ module MInterface = struct
       h = h;
       kind = COMPOSED;
       role = WINDOW;
+      event_listeners = [
+        {
+          event_param = KEY_DOWN(Sdl.Scancode.y);
+          interaction = RESIZE_WINDOW(0,-10)
+        };
+        {
+          event_param = KEY_DOWN(Sdl.Scancode.h);
+          interaction = RESIZE_WINDOW(0,10)
+        };
+        {
+          event_param = KEY_DOWN(Sdl.Scancode.j);
+          interaction = RESIZE_WINDOW(10,0)
+        };
+        {
+          event_param = KEY_DOWN(Sdl.Scancode.g);
+          interaction = RESIZE_WINDOW(-10,0)
+        }
+      ]
     }
 
+  let check_event_listener ev_param ev =
+    match ev_param with
+    | KEY_DOWN(key) ->
+      MKeyboard.key_is_pressed ev key
+    | NONE -> false
+    | _ -> raise Not_yet_implemented
+
+  (* Interaction that may come from window : resize using the YHGJ keys *)
+  let fetch_interaction_window window ev =
+    List.fold_left 
+      ( fun acc x -> 
+          let event_param = x.event_param in
+          if not (check_event_listener event_param ev) then
+            acc
+          else
+            x.interaction :: acc
+      )
+      [] window.event_listeners
+
+  let fetch_interaction t ev =
+    match t.role with
+    | WINDOW -> fetch_interaction_window t ev
+    | _ -> []
+
+  (* Display part *)
   type rects = {
     corner_top_left: Sdl.rect;
     horizontal_top : Sdl.rect;
