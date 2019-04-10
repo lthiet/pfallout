@@ -29,7 +29,6 @@ module MInterface = struct
       move_window : int * int
     }
 
-
   let set_resize_window interaction x = {interaction with resize_window = x}
   let set_close_window interaction x = {interaction with close_window = x}
   let set_move_window interaction x = {interaction with move_window = x}
@@ -39,7 +38,6 @@ module MInterface = struct
       close_window = [];
       move_window = 0,0;
     }
-
 
   let get_resize_window t = t.resize_window
   let get_close_window t = t.close_window
@@ -70,6 +68,8 @@ module MInterface = struct
     kind : kind;
     role : role;
   }
+
+  let get_rect i = Sdl.Rect.create i.x i.y i.w i.h
   type event_listener = 
     {
       event : Sdl.event_type;
@@ -153,6 +153,14 @@ module MInterface = struct
                 resize_window = w,h
               }
             )
+        };
+        {
+          event = Sdl.Event.mouse_button_down;
+          func = (fun ev interface ->
+              let _,(mx,my) = Sdl.get_mouse_state () in
+              let () = debug ((string_of_int mx)^(string_of_int my)) in
+              empty_interaction
+            )
         }
       ]
     in
@@ -165,7 +173,10 @@ module MInterface = struct
     let interface = t.interface in
     let l = List.fold_left 
         ( fun acc x -> 
-            (x.func ev interface) :: acc
+            if check_ev_type x.event then
+              (x.func ev interface) :: acc
+            else 
+              acc
         )
         [] t.event_listeners
     in add_interaction l
