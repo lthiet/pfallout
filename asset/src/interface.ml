@@ -4,6 +4,7 @@ open Utils
 open Texture_pack
 open Texture_wrapper
 open Keyboard_wrapper
+open Mouse_wrapper
 
 (* Implements the interface of the game *)
 (* All interface textures must have a corner, top, left and center texture, they may also have multiple state if needed *)
@@ -21,53 +22,46 @@ module MInterface = struct
     | BUTTON
     | WINDOW
 
-  type event_param =
-    | KEY_DOWN of Sdl.scancode
-    | NONE
-
-  type interaction =
-    (* The width and height offset to change the main window *)
-    | RESIZE_WINDOW of int * int
-    (* The ID of the window to close, possibly not needed *)
-    | CLOSE_WINDOW of int 
-
-  type event_listener = 
-    {
-      event_param : event_param;
-      interaction : interaction
-    }
-
-  type interaction_result = 
+  type interaction = 
     {
       resize_window : int * int;
-      close_window : int list
+      close_window : int list;
+      move_window : int * int
     }
+
+
+  let set_resize_window interaction x = {interaction with resize_window = x}
+  let set_close_window interaction x = {interaction with close_window = x}
+  let set_move_window interaction x = {interaction with move_window = x}
+  let empty_interaction =
+    {
+      resize_window = 0,0;
+      close_window = [];
+      move_window = 0,0;
+    }
+
 
   let get_resize_window t = t.resize_window
   let get_close_window t = t.close_window
 
   let add_interaction l =
-    let init =
-      {
-        resize_window = 0,0;
-        close_window = []
-      }
-    in
     List.fold_left (
       fun acc x ->
-        match x with
-        | RESIZE_WINDOW (w,h) ->
-          let old_w,old_h = acc.resize_window in
-          {acc with
-           resize_window = (old_w+w,old_h+h)}
-        | CLOSE_WINDOW id ->
-          {acc with
-           close_window = id :: acc.close_window}
-    ) init l
-
+        let old_w,old_h = acc.resize_window in
+        let new_w,new_h = x.resize_window in
+        let old_closed_window = acc.close_window in
+        let new_closed_window = x.close_window in
+        let old_x,old_y = acc.move_window in
+        let new_x,new_y = x.move_window in
+        {
+          resize_window = (old_w + new_w),(old_h + new_h);
+          close_window = new_closed_window @ old_closed_window;
+          move_window = (old_x + new_x),(old_y + new_y)
+        }
+    ) empty_interaction l
 
   (* A single element from the interface *)
-  type t = {
+  type interface = {
     (* All the coordinates are relative to the parent *)
     x : int; 
     y : int;
@@ -75,8 +69,23 @@ module MInterface = struct
     h : int;
     kind : kind;
     role : role;
-    event_listeners : event_listener list
   }
+  type event_listener = 
+    {
+      event : Sdl.event_type;
+      func : (Sdl.event -> interface -> interaction)
+    }
+
+  type t = {
+    interface : interface;
+    event_listeners : event_listener list;
+  }
+
+  let get_interface t = t.interface
+  let get_event_listeners t = t.event_listeners
+  let set_interface t e = { t with interface = e}
+  let set_event_listeners t e = { t with event_listeners = e}
+
 
   let modify t x y w h =
     {
@@ -114,56 +123,52 @@ module MInterface = struct
     }
 
   let create_window x y w h =
-    {
+    let interface = {
       x = x;
       y = y;
       w = w;
       h = h;
       kind = COMPOSED;
       role = WINDOW;
-      event_listeners = [
+    } in
+    let event_listeners = 
+      [
         {
-          event_param = KEY_DOWN(Sdl.Scancode.y);
-          interaction = RESIZE_WINDOW(0,-10)
-        };
-        {
-          event_param = KEY_DOWN(Sdl.Scancode.h);
-          interaction = RESIZE_WINDOW(0,10)
-        };
-        {
-          event_param = KEY_DOWN(Sdl.Scancode.j);
-          interaction = RESIZE_WINDOW(10,0)
-        };
-        {
-          event_param = KEY_DOWN(Sdl.Scancode.g);
-          interaction = RESIZE_WINDOW(-10,0)
+          event = Sdl.Event.key_down;
+          func = (fun ev interface -> 
+              let w,h =
+                if MKeyboard.get_scancode ev = Sdl.Scancode.g then
+                  (-10,0)
+                else if MKeyboard.get_scancode ev = Sdl.Scancode.j then
+                  (10,0)
+                else if MKeyboard.get_scancode ev = Sdl.Scancode.y then
+                  (0,-10)
+                else if MKeyboard.get_scancode ev = Sdl.Scancode.h then
+                  (0,10)
+                else
+                  (0,0)
+              in
+              {
+                empty_interaction with
+                resize_window = w,h
+              }
+            )
         }
       ]
+    in
+    {
+      interface = interface;
+      event_listeners = event_listeners
     }
 
-  let check_event_listener ev_param ev =
-    match ev_param with
-    | KEY_DOWN(key) ->
-      MKeyboard.key_is_pressed ev key
-    | NONE -> false
-    | _ -> raise Not_yet_implemented
-
-  (* Interaction that may come from window : resize using the YHGJ keys *)
-  let fetch_interaction_window window ev =
-    List.fold_left 
-      ( fun acc x -> 
-          let event_param = x.event_param in
-          if not (check_event_listener event_param ev) then
-            acc
-          else
-            x.interaction :: acc
-      )
-      [] window.event_listeners
-
   let fetch_interaction t ev =
-    match t.role with
-    | WINDOW -> fetch_interaction_window t ev
-    | _ -> []
+    let interface = t.interface in
+    let l = List.fold_left 
+        ( fun acc x -> 
+            (x.func ev interface) :: acc
+        )
+        [] t.event_listeners
+    in add_interaction l
 
 
 
@@ -319,7 +324,7 @@ module MInterface = struct
   let render_struct renderer interface_struct textures =
     List.iter (fun x ->
         MTree.iter x (fun y ->
-            render renderer y textures
+            render renderer y.interface textures
           )
       ) interface_struct;
 end

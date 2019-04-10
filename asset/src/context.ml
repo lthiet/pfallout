@@ -447,17 +447,17 @@ module MGameContext = struct
             | x :: s -> Some x,s
           in
           let interface_interaction = 
-            let tmp = match foreground_interface with
+            let l = match foreground_interface with
               | None -> []
               | Some i ->
                 MTree.fold i
                   (
                     fun acc x -> 
-                      (MInterface.fetch_interaction x e) @ acc
+                      (MInterface.fetch_interaction x e):: acc
                   )
                   []
             in
-            MInterface.add_interaction tmp
+            MInterface.add_interaction l
           in
 
           (* Modify the foremost interface *)
@@ -465,18 +465,27 @@ module MGameContext = struct
             match foreground_interface with
             | None -> None
             | Some fi ->
-              let window = MTree.get_elem fi in
-              let children_interface = MTree.get_children fi in
-              let offset_w,offset_h = MInterface.get_resize_window interface_interaction in
-              let new_window = 
-                let tmp = MInterface.incr_h window offset_h in
-                MInterface.incr_w tmp offset_w
+              let closed = match MInterface.get_close_window interface_interaction with
+                | [] -> false
+                | _ -> true
               in
-              Some (MTree.create new_window children_interface)
+              if closed then
+                None
+              else
+                let window = MTree.get_elem fi in
+                let window_interface = MInterface.get_interface window in
+                let children_interface = MTree.get_children fi in
+                let offset_w,offset_h = MInterface.get_resize_window interface_interaction in
+                let new_window = 
+                  let tmp1 = MInterface.incr_h window_interface offset_h in
+                  let tmp2 = MInterface.incr_w tmp1 offset_w in
+                  MInterface.set_interface window tmp2
+                in
+                Some (MTree.create new_window children_interface)
           in
           let interface = 
             match window_interface with
-            | None -> context.interface
+            | None -> background_interfaces
             | Some x -> x :: background_interfaces
           in
 
