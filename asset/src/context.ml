@@ -440,6 +440,46 @@ module MGameContext = struct
           }
         (* Otherwise, check the event *)
         | Some e ->
+          (* Get all the interaction of the interface *)
+          let foreground_interface,background_interfaces = 
+            match context.interface with
+            | [] -> None,[]
+            | x :: s -> Some x,s
+          in
+          let interface_interaction = 
+            let tmp = match foreground_interface with
+              | None -> []
+              | Some i ->
+                MTree.fold i
+                  (
+                    fun acc x -> 
+                      (MInterface.fetch_interaction x e) @ acc
+                  )
+                  []
+            in
+            MInterface.add_interaction tmp
+          in
+
+          (* Modify the foremost interface *)
+          let window_interface = 
+            match foreground_interface with
+            | None -> None
+            | Some fi ->
+              let window = MTree.get_elem fi in
+              let children_interface = MTree.get_children fi in
+              let offset_w,offset_h = MInterface.get_resize_window interface_interaction in
+              let new_window = 
+                let tmp = MInterface.incr_h window offset_h in
+                MInterface.incr_w tmp offset_w
+              in
+              Some (MTree.create new_window children_interface)
+          in
+          let interface = 
+            match window_interface with
+            | None -> context.interface
+            | Some x -> x :: background_interfaces
+          in
+
           (* If the user clicks the red cross button, the game closes *)
           let over = check_ev_type e Sdl.Event.quit in
           let scale = get_scale e ctx_before_event in
@@ -623,6 +663,7 @@ module MGameContext = struct
             action_type = action_type;
             new_turn = new_turn;
             scale = scale;
+            interface = interface;
           }
       else
         ctx_before_event

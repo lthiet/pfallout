@@ -43,6 +43,8 @@ module MInterface = struct
       close_window : int list
     }
 
+  let get_resize_window t = t.resize_window
+  let get_close_window t = t.close_window
 
   let add_interaction l =
     let init =
@@ -162,6 +164,27 @@ module MInterface = struct
     match t.role with
     | WINDOW -> fetch_interaction_window t ev
     | _ -> []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   (* Display part *)
   type rects = {
