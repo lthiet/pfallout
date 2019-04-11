@@ -482,9 +482,7 @@ module MGameContext = struct
                   | None ->
                     Sdl.Rect.w rect_window,
                     Sdl.Rect.h rect_window
-                  | Some (a,b) -> 
-                    max 200 a,
-                    max 200 b
+                  | Some x -> x
                 in
                 let offset_x,offset_y = 
                   match MInterface.get_move_window interface_interaction with

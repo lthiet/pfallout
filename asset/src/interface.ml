@@ -222,7 +222,7 @@ module MInterface = struct
                   in
                   {
                     empty_interaction with
-                    resize_window = Some (new_w,new_h);
+                    resize_window = Some (max 200 new_w, max 200 new_h);
                     move_window = Some (new_x,new_y);
                     handlers = [fbis]
                   }
