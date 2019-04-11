@@ -475,9 +475,16 @@ module MGameContext = struct
                 let window = MTree.get_elem fi in
                 let window_interface = MInterface.get_interface window in
                 let children_interface = MTree.get_children fi in
-                let offset_w,offset_h = MInterface.get_resize_window interface_interaction in
+
+                let rect_window = MInterface.get_rect window_interface in
+                let offset_w,offset_h = 
+                  match MInterface.get_resize_window interface_interaction with
+                  | None ->
+                    Sdl.Rect.w rect_window,
+                    Sdl.Rect.h rect_window
+                  | Some x -> x
+                in
                 let offset_x,offset_y = 
-                  let rect_window = MInterface.get_rect window_interface in
                   match MInterface.get_move_window interface_interaction with
                   | None ->
                     Sdl.Rect.x rect_window,
@@ -485,8 +492,8 @@ module MGameContext = struct
                   | Some x -> x
                 in
                 let new_window = 
-                  let tmp1 = MInterface.incr_h window_interface offset_h in
-                  let tmp2 = MInterface.incr_w tmp1 offset_w in
+                  let tmp1 = MInterface.set_h window_interface offset_h in
+                  let tmp2 = MInterface.set_w tmp1 offset_w in
                   let tmp3 = MInterface.set_x tmp2 offset_x in
                   let tmp4 = MInterface.set_y tmp3 offset_y in
                   let tmp5 = MInterface.set_interface window tmp4 in

@@ -35,7 +35,7 @@ module MInterface = struct
   }
   type interaction = 
     {
-      resize_window : int * int;
+      resize_window : (int * int) option;
       close_window : int list;
       move_window : (int * int) option;
       handlers : handler list
@@ -47,7 +47,7 @@ module MInterface = struct
   let set_move_window interaction x = {interaction with move_window = x}
   let empty_interaction =
     {
-      resize_window = 0,0;
+      resize_window = None;
       close_window = [];
       move_window = None;
       handlers = [];
@@ -61,8 +61,12 @@ module MInterface = struct
   let add_interaction l =
     List.fold_left (
       fun acc x ->
-        let old_w,old_h = acc.resize_window in
-        let new_w,new_h = x.resize_window in
+        let new_resize_window = match acc.resize_window,x.resize_window with
+          | None, None -> None
+          | Some (a,b), None -> Some(a,b)
+          | None, Some (a,b) -> Some(a,b)
+          | Some (a,b),Some(c,d) -> Some(a+c,b+d)
+        in
         let old_closed_window = acc.close_window in
         let new_closed_window = x.close_window in
         let old_handlers = acc.handlers in
@@ -74,7 +78,7 @@ module MInterface = struct
           | Some (a,b),Some(c,d) -> Some(a+c,b+d)
         in
         {
-          resize_window = (old_w + new_w),(old_h + new_h);
+          resize_window = new_resize_window;
           close_window = new_closed_window @ old_closed_window;
           move_window = new_move_window;
           handlers =  old_handlers @ new_handlers;
@@ -145,34 +149,98 @@ module MInterface = struct
       role = WINDOW;
     } in
 
-    (* Change the size of the window when input is YHGJ *)
-    let rec f = (
-      fun ev interface -> 
-        let w,h =
-          if MKeyboard.get_scancode ev = Sdl.Scancode.g then
-            (-10,0)
-          else if MKeyboard.get_scancode ev = Sdl.Scancode.j then
-            (10,0)
-          else if MKeyboard.get_scancode ev = Sdl.Scancode.y then
-            (0,-10)
-          else if MKeyboard.get_scancode ev = Sdl.Scancode.h then
-            (0,10)
-          else
-            (0,0)
+    let rec drag_resize = (
+      fun ev interface_init ->
+        let rect_init = get_rect interface_init in
+        let _,(mx,my) = Sdl.get_mouse_state () in
+        let x_init,y_init,w_init,h_init =
+          Sdl.Rect.x rect_init,
+          Sdl.Rect.y rect_init,
+          Sdl.Rect.w rect_init,
+          Sdl.Rect.h rect_init
         in
-        {
-          empty_interaction with
-          resize_window = w,h;
-          handlers = [f]
-        }
-    ) 
+        let corner_tl,corner_tr,corner_bl,corner_br =
+          Sdl.Rect.create (x_init - 200) (y_init - 200) (200) (200),
+          Sdl.Rect.create (x_init + w_init) (y_init - 200) (200) (200),
+          Sdl.Rect.create (x_init - 200) (y_init + h_init) (200) (200),
+          Sdl.Rect.create (x_init + w_init) (y_init + h_init) (200) (200)
+        in
+
+        let mouse_point = Sdl.Point.create mx my in
+        let corner_clicked =
+          if Sdl.point_in_rect mouse_point corner_tl then
+            Some corner_tl
+          else if Sdl.point_in_rect mouse_point corner_tr then
+            Some corner_tr
+          else if Sdl.point_in_rect mouse_point corner_bl then
+            Some corner_bl
+          else if Sdl.point_in_rect mouse_point corner_br then
+            Some corner_br
+          else
+            None
+        in
+        if
+          not (
+            check_ev_type ev Sdl.Event.mouse_button_down
+          )
+        then
+          {empty_interaction with
+           handlers = [drag_resize]}
+        else 
+          match corner_clicked with
+          | None ->
+            {
+              empty_interaction with
+              handlers = [drag_resize]
+            }
+          | Some corner ->
+            let _,(mx,my) = Sdl.get_mouse_state () in
+            let rec fbis = (
+              fun ev interface ->
+                if check_ev_type ev Sdl.Event.mouse_button_up then
+                  {
+                    empty_interaction with
+                    handlers = [drag_resize]
+                  }
+                else
+                  let _,(new_mx,new_my) = Sdl.get_mouse_state () in
+                  (* TODO : elagantize this *)
+                  let new_x,new_y,new_w,new_h =
+                    if corner = corner_tl then
+                      new_mx,new_my,
+                      (mx-new_mx +interface_init.w),(my-new_my +interface_init.y)
+                    else if corner = corner_tr then
+                      interface.x,new_my,
+                      (-(mx-new_mx) +interface_init.w),(my-new_my +interface_init.y)
+                    else if corner = corner_bl then
+                      new_mx,interface.y,
+                      (mx-new_mx +interface_init.w),(-(my-new_my) +interface_init.y)
+                    else if corner = corner_br then
+                      interface.x,interface.y,
+                      (-(mx-new_mx) +interface_init.w),(-(my-new_my) +interface_init.y)
+                    else
+                      raise Exit
+                  in
+                  {
+                    empty_interaction with
+                    resize_window = Some (new_w,new_h);
+                    move_window = Some (new_x,new_y);
+                    handlers = [fbis]
+                  }
+            )
+            in
+            {
+              empty_interaction with
+              handlers = [fbis]
+            }
+    )
     in
 
-    let rec f2 = (
+    let rec drag_position = (
       fun ev interface_init ->
         if not (check_ev_type ev Sdl.Event.mouse_button_down) || not (MMouse.is_inside ev (interface_init.x) (interface_init.y-200) interface_init.w (200)) then
           {empty_interaction with
-           handlers = [f2]}
+           handlers = [drag_position]}
         else 
           let _,(mx,my) = Sdl.get_mouse_state () in
           let rec fbis = (
@@ -180,7 +248,7 @@ module MInterface = struct
               if check_ev_type ev Sdl.Event.mouse_button_up then
                 {
                   empty_interaction with
-                  handlers = [f2]
+                  handlers = [drag_position]
                 }
               else
                 let _,(new_x,new_y) = Sdl.get_mouse_state () in
@@ -198,7 +266,7 @@ module MInterface = struct
     )
     in
     let handlers = 
-      [f;f2]
+      [drag_position;drag_resize]
     in
     {
       interface = interface;
