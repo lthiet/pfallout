@@ -208,16 +208,16 @@ module MInterface = struct
                   let new_x,new_y,new_w,new_h =
                     if corner = corner_tl then
                       new_mx,new_my,
-                      (mx-new_mx +interface_init.w),(my-new_my +interface_init.y)
+                      (mx-new_mx +interface_init.w),(my-new_my +interface_init.h)
                     else if corner = corner_tr then
                       interface.x,new_my,
-                      (-(mx-new_mx) +interface_init.w),(my-new_my +interface_init.y)
+                      (-(mx-new_mx) +interface_init.w),(my-new_my +interface_init.h)
                     else if corner = corner_bl then
                       new_mx,interface.y,
-                      (mx-new_mx +interface_init.w),(-(my-new_my) +interface_init.y)
+                      (mx-new_mx +interface_init.w),(-(my-new_my) +interface_init.h)
                     else if corner = corner_br then
                       interface.x,interface.y,
-                      (-(mx-new_mx) +interface_init.w),(-(my-new_my) +interface_init.y)
+                      (-(mx-new_mx) +interface_init.w),(-(my-new_my) +interface_init.h)
                     else
                       raise Exit
                   in
