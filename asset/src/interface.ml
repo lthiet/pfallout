@@ -168,7 +168,6 @@ module MInterface = struct
     ) 
     in
 
-
     let rec f2 = (
       fun ev interface_init ->
         if not (check_ev_type ev Sdl.Event.mouse_button_down) || not (MMouse.is_inside ev (interface_init.x) (interface_init.y-200) interface_init.w (200)) then
@@ -217,27 +216,6 @@ module MInterface = struct
         )
         [] t.handlers
     in add_interaction l
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   (* Display part *)
   type rects = {
