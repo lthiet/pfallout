@@ -22,7 +22,6 @@ module MInterface = struct
     | BUTTON
     | WINDOW
 
-
   (* A single element from the interface *)
   type interface = {
     (* All the coordinates are relative to the parent *)
@@ -277,10 +276,7 @@ module MInterface = struct
     let interface = t.interface in
     let l = List.fold_left 
         ( fun acc x -> 
-            (* if check_ev_type ev x.event then *)
             (x ev interface) :: acc
-            (* else 
-               {empty_interaction with event_listeners = [x]} :: acc *)
         )
         [] t.handlers
     in add_interaction l
