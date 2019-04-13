@@ -158,80 +158,46 @@ module MInterface = struct
           Sdl.Rect.w rect_init,
           Sdl.Rect.h rect_init
         in
-        let corner_tl,corner_tr,corner_bl,corner_br =
-          Sdl.Rect.create (x_init - 200) (y_init - 200) (200) (200),
-          Sdl.Rect.create (x_init + w_init) (y_init - 200) (200) (200),
-          Sdl.Rect.create (x_init - 200) (y_init + h_init) (200) (200),
-          Sdl.Rect.create (x_init + w_init) (y_init + h_init) (200) (200)
+        let zone_to_look = 
+          Sdl.Rect.create (x_init + w_init - 200) (y_init + h_init - 200) 200 200
         in
-
         let mouse_point = Sdl.Point.create mx my in
-        let corner_clicked =
-          if Sdl.point_in_rect mouse_point corner_tl then
-            Some corner_tl
-          else if Sdl.point_in_rect mouse_point corner_tr then
-            Some corner_tr
-          else if Sdl.point_in_rect mouse_point corner_bl then
-            Some corner_bl
-          else if Sdl.point_in_rect mouse_point corner_br then
-            Some corner_br
-          else
-            None
-        in
         if
           not (
             check_ev_type ev Sdl.Event.mouse_button_down
-          )
+          ) || 
+          not (Sdl.point_in_rect mouse_point zone_to_look)
         then
           {empty_interaction with
            handlers = [drag_resize]}
-        else 
-          match corner_clicked with
-          | None ->
-            {
-              empty_interaction with
-              handlers = [drag_resize]
-            }
-          | Some corner ->
-            let _,(mx,my) = Sdl.get_mouse_state () in
-            let rec fbis = (
-              fun ev interface ->
-                if check_ev_type ev Sdl.Event.mouse_button_up then
-                  {
-                    empty_interaction with
-                    handlers = [drag_resize]
-                  }
-                else
-                  let _,(new_mx,new_my) = Sdl.get_mouse_state () in
-                  (* TODO : elagantize this *)
-                  let new_x,new_y,new_w,new_h =
-                    if corner = corner_tl then
-                      new_mx,new_my,
-                      (mx-new_mx +interface_init.w),(my-new_my +interface_init.h)
-                    else if corner = corner_tr then
-                      interface.x,new_my,
-                      (-(mx-new_mx) +interface_init.w),(my-new_my +interface_init.h)
-                    else if corner = corner_bl then
-                      new_mx,interface.y,
-                      (mx-new_mx +interface_init.w),(-(my-new_my) +interface_init.h)
-                    else if corner = corner_br then
-                      interface.x,interface.y,
-                      (-(mx-new_mx) +interface_init.w),(-(my-new_my) +interface_init.h)
-                    else
-                      raise Exit
-                  in
-                  {
-                    empty_interaction with
-                    resize_window = Some (max 200 new_w, max 200 new_h);
-                    move_window = Some (new_x,new_y);
-                    handlers = [fbis]
-                  }
-            )
-            in
-            {
-              empty_interaction with
-              handlers = [fbis]
-            }
+        else
+          let _,(mx,my) = Sdl.get_mouse_state () in
+          let rec fbis = (
+            fun ev interface ->
+              if check_ev_type ev Sdl.Event.mouse_button_up then
+                {
+                  empty_interaction with
+                  handlers = [drag_resize]
+                }
+              else
+                let _,(new_mx,new_my) = Sdl.get_mouse_state () in
+                (* TODO : elagantize this *)
+                let new_x,new_y,new_w,new_h =
+                  interface.x,interface.y,
+                  (-(mx-new_mx) +interface_init.w),(-(my-new_my) +interface_init.h)
+                in
+                {
+                  empty_interaction with
+                  resize_window = Some (max 200 new_w, max 200 new_h);
+                  move_window = Some (new_x,new_y);
+                  handlers = [fbis]
+                }
+          )
+          in
+          {
+            empty_interaction with
+            handlers = [fbis]
+          }
     )
     in
 
@@ -287,6 +253,8 @@ module MInterface = struct
     horizontal_top : Sdl.rect;
     vertical_left : Sdl.rect;
     center : Sdl.rect;
+    close : Sdl.rect;
+    resize : Sdl.rect;
   }
 
   let window_rect = {
@@ -294,6 +262,8 @@ module MInterface = struct
     horizontal_top = Sdl.Rect.create 200 0 200 200;
     vertical_left = Sdl.Rect.create 0 200 200 200;
     center = Sdl.Rect.create 200 200 200 200;
+    close = Sdl.Rect.create 400 0 200 200;
+    resize = Sdl.Rect.create 400 200 200 200;
   }
 
   let match_role_to_rect role =
@@ -311,10 +281,13 @@ module MInterface = struct
     MTexture.render renderer ~clip_src:(Some rects.corner_top_left) ~x:(interface.x-200) ~y:(interface.y-200) txt;
     (* Top right *)
     MTexture.render renderer ~clip_src:(Some rects.corner_top_left) ~x:(interface.x+interface.w) ~y:(interface.y-200) ~flip:Sdl.Flip.horizontal txt;
+    (* Close button *)
+    MTexture.render renderer ~clip_src:(Some rects.close) ~x:(interface.x+interface.w) ~y:(interface.y-200) ~flip:Sdl.Flip.horizontal txt;
     (* Bottom left *)
     MTexture.render renderer ~clip_src:(Some rects.corner_top_left) ~x:(interface.x-200) ~y:(interface.y+interface.h) ~flip:Sdl.Flip.vertical txt;
     (* Bottom right *)
     MTexture.render renderer ~clip_src:(Some rects.corner_top_left) ~x:(interface.x+interface.w) ~y:(interface.y+interface.h) ~flip:(Sdl.Flip.(+) Sdl.Flip.vertical Sdl.Flip.horizontal) txt;
+
 
     (* Render the horizontal bars *)
     let nb_horizontal_bar,horizontal_offset = division_eclid interface.w 200 in
@@ -398,17 +371,22 @@ module MInterface = struct
         end;
     in
 
-    if vertical_offset > 0 && horizontal_offset > 0 then
-      begin
-        match Sdl.intersect_rect center_rect_vertical_offset center_rect_horizontal_offset with
-        | None -> ()
-        | Some r ->
-          MTexture.render renderer ~clip_src:(Some r) ~x:(interface.x+200*nb_horizontal_bar) ~y:(interface.y+200*nb_vertical_bar) txt
-      end
+    let () = if vertical_offset > 0 && horizontal_offset > 0 then
+        begin
+          match Sdl.intersect_rect center_rect_vertical_offset center_rect_horizontal_offset with
+          | None -> ()
+          | Some r ->
+            MTexture.render renderer ~clip_src:(Some r) ~x:(interface.x+200*nb_horizontal_bar) ~y:(interface.y+200*nb_vertical_bar) txt
+        end
+    in
 
-  (* The whole interface currently displayed,
-     only the interface at the top of the list can
-     be interacted with, the rest is only displayed *)
+    (* Resize *)
+    MTexture.render renderer ~clip_src:(Some rects.resize) ~x:(interface.x+interface.w-200) ~y:(interface.y+interface.h-200) txt;
+
+
+    (* The whole interface currently displayed,
+       only the interface at the top of the list can
+       be interacted with, the rest is only displayed *)
   type structure = t MTree.tree list
 
   let render_struct renderer interface_struct textures =

@@ -1,4 +1,4 @@
-EXE = trpg.byte
+EXE = trpg.native
 SRC = asset/src
 OCB_FLAG = -I $(SRC) -r -tag debug -use-ocamlfind -package tsdl,tsdl_mixer,tsdl_image,tsdl_ttf
 DOC = docs
