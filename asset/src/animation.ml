@@ -144,16 +144,16 @@ module MAnimation = struct
       (* The list of anims for the victims *)
       let l1,src_in_victim = List.fold_left ( 
           fun (acc,src_in_victim) x -> 
-            let au = create_animation_unit x None duration_drop in
+            let au_drop = create_animation_unit x None length_drop in
             let au_attacked = create_animation_unit x (Some(MFx.create_from_entity x MFx.ATTACKED)) duration_damage in
             (
-              ((List.init height_drop (fun x -> au)) @ [au_attacked]):: acc),(src_in_victim || x = src_ent)
+              ([au_drop;au_attacked]):: acc),(src_in_victim || x = src_ent)
         ) ([],false) victims
       in
 
       (* The list of the src if not in the victims *)
       let l2 = if not src_in_victim then
-          [create_animation_unit src_ent None (duration_drop * height_drop + duration_damage)]
+          [create_animation_unit src_ent None (length_drop + duration_damage)]
         else
           []
       in
@@ -161,8 +161,6 @@ module MAnimation = struct
       (* The bomb dropping *)
       let l3 = 
         let screen_x,screen_y = MHex.axial_to_screen_coord dst in
-
-        let () = debug (string_of_int length_drop ) in
         List.init length_drop ( fun i -> create_animation_unit (MEntity.create_fx_binder ()) (Some(MFx.create MFx.NUKE_DROP screen_x (screen_y - height_drop +(duration_drop*i)))) 1) 
       in
       l3 :: l2 :: l1
