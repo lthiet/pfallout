@@ -50,11 +50,6 @@ module MFx = struct
 
     (* let clip = Sdl.Rect.create ((frame_n/3)*texture_width) 0 texture_width texture_height in *)
     let clip =  get_clip fx frame_n in
-    let angle = 
-      match fx.code with
-      | NUKE_DROP -> 10. *. cos (float_of_int (frame_n/3)) ;
-      | _ -> 0.0
-    in
-    MTexture.render renderer ~clip_src:(Some clip) ~scale:scale ~angle:angle ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
+    MTexture.render renderer ~clip_src:(Some clip) ~scale:scale ~x:(fx.x - Sdl.Rect.x camera) ~y:(fx.y - Sdl.Rect.y camera) texture
 
 end

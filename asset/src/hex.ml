@@ -3,7 +3,7 @@ open Utils
 (* Heavily inspired by https://www.redblobgames.com/grids/hexagons/#coordinates as of 31/01/2019 *)
 module MHex =
 struct
-  let size = 80
+  let size = 240
   let width = truncate ((sqrt 3.) *. float (size))
   let height = 2 * size
 

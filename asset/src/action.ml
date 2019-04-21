@@ -387,7 +387,7 @@ module MAction = struct
           [] 
       in
 
-      let animation = MAnimation.create_nuke_drop src_ent dst (deleted_infrastructure @ deleted_military) 200 1 70 in
+      let animation = MAnimation.create_nuke_drop src_ent dst (deleted_infrastructure @ deleted_military) 700 10 70 in
 
       {
         deleted = src_ent :: (deleted_military @ deleted_infrastructure);

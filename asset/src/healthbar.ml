@@ -5,7 +5,7 @@ open Colors
 (* This module implements the healthbar on the units *)
 
 module MHealthbar = struct
-  let healthbar_length = 100 
+  let healthbar_length = 200 
 
   type t = {
     max_hp : int;
@@ -32,7 +32,7 @@ module MHealthbar = struct
 
 
   let hp_ratio_int t =
-    hp_ratio t *. 100. |> round
+    hp_ratio t *. (float_of_int healthbar_length) |> round
 
   (* Get the green bar length of the healthbar, green bar represents the current hp *)
   let get_green_bar_length t =
@@ -41,12 +41,12 @@ module MHealthbar = struct
   (* Get the red bar length of the healthbar, red bar represents the missing hp *)
   let get_red_bar_length t = 
     let ratio = hp_ratio_int t in
-    max (100-ratio) (0)
+    max (healthbar_length-ratio) (0)
 
   (* Get the blue bar length of the healthbar, red bar represents the missing hp *)
   let get_blue_bar_length t =
     let ratio = hp_ratio_int t in
-    min healthbar_length (max (ratio-100) (0))
+    min healthbar_length (max (ratio-healthbar_length) (0))
 
   let render renderer scale x y healthbar = 
     let rbl = get_red_bar_length healthbar in

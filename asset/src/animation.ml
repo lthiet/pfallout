@@ -2,6 +2,7 @@ open Entity
 open Grid
 open Hex
 open Fx
+open Utils
 
 module MAnimation = struct
   type frame = int
@@ -137,6 +138,8 @@ module MAnimation = struct
 
   (* Some functions to create specific animations *)
   let create_nuke_drop src_ent dst victims height_drop duration_drop duration_damage =
+
+    let length_drop = height_drop / duration_drop in
     let drop_animation = 
       (* The list of anims for the victims *)
       let l1,src_in_victim = List.fold_left ( 
@@ -158,8 +161,9 @@ module MAnimation = struct
       (* The bomb dropping *)
       let l3 = 
         let screen_x,screen_y = MHex.axial_to_screen_coord dst in
-        let total_length = (duration_drop*height_drop) in
-        List.init total_length ( fun i -> create_animation_unit (MEntity.create_fx_binder ()) (Some(MFx.create MFx.NUKE_DROP screen_x (screen_y - total_length + i))) 1) 
+
+        let () = debug (string_of_int length_drop ) in
+        List.init length_drop ( fun i -> create_animation_unit (MEntity.create_fx_binder ()) (Some(MFx.create MFx.NUKE_DROP screen_x (screen_y - height_drop +(duration_drop*i)))) 1) 
       in
       l3 :: l2 :: l1
     in

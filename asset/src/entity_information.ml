@@ -58,7 +58,7 @@ module MEntity_information = struct
         let txt = MTexture.load_from_rendered_text renderer font_mp_left (string_of_int info.mp_left) MColor.white in
         let txt_outline = MTexture.load_from_rendered_text renderer font_mp_left_outline (string_of_int info.mp_left) MColor.black in
         let x_mp = info.x + (MHex.width / 2) - ((MTexture.get_w txt_outline)/2 ) in
-        let y_mp = info.y + 120 in
+        let y_mp = info.y + (round ((float_of_int MHex.height) *. 0.85)) in
 
         (* render the mp left *)
         MTexture.render renderer ~x:x_mp ~y:y_mp ~scale:scale txt_outline;

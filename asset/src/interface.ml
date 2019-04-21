@@ -148,6 +148,36 @@ module MInterface = struct
       role = WINDOW;
     } in
 
+    let rec close = (
+      fun ev interface_init ->
+        let rect_init = get_rect interface_init in
+        let _,(mx,my) = Sdl.get_mouse_state () in
+        let x_init,y_init,w_init,h_init =
+          Sdl.Rect.x rect_init,
+          Sdl.Rect.y rect_init,
+          Sdl.Rect.w rect_init,
+          Sdl.Rect.h rect_init
+        in
+        let zone_to_look = 
+          Sdl.Rect.create (x_init + w_init) (y_init - 200) 200 200
+        in
+        let mouse_point = Sdl.Point.create mx my in
+        if
+          not (
+            check_ev_type ev Sdl.Event.mouse_button_down
+          ) || 
+          not (Sdl.point_in_rect mouse_point zone_to_look)
+        then
+          {empty_interaction with
+           handlers = [close]}
+        else
+          {
+            empty_interaction with
+            close_window = [-1];
+          }
+    )
+    in
+
     let rec drag_resize = (
       fun ev interface_init ->
         let rect_init = get_rect interface_init in
@@ -231,7 +261,7 @@ module MInterface = struct
     )
     in
     let handlers = 
-      [drag_position;drag_resize]
+      [drag_position;drag_resize;close]
     in
     {
       interface = interface;
