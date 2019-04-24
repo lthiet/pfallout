@@ -504,7 +504,14 @@ module MGameContext = struct
           in
           let interface = 
             match window_interface with
-            | None -> background_interfaces
+            | None -> 
+              let new_window_from_esc = 
+                MTree.create (MInterface.create_window 500 500 500 500) []
+              in
+              if MKeyboard.key_is_pressed e Sdl.Scancode.escape then
+                new_window_from_esc :: background_interfaces
+              else
+                background_interfaces
             | Some x -> x :: background_interfaces
           in
 
