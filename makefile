@@ -26,3 +26,6 @@ debug:
 clean:
 	ocamlbuild -clean
 	rm -rf $(DOC)/diagrams/src/classes.png
+
+report:
+	pdflatex -shell-escape rapport.tex 

@@ -131,25 +131,11 @@ module MGame = struct
           MCursor.render renderer (MTexture_pack.get_curs textures) c context.scale (MCamera.get_rect scaled_camera);
       ) context.movement_range_selector;
 
-
-
-
-
-      (*
-      (* Display the user interface windows/buttons*)
-      List.iter (
-        fun t ->
-          MInterface.render renderer t ,
-      ) context.interface;
-      *)
-
       (* Display the interface *)
       MInterface.render_struct renderer context.interface textures;
 
       (* Update the renderer *)
       Sdl.render_present renderer;
-
-
 
       (* Continue the game *)
       loop renderer new_context textures

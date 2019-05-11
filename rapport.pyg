@@ -1,0 +1,22 @@
+type t = {
+    over : bool;
+    camera : MCamera.t;
+    grid : MGrid.t;
+    cursor_selector : MCursor.cursor;
+    faction_list : MFaction.t list;
+    faction_controlled_by_player : MFaction.t;
+    action_src : MHex.axial_coord option;
+    action_dst : MHex.axial_coord option;
+    action_layer : MLayer_enum.t option;
+    action_type : MAction_enum.enum option;
+    movement_range_selector : MTile.t list;
+    to_be_added : MEntity.t list;
+    to_be_deleted : MEntity.t list;
+    animation : MAnimation.t;
+    new_turn : bool;
+    frame : int;
+    scale : float;
+    interface : MInterface.structure;
+    current_layer : MLayer_enum.t;
+    window : Sdl.window;
+}
