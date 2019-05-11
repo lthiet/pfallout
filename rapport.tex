@@ -7,6 +7,8 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{hyperref}
+\definecolor{bg}{HTML}{282828}
+\usemintedstyle{monokai}
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
@@ -120,15 +122,33 @@ Sinon, en mode patrouille, si elles voient une bombe nucléaire, elles la prenne
     \item Gestion des appels à la bibliothéque SDL ( \textit{e.g.,} gestion du render, chargement des textures, initialisation
     du windows, \textit{etc.} )
     \item Dessins (tuiles, caractèristiques de terrain, soldats, ville, interfaces, fond d'écran, titre, items, effets spéciaux)
+    \item Définition des boucles du menu et du jeu et le retour que chaque boucle passe entre elles.
     \item Boucle principale. Gestion d'un type \texttt{context}, comment le mettre à jour et comment récupérer informations contenus pour avancer le jeu dans le temps
     \item Définition du type des \texttt{unités} et les méthodes associées
-    \item Implémentation du plateau de jeu et la grille d'héxagone. 
+    \item Implémentation du plateau de jeu, le système de couches et la grille d'héxagone 
+    \item Système d'animation (animation de personnages et effets spéciaux)
+    \item Comportements des unités ennemies (Choix des actions selon le comportement, choix du comporter selon la situation)
+    \item Implémentation de la caméra (déplacement et zoom)
+    \item Gestion du curseur et un afficheur de portée de mouvement/attaque
+    \item Affichage d'informations par rapport à une unité (points de mouvements et barre de vie)
+    \item Système d'interface avec quelque chose similaire aux \textit{event listeners} de Javascript
+    \item Définition et interaction avec les items
+    \item Interaction clavier souris avec le jeu (en se servant des appels à \textit{SDL})
+    \item Implémentation des algorithmes de recherche dans le graphe (pour les chemins)
+    \item Empaquetage des textures
 \end{itemize}
 
 \subsection{KOBAYASHI}
 \begin{itemize}
     \item Calcul des PV et mise à jour du plateau pendant les attaques 
     \item Menu de réglages 
+    \item Cache LRU % WIP
+\end{itemize}
+
+Il y a également quelques travaux qui n'ont pas été retenus.
+
+\begin{itemize}
+    \item Un système d'interface. 
 \end{itemize}
 
 
@@ -203,7 +223,7 @@ Vous remarquerez que le fichier \texttt{context.ml} contient une (très) grande 
 est de définir le type \texttt{context} et de mettre à jour la variable qui y est associé.
 Dans ce type on trouve tout ce dont nous avons besoin pour faire tourner le jeu : 
 
-\begin{minted}{ocaml}
+\begin{minted}[bgcolor=bg]{ocaml}
 type t = {
     over : bool; 
     camera : MCamera.t;
@@ -253,6 +273,55 @@ Dans les phases il y a beaucoup de \textit{"formalisation et généralisation"}.
 à généraliser le retour de certains types pour pouvoir les mettre dans une liste pour qu'ensuite \texttt{context.ml} s'en servir.
 Nous allons prendre l'exemple des actions, mais cela s'applique aussi pour les interfaces.
 
+Voici à quoi ressemble le produit de type que les actions retournent : 
+
+\begin{minted}[bgcolor=bg]{ocaml}
+type res = {
+    added : MEntity.t list;
+    deleted : MEntity.t list;
+    animation : MAnimation.t;
+}
+\end{minted}
+
+Chaque action retourne une liste des unités ajoutées, détruites et une animation. Généralement, les unités détruites
+sont les anciennes entités avant l'action et les ajoutées sont les mêmes entités sous un nouvel état. 
+
+L'intérêt est de pouvoir regrouper plusieurs actions qui se passent en même temps et
+en combiner les résultats, à l'aide de cette fonction :
+
+\begin{minted}[bgcolor=bg]{ocaml}
+let add r1 r2 = {
+    added = r1.added @ r2.added;
+    deleted = r1.deleted @ r2.deleted;
+    animation = MAnimation.add r1.animation r2.animation;
+} 
+\end{minted}
+
+\texttt{context.ml} dispose de toutes les unités effacées ainsi que toutes les animations à faire. Il les traitent de cette façon : 
+
+\begin{minted}[bgcolor=bg,breaklines]{ocaml}
+let faction_list =
+    List.fold_right (
+        fun x acc-> (MFaction.update_entities x ctx.to_be_added [] ) :: acc
+    ) ctx.faction_list []
+\end{minted}
+
+\begin{minted}[bgcolor=bg,breaklines]{ocaml}
+let faction_list =
+    List.fold_right (
+        fun x acc-> (MFaction.update_entities x [] (MAction.get_deleted res) ) :: acc
+    ) ctx.faction_list []
+\end{minted}
+
+La raison pour laquelle on ne fait pas les deux en même temps est qu'il faut attendre que l'animation s'arrête avant de pouvoir les remettre.
+
+\subsection{Et le reste?}
+
+A l'heure où j'écris ce rapport (11/05/2019 23:58), je pense qu'il est déja bien chargé. J'ai jugé que les deux points précédemment cités étaient les
+plus important à comprendre. Ces \textit{designs} sont assez récurrents. Le projet n'étant pas encore complétement fini,
+j'ai préféré m'arrêter ici pour les explications, et continuer à travailler sur la finition du projet et les quelques tâches qui restent à faire.
+
+Si il y a besoin de clarifications, je les ferai lors de la soutenance.
 
 \section{Problèmes et autre remarques}
 \subsection{Build circulaire}
@@ -267,6 +336,11 @@ les unités importent également ce type. Les unités ont besoin de tout juste c
 informations nécessaires pour leur bon fonctionnement.
 
 Pour le reste des \texttt{x\_enum.ml} qu'on rencontre, on peut en dire la même chose.
+
+\subsection{Conception confuse}
+Assez tôt dans le projet nous avons cru avoir besoin du paradigme programmation orientée objet. Finalement,
+ça ne servait à pas grand chose à part la factorisation de code. Par manque de temps je n'ai pas
+reconverti en type produit comme il l'aurait fallu le faire.
 
 \subsection{De bien trop grandes ambitions...}
 Au début du projet nous étions bien trop ambitieux. C'était du au fait que c'était le seul projet qu'on avait à ce moment là. Puis
