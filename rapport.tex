@@ -1,6 +1,6 @@
 \documentclass{article}
-\usepackage[left=1.5cm, right=1.5cm, top=1.5cm, bottom=1.5cm]{geometry}
 \usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
 \usepackage{mathtools}
 \usepackage{graphicx} 
 \usepackage{hyperref}
@@ -9,59 +9,93 @@
 \usepackage{xcolor}
 
 \title{Rapport projet PFA 2018-2019}
-\date{30 Janvier 2019}
+\date{\today}
 \author{Lam NGUYEN THIET
 \and Kenyu KOBAYASHI}
 \begin{document}
 \maketitle
 \section{Introduction}
 Ce projet implémente un jeu dans le langage OCAML, en utilisant les fonctionalités fonctionelles ( en majorité ), impératives, orientée objet.
+
 \section{Le jeu}
-2099. Les ressources se font de plus en plus rare. 75\% de la population est morte de famine et seuls quelques ensembles de puissance de l'ancien monde arrivent
-à survivre.
+\subsection{But}
+Le but du jeu est de détruire les factions ennemies. Pour se faire, il suffit de tuer toutes leur unités.
 
-Suite à un miracle scientifique, le "\textbf{OCAMLonium}" a
-été découvert dans le manteau supérieur de la terre dans
-les régions de l'ancienne Chili. Les 4 coalitions d'état
-restant se battent jusqu'à la mort pour se procurer de
-l'\textbf{OCAMLonium} pour assurer la survie de leur patrie.
+\subsection{Factions}
+Il y a 3 factions dans le jeu. Les cagoulés, les vert et les bleus. Vous contrôlez les bleus.
 
-1 gramme d'\textbf{OCAMLonium} permet d'alimenter une métropole pendant plus
-d'un siècle. Ce matériau est le dernier bastion contre
-l'extinction humaine.
+\subsection{Unités}
+Il existe deux types d'unités.
 
-\section{Les factions}
-\subsection{American Megacorp.}
-En 2040, le gouvernement américain a déclaré faillite, après une période de shutdown battant tous les records : pendant près de 20 ans,
-plus personne ne travaillait au gouvernement et celui-ci ne générait plus de revenu. Les possessions des Etats Unis étaient liquidés et vendaient leur armement aux
-enchères. Une entreprise, Goggles Inc. s'est approprié 75\% des biens. Suite à cela, ils ont soumis les autres entreprises
-par les forces armées. Aujourd'hui, il n'y a plus qu'une seul entreprise, le reste étant absorbé par Goggles Inc. Les plus haut cadres occupent
-les fonctions gouvernementales des Amériques.
+\begin{itemize}
+    \item Le soldat est l'unité de base. Elle peut se déplacer, attaquer et récupérer des items.
+    \item La ville permet de faire apparaître des soldats. Cette unité est très importante car si on la perd, on ne peut plus produire de soldat.
+\end{itemize}
 
-Grâce à un arsenal à la pointe de la technologie, \textbf{American Megacorp.} produit des unités aériennes plus rapidement
-et possède des blindés plus puissant. Les vétérans des armées ont passé leur vie à attaquer, ils ne savent pas très bien
-défendre leur territoire.
+\subsection{Items}
+Il existe deux items.
 
-\subsection{European Union Join Task Forces}
-Dernier bastion de la démocratie, suite à l'accord de Paris signé en 2024, les dirigeants européens ont décidé d'unir
-leur forces armèes sous une même uniforme. Celle-ci est connu pour son efficacité et sa polyvalence,
-agissant sur tout type de champ de bataille.
+\begin{itemize}
+    \item Le pack de soin régénére la vie des unités. Il est possible d'avoir plus de points de vie que l'on avait au départ.
+    \item La bombe nucléaire détruit tout dans un rayon de 3 cases.
+\end{itemize}
 
-Les combattants venant d'une multitude d'environment socio-économique et culturel. Les atouts des un complémente le défaut des autres. 
-Et inversement.
-De ce fait, ils n'ont aucun bonus, ni malus.
+\subsection{Plateau du jeu}
+Le plateau est une grille d'hexagone. La carte est une île deserte dans l'océan avec des biômes variés.
 
-\subsection{Pacific Coast Cooperative}
-Après l'invasion de Taiwan perpétué par les Chinois, les nations de l'Asie de l'Ouest et Sud Est se sont unis sous une même coalition pour repousser les Chinois.
-Parmi celles-ci compte la Corée du Sud, le Japon, l'Indonésie, la Thailande, le Vietnam etc. En 2043, la Chine est victime d'une
-attaque conjointe des marines des pays voisins. Après une guerre de près de 12 ans, la Chine est vaincue après le 
-bombardement de la Cité Interdite. L'ancienne superpuissance est divisée en plusieurs
-zones controlées par les pays voisins.
+\subsubsection{Type de cases}
+Il y a 3 types de cases. A l'heure actuelle, elle ne sont que cosmétiques, par la suite elle peuvent avoir un impact sur l'efficacité de combat de tel unité de
+tel faction, mais par manque de temps je n'ai pas pu les faire.
 
-Grâce à une forte population, l'infantrie est produite plus rapidement. La coalition a montré ses preuves, les infantries étant adjacentes reçoivent des bonus d'attaque.
-Cependant, la guerre conte la Chine les a laissé en pénurie de matériau de guerre. Les blindées prennent plus de temps.
+Il y a la neige, le desert et l'herbe.
 
-\subsection{Russian Federation}
-...
+\subsubsection{Caractèristiques du terrain}
+En plus du biome, il y a des caractèristiques sur le terrain pour chaque case.
+
+\begin{itemize}
+    \item Les forêts et les collines coûtent plus cher pour le movement.
+    \item Les montagnes et les lacs sont des obstacles ne peuvent pas être traversés.
+\end{itemize}
+
+\subsection{Tour par tour}
+Le jeu se déroule en tour par tour, similaire au jeu \textit{Civilization}. C'est d'ailleurs
+sur quoi je me suis inspiré pour le jeu.
+
+\subsubsection{Mouvement}
+
+Chaque unité a un nombre de movement. Lorsqu'il se déplace d'une case, il consomme $n$ points selon la case sur laquelle il atterit.
+Dans le jeu, les soldats sont les seuls à pouvoir se déplacer. Les villes ne peuvent pas.
+
+\subsubsection{Attaque}
+Pour tuer les autres unités il faut les attaquer. Encore une fois de manière analogue à \textit{Civilization},
+les unités disposent d'une force d'attaque et d'une force de défense.
+
+Par la suite, $src$ et $dst$ représente respectivement l'unité qui attaque et l'unité
+qui défend.
+
+Lorsque deux unités s'attaquent, les nouveaux point de vie se calculent de cette manière : 
+
+\begin{align}
+    healthpoints_{dst,new} &= max \{0,healthpoints_{dst,old} - strength_{attack,src}\} \\
+    healthpoints_{src,new} &= max \{0,healthpoints_{src,old} - strength_{defense,dst}\}
+\end{align}
+
+Et leurs nouvelles positions : 
+\begin{align}
+     x_{dst,new},y_{dst,new} &=
+     \begin{cases}
+        \texttt{null},\texttt{null} & \text{si } healthpoints_{dst_,new} = 0 \text{,}\\
+        x_{dst,old},y_{dst,old} & \text{sinon.} 
+     \end{cases} \\
+     x_{src,new},y_{src,new} &=
+     \begin{cases}
+        \texttt{null},\texttt{null} & \text{si } healthpoints_{src,new} = 0 \text{,}\\
+        x_{dst,old},y_{dst,old} & \text{si } healthpoints_{dst_,new} = 0 \text{,}\\
+        x_{src,old},y_{src,old} & \text{sinon.} 
+     \end{cases}
+\end{align}
+
+
+
 
 \end{document}
