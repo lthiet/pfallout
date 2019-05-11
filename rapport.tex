@@ -6,6 +6,14 @@
 \usepackage{graphicx} 
 \usepackage{hyperref}
 \usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+\urlstyle{same}
 
 \title{Rapport projet PFA 2018-2019}
 \date{\today}
@@ -107,6 +115,26 @@ pour donner une chance à leur alliés.
 
 Sinon, en mode patrouille, si elles voient une bombe nucléaire, elles la prennent et l'utilise sur un ennemi au hasard.
 \section{Répartition du travail}
+\subsection{NGUYEN THIET}
+\begin{itemize}
+    \item Gestion des appels à la bibliothéque SDL ( \textit{e.g.,} gestion du render, chargement des textures, initialisation
+    du windows, \textit{etc.} )
+    \item Dessins (tuiles, caractèristiques de terrain, soldats, ville, interfaces, fond d'écran, titre, items, effets spéciaux)
+    \item Boucle principale. Gestion d'un type \texttt{context}, comment le mettre à jour et comment récupérer informations contenus pour avancer le jeu dans le temps
+    \item Définition du type des \texttt{unités} et les méthodes associées
+    \item Implémentation du plateau de jeu et la grille d'héxagone. (Les pseudocodes se trouvent ici \url{https://www.redblobgames.com/grids/hexagons/})
+    \item Gestion et
+\end{itemize}
+
+\subsection{KOBAYASHI}
+\begin{itemize}
+    \item Calcul des PV et mise à jour du plateau pendant les attaques 
+    \item Réglages de la taille de la carte dans le menu
+    \item Fond d'écran des réglages (juste le dégradé)
+\end{itemize}
+
+\end{document}
+
 
 \section{Développement du jeu}
 Chaque phase sera développée plus en profondeur dans la suite du rapport.
@@ -277,7 +305,7 @@ des actions etc.
 \section{Annexe \& Source}
 \begin{itemize}
     \item Le pseudocode de la grille par hexagone : \url{https://www.redblobgames.com/grids/hexagons/}
-    % \item La musique du jeu : \href{https://soundcloud.com/leagueoflegends/omega-squad-teemo}
+    \item La musique du jeu : \url{https://soundcloud.com/leagueoflegends/omega-squad-teemo}
 \end{itemize}
 
 
