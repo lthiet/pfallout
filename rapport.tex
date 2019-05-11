@@ -95,6 +95,74 @@ Et leurs nouvelles positions :
      \end{cases}
 \end{align}
 
+\subsection{Intelligence Artificielle}
+Les IA sont assez simple. De base, elles se déplacent au hasard.
+Si elles rencontrent un ennemi, elle va se diriger vers cet ennemi en priorité. Si il y a un
+autre ennemi elles s'attaquent, même si ce n'était pas l'ennemi en priorité.
+
+En dessous d'un certain seuil, les IA vont chercher à fuire et chercher un pack de soin. Mais si il y a un ennemi
+tout prés, elles vont se suicider et attaquer cet ennemi, car elles savent qu'elles vont mourir et vont préférer attaquer 
+pour donner une chance à leur alliés.
+
+Sinon, en mode patrouille, si elles voient une bombe nucléaire, elles la prennent et l'utilise sur un ennemi au hasard.
 \section{Répartition du travail}
+
+\section{Développement du jeu}
+Chaque phase sera développée plus en profondeur dans la suite du rapport.
+Chaque implémentation est listé par ordre chronologique dans le développement.
+
+\subsection*{Phase 1 : Fondation}
+\begin{enumerate}
+    \item Familiarisation avec \texttt{SDL} et factorisation de code qui était assez récurrent.
+    \item Implémentation de la boucle principale
+    \item Généralisation du type \texttt{context} et sa mise à jour
+\end{enumerate}
+
+\subsection*{Phase 2 : Instances de jeu}
+\begin{enumerate}
+    \item Définition des instances du jeu (la boucle du menu, du jeu etc. )
+    \item Création de boutons temporaires pour lancer le jeu et le quitter si on appuie sur la croix
+\end{enumerate}
+
+
+\subsection*{Phase 3 : Plateau de jeu}
+\begin{enumerate}
+    \item Définition du plateau de jeu (représenté par une matrice)
+    \item Implémentation des fonctionalités de la grille d'hexagone
+    \item Définition des tuiles et des \texttt{enum} qui la définissent
+    \item Les dessins du plateau (tuiles, forêts, etc.)
+\end{enumerate}
+
+\subsection*{Phase 4 : Unités}
+\begin{enumerate}
+    \item Définition des unités
+    \item Définition des constantes qui les définissent
+    \item Les dessins des unités
+\end{enumerate}
+
+\subsection*{Phase 5 : Actions}
+\begin{enumerate}
+    \item Formalisation et généralisation des actions et leur retour pour qu'ils puissent tous être du même type
+    \item Implémentation des actions de déplacement et attaques
+    \item Interaction temporaire avec les unités avec le clavier
+    \item Interaction du retour des actions avec le système de contexte
+\end{enumerate}
+
+\subsection*{Phase 6 : IA}
+\begin{enumerate}
+    \item Formalisation d'un comportement d'une unité 
+    \item Systèmes similaire aux automates d'états finis pour sélectionner le comportement de chaque unités selon son environment
+    \item IA qui se déplacement au hasard,
+    \item et attaque une cible si il y en a une qui se trouve à proximité,
+    \item et qui va chercher des packs de soin si elles n'a pas beaucoup de points de vie,
+    \item et qui va chercher les bombes nucléaires si elle peut.
+\end{enumerate}
+
+\subsection*{Phase 7 : Interfaces}
+\begin{enumerate}
+    \item Affichage des informations liés à chaque unités (ses points de vie et points de mouvement)
+    \item Système d'interface avec des \textit{event listeners}
+    \item Formalisation et généralisation des interactions avec les interfaces dans le contexte
+\end{enumerate}
 
 \end{document}
