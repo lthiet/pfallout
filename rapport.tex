@@ -122,18 +122,14 @@ Sinon, en mode patrouille, si elles voient une bombe nucléaire, elles la prenne
     \item Dessins (tuiles, caractèristiques de terrain, soldats, ville, interfaces, fond d'écran, titre, items, effets spéciaux)
     \item Boucle principale. Gestion d'un type \texttt{context}, comment le mettre à jour et comment récupérer informations contenus pour avancer le jeu dans le temps
     \item Définition du type des \texttt{unités} et les méthodes associées
-    \item Implémentation du plateau de jeu et la grille d'héxagone. (Les pseudocodes se trouvent ici \url{https://www.redblobgames.com/grids/hexagons/})
-    \item Gestion et
+    \item Implémentation du plateau de jeu et la grille d'héxagone. 
 \end{itemize}
 
 \subsection{KOBAYASHI}
 \begin{itemize}
     \item Calcul des PV et mise à jour du plateau pendant les attaques 
-    \item Réglages de la taille de la carte dans le menu
-    \item Fond d'écran des réglages (juste le dégradé)
+    \item Menu de réglages 
 \end{itemize}
-
-\end{document}
 
 
 \section{Développement du jeu}
@@ -252,19 +248,11 @@ de l'action
     \item \texttt{to\_be\_added} et \texttt{to\_be\_deleted} représente une liste d'unité à ajouter, resp. à effacer.
     J'en discuterai plus tard dans le rapport. 
 \end{itemize}
+\subsection{Formalisation et généralisation}
+Dans les phases il y a beaucoup de \textit{"formalisation et généralisation"}. Plus précisément, j'ai cherché
+à généraliser le retour de certains types pour pouvoir les mettre dans une liste pour qu'ensuite \texttt{context.ml} s'en servir.
+Nous allons prendre l'exemple des actions, mais cela s'applique aussi pour les interfaces.
 
-\subsection{Plateau du jeu}
-Le plateau du jeu est (malheureusement) représenté par une matrice mutable. Chaque cellule contient des \texttt{MTile.t}. Le plateau a plusieurs
-couche, représenté par des \texttt{MLayer\_enum.t}. L'idée est que chaque élément se retrouvant dans une même couche ne peut être sur la même position.
-Si ce n'est pas le cas, elles peuvent se retrouver à la même position.
-
-Il y a les fonctions de type \textit{getters} et \textit{setters}. Il y en a une de chaque pour les items, les tuiles et pour les unités.
-
-Il y a également quelques fonctions un peu plus spécifiques, comme récupérer une zone de la carte, ou l'ennemi le plus proche, entre autres.
-
-\subsubsection{\texttt{MTIle.t}}
-
-Les constantes
 
 \section{Problèmes et autre remarques}
 \subsection{Build circulaire}
@@ -286,8 +274,7 @@ d'autres projets se sont greffés à nos emplois du temps, puis les examens, pui
 contents de ce que nous avons fait. J'ai fait attention à rendre le code assez générique, si on le souhaitait, on peut facilement rajouter des unités,
 des actions etc.
 
-\newpage
-\subsubsection{Quelques dessins non utilisés pour le rendu}
+\subsubsection{Quelques dessins non utilisés dans le rendu}
     \begin{figure}[H]
         \centering
      \includegraphics[scale=0.5]{asset/image/tech.png}
@@ -306,6 +293,7 @@ des actions etc.
 \begin{itemize}
     \item Le pseudocode de la grille par hexagone : \url{https://www.redblobgames.com/grids/hexagons/}
     \item La musique du jeu : \url{https://soundcloud.com/leagueoflegends/omega-squad-teemo}
+    \item Les dessins ont été faits avec Illustrator \url{https://www.adobe.com/products/illustrator.html}
 \end{itemize}
 
 
