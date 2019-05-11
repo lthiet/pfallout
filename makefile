@@ -26,6 +26,11 @@ debug:
 clean:
 	ocamlbuild -clean
 	rm -rf $(DOC)/diagrams/src/classes.png
+	rm -rf rapport.aux
+	rm -rf rapport.log
+	rm -rf rapport.out
+	rm -rf rapport.pyg
+	rm -rf rapport.toc
 
 report:
 	pdflatex -shell-escape rapport.tex 
