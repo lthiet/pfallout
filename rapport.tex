@@ -7,6 +7,14 @@
 \usepackage{float}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+\urlstyle{same}
 
 \title{Rapport projet PFA 2018-2019}
 \date{\today}
@@ -101,8 +109,10 @@ Et leurs nouvelles positions :
     \item Gestion des appels à la bibliothéque SDL ( \textit{e.g.,} gestion du render, chargement des textures, initialisation
     du windows, \textit{etc.} )
     \item Dessins (tuiles, caractèristiques de terrain, soldats, ville, interfaces, fond d'écran, titre, items, effets spéciaux)
+    \item Boucle principale. Gestion d'un type \texttt{context}, comment le mettre à jour et comment récupérer informations contenus pour avancer le jeu dans le temps
+    \item Définition du type des \texttt{unités} et les méthodes associées
+    \item Implémentation du plateau de jeu et la grille d'héxagone. (Les pseudocodes se trouvent ici \url{https://www.redblobgames.com/grids/hexagons/})
 \end{itemize}
-
 
 \subsection{KOBAYASHI}
 \begin{itemize}
