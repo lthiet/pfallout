@@ -2,3 +2,4 @@ _build/*
 rapport.*
 !rapport.pdf
 !rapport.tex
+_minted-rapport/
