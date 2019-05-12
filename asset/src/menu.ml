@@ -36,7 +36,6 @@ module MMenu = struct
     btn_Smapsize : MTexture.t;
     btn_Mmapsize : MTexture.t;
     btn_Lmapsize : MTexture.t;
-
   }
 
   (*************)
