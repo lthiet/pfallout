@@ -11,8 +11,6 @@ module LRUCache = struct
                     }
 
     module Lru_cache = Map.Make(String)
-                    (* String = clé ou données ?*)
-                    (* Map.make(MTexture.t) FAUX? *)
 
     (* Creates an empty lru_cache *)
     let create_cache = Lru_cache.empty
