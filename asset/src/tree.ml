@@ -49,4 +49,7 @@ module MTree = struct
       t with
       children = l @ t.children
     }
+
+  let rec length t =
+    1 + (List.fold_left (fun acc x -> acc + (length x)) 0 t.children)
 end

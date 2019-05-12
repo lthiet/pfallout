@@ -22,9 +22,12 @@ module MInterface = struct
     | BUTTON
     | WINDOW
 
+  let id_ref = ref 0
+
   (* A single element from the interface *)
   type interface = {
     (* All the coordinates are relative to the parent *)
+    id : int;
     x : int; 
     y : int;
     w : int option;
@@ -35,13 +38,15 @@ module MInterface = struct
     text : string option;
     kind : kind;
     role : role;
+    clicked_tags : string list;
   }
   type interaction = 
     {
       resize_window : (int * int) option;
       close_window : int list;
       move_window : (int * int) option;
-      handlers : handler list
+      handlers : handler list;
+      clicked_tags : string list;
     }
   and handler = (Sdl.event -> interface -> interaction)
 
@@ -54,6 +59,7 @@ module MInterface = struct
       close_window = [];
       move_window = None;
       handlers = [];
+      clicked_tags = [];
     }
 
   let get_resize_window t = t.resize_window
@@ -85,6 +91,7 @@ module MInterface = struct
           close_window = new_closed_window @ old_closed_window;
           move_window = new_move_window;
           handlers =  old_handlers @ new_handlers;
+          clicked_tags =  x.clicked_tags @ acc.clicked_tags;
         }
     ) empty_interaction l
 
@@ -151,8 +158,9 @@ module MInterface = struct
       y = t.y + x
     }
 
-  let create_button y w h w_percent h_percent text =
+  let create_button y w h w_percent h_percent text clicked_tags =
     let interface = {
+      id = incr id_ref;
       x = 0;
       y = y;
       w = w;
@@ -163,15 +171,36 @@ module MInterface = struct
       text = Some text;
       kind = COMPOSED;
       role = BUTTON;
+      clicked_tags = clicked_tags
     }
     in 
+    let rec clicked = (
+      fun ev interface_init ->
+        let rect_init = get_rect interface_init in
+        let _,(mx,my) = Sdl.get_mouse_state () in
+        let mouse_point = Sdl.Point.create mx my in
+        if
+          not (
+            check_ev_type ev Sdl.Event.mouse_button_down
+          ) || 
+          not (Sdl.point_in_rect mouse_point rect_init)
+        then
+          {empty_interaction with
+           handlers = [clicked]}
+        else
+          {empty_interaction with
+           clicked_tags = interface_init.clicked_tags;
+           handlers = []}
+    )
+    in
     {
       interface = interface;
-      handlers = []
+      handlers = [clicked]
     }
 
   let create_window x y w h w_percent h_percent centered =
     let interface = {
+      id = incr id_ref;
       x = x;
       y = y;
       w = w;
@@ -182,6 +211,7 @@ module MInterface = struct
       text = None;
       kind = COMPOSED;
       role = WINDOW;
+      clicked_tags = []
     } in
 
     let rec close = (
@@ -402,30 +432,30 @@ module MInterface = struct
         )
       )
 
+  let center parent_width child_width =
+    let fwp,fwc =
+      float parent_width,
+      float child_width
+    in
+    round ((fwp -. fwc) /. 2.)
+
+
   let apply_center tree =
     MTree.map tree ( fun x -> x ) ( fun x -> 
         let interface = x.interface in
         let pw = int_option_matcher interface.w in
         (fun y -> 
-           let new_w = 
-             match y.interface.w_percent with
-             | None -> int_option_matcher y.interface.w
-             | Some percent -> round (float(pw) *. percent)
-           in
+           let current_w = int_option_matcher y.interface.w in
+           let new_x = center pw current_w in
            {
              y with
              interface = {
                y.interface with
-               w = Some new_w;
+               x = new_x
              }
            }
         )
       )
-
-
-
-
-
 
   let render renderer interface textures =
     let txt = match_role_to_txt interface.role textures in
@@ -560,27 +590,16 @@ module MInterface = struct
   let render_struct renderer interface_struct textures =
 
     List.iter (fun x ->
-        let post_process_tree = 
-          let tmp0 = apply_center x in
-          let tmp1 = set_to_relative_coordinate tmp0 in
-          let tmp2 = set_to_relative_size tmp1 in
-          tmp2
-        in
-
-        MTree.iter post_process_tree (fun y ->
+        MTree.iter x (fun y ->
             render renderer y.interface textures
           )
       ) interface_struct
 
-  (* Miscellaneous functions *)
-  let center parent_width child_width =
-    let fwp,fwc =
-      float parent_width,
-      float child_width
-    in
-    round ((fwp -. fwc) /. 2.)
-
-
-
+  let post_processed_interface interface =
+    List.map ( fun x -> 
+        let tmp0 = set_to_relative_size x in
+        let tmp1 = apply_center tmp0 in
+        set_to_relative_coordinate tmp1
+      ) interface
 
 end

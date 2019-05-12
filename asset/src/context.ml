@@ -48,6 +48,7 @@ module MGameContext = struct
     frame : int;
     scale : float;
     interface : MInterface.structure;
+    post_process_interface : MInterface.structure;
     current_layer : MLayer_enum.t;
     window : Sdl.window;
   }
@@ -449,18 +450,26 @@ module MGameContext = struct
             | x :: s -> Some x,s
           in
           let interface_interaction = 
-            let l = match foreground_interface with
+            let interface_interacted = 
+              match context.post_process_interface with
+              | x :: s -> Some x
+              | [] -> None
+            in
+            let l = match interface_interacted with
               | None -> []
               | Some i ->
                 MTree.fold i
                   (
                     fun acc x -> 
                       (MInterface.fetch_interaction x e):: acc
-                  )
-                  []
+                  ) []
             in
             MInterface.add_interaction l
           in
+
+          let quit_from_interface = List.exists (fun x -> x = "QUIT" )interface_interaction.clicked_tags in
+
+          let () = List.iter (print_string) interface_interaction.clicked_tags in
 
           (* Modify the foremost interface *)
           let window_interface = 
@@ -530,24 +539,32 @@ module MGameContext = struct
                 MInterface.center win_h new_h
               in
 
+              (* The button for cheat*)
+              let cheat_button =
+                let wp = 8. /. 10. in
+                let h = 100 in
+                let y =
+                  100
+                in
+                MInterface.create_button  y None (Some h) (Some wp) None "CHEAT" ["CHEAT"]
+              in
+
               (* The button for quitting *)
               let quit_button =
                 let wp = 8. /. 10. in
                 let h = 100 in
-                let w = round (wp *. float(new_w)) in
-                let x,y =
-                  MInterface.center new_w w,
-                  MInterface.center new_h h
+                let y =
+                  300
                 in
-                MInterface.create_button  y (Some w) (Some h) (Some wp) None "QUIT"
+                MInterface.create_button  y None (Some h) (Some wp) None "QUIT" ["QUIT"]
               in
 
               let new_interface_from_esc = 
                 let tmp1 = MTree.create (MInterface.create_window new_x new_y (Some new_w) (Some new_h) None None false) in
                 let tmp2 = MTree.append_child tmp1 quit_button in
-                tmp2
+                let tmp3 = MTree.append_child tmp2 cheat_button in
+                tmp3
               in
-
               if MKeyboard.key_is_pressed e Sdl.Scancode.escape then
                 new_interface_from_esc :: background_interfaces
               else
@@ -556,7 +573,7 @@ module MGameContext = struct
           in
 
           (* If the user clicks the red cross button, the game closes *)
-          let over = check_ev_type e Sdl.Event.quit in
+          let over = check_ev_type e Sdl.Event.quit || quit_from_interface in
           let scale = get_scale e ctx_before_event in
           let camera = get_camera e ctx_before_event.window ctx_before_event.camera scale in
           let cursor_selector_ks = {
@@ -723,6 +740,8 @@ module MGameContext = struct
             else
               ctx_before_event.animation
           in
+
+          let post_process_interface = MInterface.post_processed_interface interface in
           {
             ctx_before_event with
             over = over;
@@ -739,6 +758,7 @@ module MGameContext = struct
             new_turn = new_turn;
             scale = scale;
             interface = interface;
+            post_process_interface = post_process_interface;
           }
       else
         ctx_before_event

@@ -132,7 +132,7 @@ module MGame = struct
       ) context.movement_range_selector;
 
       (* Display the interface *)
-      MInterface.render_struct renderer context.interface textures;
+      MInterface.render_struct renderer context.post_process_interface textures;
 
       (* Update the renderer *)
       Sdl.render_present renderer;
@@ -253,6 +253,7 @@ module MGame = struct
         window = MMenu.get_window menu_result;
         scale = 1.;
         interface = [];
+        post_process_interface = [];
       } in
 
       let txt = MTexture_pack.create renderer in
