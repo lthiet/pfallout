@@ -13,7 +13,6 @@ module MMenu = struct
     over : bool;
     btn_start : MButton.t;
 
-    (******************)
     settings : bool;
     btn_settings : MButton.t;
     map_size : int;
@@ -28,8 +27,7 @@ module MMenu = struct
   type textures = {
     bg : MTexture.t;
     btn : MTexture.t;
-    btn_start_text : MTexture.t;
-    (************)
+
     btn_settings : MTexture.t;
     settings_bg : MTexture.t;
     btn_return : MTexture.t;
@@ -199,12 +197,7 @@ module MMenu = struct
         MTexture.render ~scale:scale renderer textures.bg;
         (* Display the start button *)
         MButton.render renderer scale new_ctx.btn_start textures.btn;
-        (* Display the start button text *)
-        MButton.render_text renderer scale new_ctx.btn_start textures.btn_start_text;
-
-        (****************************)
         MButton.render renderer scale new_ctx.btn_settings textures.btn_settings;
-
         (* Update the renderer *)
         Sdl.render_present renderer;
         (* Continue the game *)
@@ -223,16 +216,13 @@ module MMenu = struct
   let btn_Smapsize_path = "asset/image/btn_smap.png"
   let btn_Mmapsize_path = "asset/image/btn_mmap.png"
   let btn_Lmapsize_path = "asset/image/btn_lmap.png" 
-  let font_path = "asset/font/spiderman.ttf"
 
   let run renderer window = 
-    let font = manage_result (Ttf.open_font font_path 70) "Error font %s" in
     (* Create the menu *)
     let txt = {
       bg = MTexture.load_from_file renderer menu_bg_path;
       btn = MTexture.load_from_file renderer btn_path;
-      btn_start_text = MTexture.load_from_rendered_text renderer font "Start" (Sdl.Color.create 255 255 255 255);
-      (**********************)
+
       btn_settings = MTexture.load_from_file renderer btn_settings_path;
       settings_bg = MTexture.load_from_file renderer settings_bg_path;
       btn_return = MTexture.load_from_file renderer btn_return_path;
@@ -245,7 +235,7 @@ module MMenu = struct
       btn_start = MButton.create (960+ (MButton.width/2)) 750;
       settings = false;
       btn_settings = MButton.create (960- 3*(MButton.width/2)) 750 ;
-      btn_return = MButton.create (960- (MButton.width/2)) 750 ; (**********MButton OPTION INUTILE ?*********)
+      btn_return = MButton.create (960- (MButton.width/2)) 750 ;
       btn_Smapsize = MButton.create (480 - (MButton.width/2)) 200 ;
       btn_Mmapsize = MButton.create (960- (MButton.width/2)) 80 ;
       btn_Lmapsize = MButton.create (1440- (MButton.width/2)) 200 ;

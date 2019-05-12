@@ -31,6 +31,7 @@ let ev = Some (Sdl.Event.create ())
 module MGameContext = struct
   type t = {
     over : bool;
+    game_over : bool;
     camera : MCamera.t;
     grid : MGrid.t;
     cursor_selector : MCursor.cursor;
@@ -110,25 +111,27 @@ module MGameContext = struct
 
     if MAnimation.is_over ctx.animation  && (is_player_turn ctx) then
       begin
-        if check_ev_type e Sdl.Event.key_down then
-          let pk = MKeyboard.get_scancode e in
-          let r = new_int pk ks.down ks.up  offset c#get_r in
-          let q = new_int pk ks.right ks.left  offset c#get_q in
-          let new_tile_below = MGrid.get_tile r q g in
-          (* Checks whether or not the new tile is
-             inside the tiles that represents the range of
-             a certain action *)
-          let new_tile_in_range = 
-            List.exists (fun x ->
-                x#get_axial = new_tile_below#get_axial
-              ) ctx.movement_range_selector
-          in
-          if ((action_src_is_set ctx) && not new_tile_in_range) then
-            c
-          else				
-            c#move r q
-        else
+        let r,q = if check_ev_type e Sdl.Event.key_down then
+            let pk = MKeyboard.get_scancode e in
+            let r = new_int pk ks.down ks.up  offset c#get_r in
+            let q = new_int pk ks.right ks.left  offset c#get_q in
+            r,q
+          else
+            c#get_r,c#get_q
+        in
+        let new_tile_below = MGrid.get_tile r q g in
+        (* Checks whether or not the new tile is
+           inside the tiles that represents the range of
+           a certain action *)
+        let new_tile_in_range = 
+          List.exists (fun x ->
+              x#get_axial = new_tile_below#get_axial
+            ) ctx.movement_range_selector
+        in
+        if ((action_src_is_set ctx) && not new_tile_in_range) then
           c
+        else				
+          c#move r q
       end
     else
       c#set_status MCursor.HIDDEN
@@ -427,22 +430,22 @@ module MGameContext = struct
       let animation =
         MAnimation.compute_next context.animation
       in
-      {
+      let tmp = {
         context with
         animation = animation;
-      } 
+      } in
+      (* Test if the game is over *)
+      let ennemy_number = List.fold_left (fun acc faction ->
+          if (faction=tmp.faction_controlled_by_player)
+          then begin acc end
+          else (acc+List.length faction.entities_list) ) 0 tmp.faction_list
+      in
+      let ally_number = List.length tmp.faction_controlled_by_player.entities_list 
+      in
+      let game_over = ( (ally_number=0) || (ennemy_number=0) )
+      in 
+      { tmp with game_over = tmp.over || (game_over && (MAnimation.is_over tmp.animation))}
     in
-
-    (* Test if the game is over *)
-    let ennemy_number = List.fold_left (fun acc faction ->
-        if (faction=context.faction_controlled_by_player)
-        then begin acc+0 end
-        else (acc+List.length faction.entities_list) ) 0 context.faction_list
-    in
-    let ally_number = List.length context.faction_controlled_by_player.entities_list 
-    in
-    let game_over = ( (ally_number=0) || (ennemy_number=0) )
-    in 
 
     (* Get the next event in the queue *)
     let ctx_with_event = if (Sdl.poll_event ev) then
@@ -587,7 +590,7 @@ module MGameContext = struct
           in
 
           (* If the user clicks the red cross button, the game closes *)
-          let over = (check_ev_type e Sdl.Event.quit || game_over || quit_from_interface) in
+          let over = (check_ev_type e Sdl.Event.quit || quit_from_interface) in
           let scale = get_scale e ctx_before_event in
           let camera = get_camera e ctx_before_event.window ctx_before_event.camera scale in
           let cursor_selector_ks = {
@@ -765,6 +768,9 @@ module MGameContext = struct
                 ctx_before_event.to_be_added
             end
           in
+          let faction_controlled_by_player =
+            List.find ( fun x -> MFaction.get_code x = MFaction.get_code ctx_before_event.faction_controlled_by_player) ctx_before_event.faction_list
+          in
 
           let new_animation = if not (MAnimation.is_over animation_tmp) then
               animation_tmp
@@ -779,6 +785,7 @@ module MGameContext = struct
             camera = camera;
             cursor_selector = cursor_selector;
             faction_list = faction_list;
+            faction_controlled_by_player = faction_controlled_by_player;
             action_src = action_src;
             action_dst = action_dst;
             action_layer = action_layer;
@@ -794,6 +801,7 @@ module MGameContext = struct
       else
         ctx_before_event
     in
+
     ctx_with_event |> faction_on_start_actions 
     |> update_context_after_event |> inc_frame
 end

@@ -244,5 +244,11 @@ struct
     in
     round (sqrt (float_of_int (x+y+z)))
 
+  let pixel_to_ax x y =
+    {
+      q = round ((sqrt(3.) /. 3. *. (float x) -. 1./.3. *. (float y)) /. (float size));
+      r = round (2. /. 3. *. (float y) /. (float size))
+    }
+
 end
 ;;

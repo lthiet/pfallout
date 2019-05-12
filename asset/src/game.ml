@@ -150,20 +150,20 @@ module MGame = struct
     s
 
   (* Same as above except with city *)
-  let create_random_city grid fc = 
+  let create_random_city grid fc with_player = 
     let rtc = MGrid.get_random_accessible_tile grid MLayer_enum.INFRASTRUCTURE () in
-    let c = MInfrastructure.create_city (rtc#get_r) (rtc#get_q) fc in
+    let c = MInfrastructure.create_city (rtc#get_r) (rtc#get_q) fc with_player in
     MGrid.add_at grid c;
     c
 
   let create_random_hp grid =
-    let rthp = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
+    let rthp = MGrid.get_itemless_tile grid () in
     let hp = MItem.create_healthpack rthp#get_r rthp#get_q 35 in
     MGrid.add_item_at grid hp;
     hp
 
   let create_random_nuke grid = 
-    let rthp = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY () in
+    let rthp = MGrid.get_itemless_tile grid () in
     let nuke = MItem.create_nuke rthp#get_r rthp#get_q 2 in
     MGrid.add_item_at grid nuke;
     nuke
@@ -184,17 +184,18 @@ module MGame = struct
       let faction_code1 = 
         MFaction_enum.create MFaction_enum.EU
       in 
-      let random_tile_soldier1 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
-      let soldier1 = MMilitary.create_soldier (random_tile_soldier1#get_r) (random_tile_soldier1#get_q) faction_code1 in
-      MGrid.add_at grid soldier1;
-      let random_tile_soldier2 = MGrid.get_random_accessible_tile grid MLayer_enum.MILITARY ~bound:3 () in
-      let soldier2 = MMilitary.create_soldier (random_tile_soldier2#get_r) (random_tile_soldier2#get_q) faction_code1 in
-      MGrid.add_at grid soldier2;
-
+      let soldiera = create_random_soldier grid faction_code1 in
+      let soldierb = create_random_soldier grid faction_code1 in
+      let soldierc = create_random_soldier grid faction_code1 in
+      let soldierd = create_random_soldier grid faction_code1 in
+      let soldiere = create_random_soldier grid faction_code1 in
       let faction1 =
         let f = MFaction.create_faction faction_code1 in
-        MFaction.add_entity soldier1 f 
-        |> MFaction.add_entity soldier2
+        MFaction.add_entity soldiera f 
+        |> MFaction.add_entity soldierb
+        |> MFaction.add_entity soldierc
+        |> MFaction.add_entity soldierd
+        |> MFaction.add_entity soldiere
       in
 
       let faction_code2 = 
@@ -203,7 +204,7 @@ module MGame = struct
 
       let soldier3 = create_random_soldier grid faction_code2 in
       let soldier4 = create_random_soldier grid faction_code2 in
-      let city1 = create_random_city grid faction_code2 in
+      let city1 = create_random_city grid faction_code2 false in
 
       let faction2 =
         let f = MFaction.create_faction faction_code2 in
@@ -218,7 +219,7 @@ module MGame = struct
 
       let soldier6 = create_random_soldier grid faction_code3 in
       let soldier7 = create_random_soldier grid faction_code3 in
-      let city2 = create_random_city grid faction_code3 in
+      let city2 = create_random_city grid faction_code3 false in
 
       let faction3 =
         let f = MFaction.create_faction faction_code3 in
@@ -235,6 +236,7 @@ module MGame = struct
 
       let ctx : MGameContext.t = {
         over = false;
+        game_over = false;
         camera = MCamera.create camera_rect;
         grid = grid;
         cursor_selector = MCursor.create start start MCursor.SELECTING;

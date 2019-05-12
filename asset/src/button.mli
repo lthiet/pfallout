@@ -8,6 +8,4 @@ module MButton :
     val get_coord : t -> int * int * int * int
     val render :
       Tsdl.Sdl.renderer -> float -> t -> Texture_wrapper.MTexture.t -> unit
-    val render_text :
-      Tsdl.Sdl.renderer -> float -> t -> Texture_wrapper.MTexture.t -> unit
   end

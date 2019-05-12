@@ -100,6 +100,7 @@ sig
   val neighbours_list :
     < get_cube : Hex.MHex.cube_coord; .. > -> t -> Tile.MTile.tile list
   val range_tile : t -> Tile.MTile.tile -> int -> Tile.MTile.tile list
+  val get_itemless_tile : t -> ?center:Hex.MHex.axial_coord -> ?bound:int -> unit -> Tile.MTile.tile
   val get_random_accessible_tile :
     t ->
     Layer_enum.MLayer_enum.t ->

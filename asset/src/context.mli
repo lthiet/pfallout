@@ -3,6 +3,7 @@ module MGameContext :
 sig
   type t = {
     over : bool;
+    game_over : bool;
     camera : Camera.MCamera.t;
     grid : Grid.MGrid.t;
     cursor_selector : Cursor.MCursor.cursor;
@@ -24,12 +25,6 @@ sig
     current_layer : Layer_enum.MLayer_enum.t;
     window : Tsdl.Sdl.window;
     texture_pack : Lru_cache.MLRUCache.t
-  }
-  type keyset = {
-    up : Tsdl.Sdl.scancode;
-    down : Tsdl.Sdl.scancode;
-    left : Tsdl.Sdl.scancode;
-    right : Tsdl.Sdl.scancode;
   }
   val update_context : t -> t
 end

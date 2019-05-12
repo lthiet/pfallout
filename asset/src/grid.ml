@@ -235,6 +235,28 @@ module MGrid = struct
           acc
       ) [] l
 
+  let get_itemless_tile t
+      ?(center : MHex.axial_coord = MHex.create_ax t.level_radius t.level_radius)
+      ?(bound : int = t.level_radius )
+      ()
+    =
+    let g = t.tile_grid in
+    let r_r () = (MHex.get_r center) - bound + (Random.int (bound*2)) in
+    let r_q () = (MHex.get_q center) - bound + (Random.int (bound*2)) in
+
+    (* Careful, this function might not stop *)
+    let rec aux r q =
+      let res = g.(r).(q) in
+      if res#is_impassable || not (empty_item_at t r q) then
+        aux (r_r ()) (r_q ())
+      else
+        begin
+          res
+        end
+    in aux (r_r ()) (r_q ())
+
+
+
   let get_random_accessible_tile t layer
       ?(center : MHex.axial_coord = MHex.create_ax t.level_radius t.level_radius)
       ?(bound : int = t.level_radius )

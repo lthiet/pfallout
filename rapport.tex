@@ -25,12 +25,36 @@
 \maketitle
 \tableofcontents
 \newpage
+\newpage
 \section{Introduction}
 Ce projet implémente un jeu dans le langage OCAML, en utilisant les paradigmes fonctionelles (en majorité), impératives, orientée objet.
 
 \section{Le jeu}
+\subsection{Commandes}
+Nous n'avons pas eu le temps d'implémenter l'interaction avec la souris. Les commandes se font intégralement
+au clavier.
+\begin{itemize}
+    \item \texttt{Z S Q D}, pour bouger la caméra, resp., en haut, bas, gauche droite.
+    \item \texttt{W C}, pour zoomer, resp. dézoomer
+    \item \texttt{Entrée} pour sélectionner un allié
+    \item \texttt{Y U I O P} pour sélectionner un action, resp. utiliser la bombe nucléaire, utiliser un pack de soin, ramasser un item, attaquer, se déplacer.
+    \item Les fléches permettent de déplacer le curseur.
+\end{itemize}
+
+Pour effectuer une action, il faut faire :
+\begin{enumerate}
+    \item Sélectionner un personnage
+    \item Sélectionner une action
+    \item Sélectionner une destination
+    \item Appuyer sur entrée pour confirmer
+    
+\end{enumerate}
 \subsection{But}
 Le but du jeu est de détruire les factions ennemies. Pour se faire, il suffit de tuer toutes leur unités.
+
+Vous commencez avec 5 unités, les ennemis commencent avec 2 et une ville chacun. Ils peuvent apparaître à l'infini. 
+Le seul moyen de détruire une ville est d'envoyer la bombe nucléaire. La stratégie est donc de saisir le plus rapidement les bombes nucléaires pour
+détruire les villes aussitôt que possible.
 
 \subsection{Factions}
 Il y a 3 factions dans le jeu. Les cagoulés, les vert et les bleus. Vous contrôlez les bleus.
@@ -249,6 +273,8 @@ type t = {
 }
 \end{minted}
 
+NB : Ceci est une ancienne version du type \texttt{context}. Il se peut qu'elle ait évolué au fil du temps.
+
 Et pour chacun de ces attributs, il existe une fonction qui fait un appel aux autres modules, prend la réponse
 et modifie l'attribut dans l'objet \texttt{context}. La boucle principale \texttt{run} se sert de \texttt{context}
 pour afficher ce qu'il y a à afficher.
@@ -357,7 +383,7 @@ des actions etc.
     \vspace{1cm}
 
      \includegraphics[scale=0.5]{asset/image/skill.png}
-    \caption{Des icônes pour l'arbre de compétence. Quelques icônes ont été réutilisés pour les actions}
+    \caption{Des icônes pour l'arbre de compétence}
     \vspace{1cm}
 
      \includegraphics[scale=0.5]{asset/image/sniper_eu.png}
@@ -374,6 +400,7 @@ des actions etc.
 \begin{itemize}
     \item nguyenthiet.lam@gmail.com
     \item lam.nguyen-thiet@u-psud.fr
+    \item kenyu.kobayashi@u-psud.fr
 \end{itemize}
 
 
