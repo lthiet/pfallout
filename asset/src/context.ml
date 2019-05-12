@@ -51,6 +51,7 @@ module MGameContext = struct
     post_process_interface : MInterface.structure;
     current_layer : MLayer_enum.t;
     window : Sdl.window;
+    texture_pack : MLRUCache.t
   }
 
   exception Nothing

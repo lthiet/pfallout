@@ -3,6 +3,8 @@ open Tsdl
 open Utils
 open Tsdl_ttf
 open Colors
+open Lru_cache
+open Font_pack
 
 module MTexture_pack = struct
   type textures = {
@@ -73,4 +75,19 @@ module MTexture_pack = struct
   let get_fx_nuke_drop t = t.fx_nuke_drop
   let get_ui t = t.ui
   let get_ui_button t = t.ui_button
+
+  let texture_creation_fun renderer = 
+    (fun s -> MTexture.load_from_file renderer (String.concat "" ["asset/image";s;".png"]))
+
+  let texture_creation_from_text renderer outline_size font_path size color text =
+    (fun s ->
+       let font = MFont_pack.open_font font_path size in
+       let () = Ttf.set_font_outline font outline_size in
+       let res = MTexture.load_from_rendered_text renderer font text color in
+       let () = Ttf.close_font font in
+       res
+    )
+
+  let fetch_texture key tpack f = 
+    MLRUCache.get_element key tpack f
 end

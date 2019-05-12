@@ -27,6 +27,7 @@ open Entity_information
 open Tsdl_ttf
 open Interface
 open Tree
+open Lru_cache
 
 
 module MGame = struct
@@ -115,12 +116,12 @@ module MGame = struct
       in
 
       (* Render the info *)
-      List.iter (fun x ->
+      let new_tpack = List.fold_left (fun acc x ->
           match x with
-          | None -> ()
+          | None -> acc
           | Some x ->
-            MEntity_information.render renderer textures context.scale x
-        ) info;
+            MEntity_information.render renderer acc context.scale x
+        ) context.texture_pack info in
 
       (* Render the selector ( cursor ) *)
       MCursor.render renderer (MTexture_pack.get_curs textures) context.cursor_selector context.scale (MCamera.get_rect scaled_camera);
@@ -138,7 +139,7 @@ module MGame = struct
       Sdl.render_present renderer;
 
       (* Continue the game *)
-      loop renderer new_context textures
+      loop renderer {new_context with texture_pack = new_tpack} textures
 
 
   (* Create a random soldier and adds it to the grid *)
@@ -254,6 +255,7 @@ module MGame = struct
         scale = 1.;
         interface = [];
         post_process_interface = [];
+        texture_pack = MLRUCache.create_cache
       } in
 
       let txt = MTexture_pack.create renderer in
