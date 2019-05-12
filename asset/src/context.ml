@@ -433,6 +433,17 @@ module MGameContext = struct
       } 
     in
 
+    (* Test if the game is over *)
+    let ennemy_number = List.fold_left (fun acc faction ->
+        if (faction=context.faction_controlled_by_player)
+        then begin acc+0 end
+        else (acc+List.length faction.entities_list) ) 0 context.faction_list
+    in
+    let ally_number = List.length context.faction_controlled_by_player.entities_list 
+    in
+    let game_over = ( (ally_number=0) || (ennemy_number=0) )
+    in 
+
     (* Get the next event in the queue *)
     let ctx_with_event = if (Sdl.poll_event ev) then
         match ev with
@@ -576,7 +587,7 @@ module MGameContext = struct
           in
 
           (* If the user clicks the red cross button, the game closes *)
-          let over = check_ev_type e Sdl.Event.quit || quit_from_interface in
+          let over = (check_ev_type e Sdl.Event.quit || game_over || quit_from_interface) in
           let scale = get_scale e ctx_before_event in
           let camera = get_camera e ctx_before_event.window ctx_before_event.camera scale in
           let cursor_selector_ks = {

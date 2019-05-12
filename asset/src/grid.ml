@@ -48,6 +48,7 @@ module MGrid = struct
     let g = get_item_grid t in
     g.(r).(q) <- None
 
+
   exception No_item
   let get_item_at t r q =
     let g = get_item_grid t in

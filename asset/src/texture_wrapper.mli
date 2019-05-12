@@ -2,7 +2,8 @@ open Tsdl
 open Tsdl_image
 open Tsdl_ttf
 
-module MTexture : sig
+module MTexture : 
+sig
   type t
   val load_from_file : Sdl.renderer -> string -> t
   val load_textures : Sdl.renderer -> string array -> t array

@@ -48,7 +48,6 @@ module MEntity_information = struct
       Some tmp
 
   let render renderer textures scale info = 
-    let () = debug (string_of_int (MLRUCache.Lru_cache.cardinal textures)) in
     if info.displayed then
       begin
         (* render the healthbar *)
@@ -70,7 +69,6 @@ module MEntity_information = struct
         MTexture.render renderer ~x:x_mp ~y:y_mp ~scale:scale txt_outline;
         MTexture.render renderer ~x:(outline_size+x_mp) ~y:(outline_size+y_mp) ~scale:scale txt_text;
 
-        let () = debug (string_of_int (MLRUCache.Lru_cache.cardinal tpack)) in
         (* return the texture pack *)
         tpack
       end
