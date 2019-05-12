@@ -21,6 +21,8 @@ open Item
 open Inventory
 open Interface
 open Tree
+open Lru_cache
+
 
 let ev = Some (Sdl.Event.create ())
 
