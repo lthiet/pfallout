@@ -50,28 +50,28 @@ Pour effectuer une action, il faut faire :
     
 \end{enumerate}
 \subsection{But}
-Le but du jeu est de détruire les factions ennemies. Pour se faire, il suffit de tuer toutes leur unités.
+Le but du jeu est de détruire les factions ennemies. Pour ce faire, il suffit de tuer toutes leur unités.
 
 Vous commencez avec 5 unités, les ennemis commencent avec 2 et une ville chacun. Ils peuvent apparaître à l'infini. 
 Le seul moyen de détruire une ville est d'envoyer la bombe nucléaire. La stratégie est donc de saisir le plus rapidement les bombes nucléaires pour
 détruire les villes aussitôt que possible.
 
 \subsection{Factions}
-Il y a 3 factions dans le jeu. Les cagoulés, les vert et les bleus. Vous contrôlez les bleus.
+Il y a 3 factions dans le jeu. Les cagoulés, les verts et les bleus. Vous contrôlez les bleus.
 
 \subsection{Unités}
 Il existe deux types d'unités.
 
 \begin{itemize}
     \item Le soldat est l'unité de base. Elle peut se déplacer, attaquer et récupérer des items.
-    \item La ville permet de faire apparaître des soldats. Cette unité est très importante car si on la perd, on ne peut plus produire de soldat.
+    \item La ville permet de faire apparaître des soldats. Cette unité est très importante car si on la perd, on ne peut plus produire de soldats.
 \end{itemize}
 
 \subsection{Items}
 Il existe deux items.
 
 \begin{itemize}
-    \item Le pack de soin régénére la vie des unités. Il est possible d'avoir plus de points de vie que l'on avait au départ.
+    \item Le pack de soin régénère la vie des unités. Il est possible d'avoir plus de points de vie que l'on avait au départ.
     \item La bombe nucléaire détruit tout dans un rayon de 3 cases.
 \end{itemize}
 
@@ -79,13 +79,14 @@ Il existe deux items.
 Le plateau est une grille d'hexagone. La carte est une île deserte dans l'océan avec des biômes variés.
 
 \subsubsection{Type de cases}
-Il y a 3 types de cases. A l'heure actuelle, elle ne sont que cosmétiques, par la suite elle peuvent avoir un impact sur l'efficacité de combat de tel unité de
-tel faction, mais par manque de temps je n'ai pas pu les faire.
+Il y a 3 types de cases. A l'heure actuelle, elles ne sont que cosmétiques,
+par la suite elles peuvent avoir un impact sur l'efficacité de combat d'unités
+en fonction de leur faction, mais par manque de temps on n'a pas pu les faire.
 
 Il y a la neige, le desert et l'herbe.
 
-\subsubsection{Caractèristiques du terrain}
-En plus du biome, il y a des caractèristiques sur le terrain pour chaque case.
+\subsubsection{Caractéristiques du terrain}
+En plus du biome, il y a des caractéristiques sur le terrain pour chaque case.
 
 \begin{itemize}
     \item Les forêts et les collines coûtent plus cher pour le movement.
@@ -98,14 +99,14 @@ sur quoi je me suis inspiré pour le jeu.
 
 \subsubsection{Mouvement}
 
-Chaque unité a un nombre de movement. Lorsqu'il se déplace d'une case, il consomme $n$ points selon la case sur laquelle il atterit.
+Chaque unité a un nombre de mouvement. Lorsqu'elle se déplace d'une case, elle consomme $n$ points selon la case sur laquelle elle atterit.
 Dans le jeu, les soldats sont les seuls à pouvoir se déplacer. Les villes ne peuvent pas.
 
 \subsubsection{Attaque}
-Pour tuer les autres unités il faut les attaquer. Encore une fois de manière analogue à \textit{Civilization},
+Pour tuer les autres unités, il faut les attaquer. Encore une fois de manière analogue à \textit{Civilization},
 les unités disposent d'une force d'attaque et d'une force de défense.
 
-Par la suite, $src$ et $dst$ représente respectivement l'unité qui attaque et l'unité
+Par la suite, $src$ et $dst$ représentent respectivement l'unité qui attaque et l'unité
 qui défend.
 
 Lorsque deux unités s'attaquent, les nouveaux point de vie se calculent de cette manière : 
@@ -132,18 +133,19 @@ Et leurs nouvelles positions :
 
 \subsection{Intelligence Artificielle}
 Les IA sont assez simple. De base, elles se déplacent au hasard.
-Si elles rencontrent un ennemi, elle va se diriger vers cet ennemi en priorité. Si il y a un
-autre ennemi elles s'attaquent, même si ce n'était pas l'ennemi en priorité.
+Si elles rencontrent un ennemi, elles vont se diriger vers cet ennemi en priorité. S'il y a un
+autre ennemi sur le chemin, elles s'attaquent, même si ce n'était pas l'ennemi prioritaire.
 
 En dessous d'un certain seuil, les IA vont chercher à fuire et chercher un pack de soin. Mais si il y a un ennemi
-tout prés, elles vont se suicider et attaquer cet ennemi, car elles savent qu'elles vont mourir et vont préférer attaquer 
-pour donner une chance à leur alliés.
+tout près, elles vont se suicider et attaquer cet ennemi, car elles savent qu'elles vont mourir et vont préférer attaquer 
+pour donner une chance à leurs alliés.
 
-Sinon, en mode patrouille, si elles voient une bombe nucléaire, elles la prennent et l'utilise sur un ennemi au hasard.
+Sinon, en mode patrouille, si elles voient une bombe nucléaire, elles la prennent et l'utilisent sur un ennemi au hasard.
+:
 \section{Répartition du travail}
 \subsection{NGUYEN THIET}
 \begin{itemize}
-    \item Gestion des appels à la bibliothéque SDL ( \textit{e.g.,} gestion du render, chargement des textures, initialisation
+    \item Gestion des appels à la bibliothèque SDL ( \textit{e.g.,} gestion du render, chargement des textures, initialisation
     du windows, \textit{etc.} )
     \item Dessins (tuiles, caractèristiques de terrain, soldats, ville, interfaces, fond d'écran, titre, items, effets spéciaux)
     \item Définition des boucles du menu et du jeu et le retour que chaque boucle passe entre elles.
