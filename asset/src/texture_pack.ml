@@ -19,7 +19,8 @@ module MTexture_pack = struct
     fx_healed : MTexture.t;
     fx_attacked : MTexture.t;
     fx_nuke_drop : MTexture.t;
-    ui : MTexture.t
+    ui : MTexture.t;
+    ui_button : MTexture.t
   }
 
   let tile_path = "asset/image/tiles.png"
@@ -36,6 +37,7 @@ module MTexture_pack = struct
   let fx_attacked_path = "asset/image/fx_attacked.png"
   let fx_nuke_drop_path = "asset/image/nuke_drop.png"
   let ui_path = "asset/image/ui.png"
+  let ui_button_path = "asset/image/ui_button.png"
 
   let create renderer = 
     {
@@ -53,6 +55,7 @@ module MTexture_pack = struct
       fx_attacked = MTexture.load_from_file renderer fx_attacked_path;
       fx_nuke_drop = MTexture.load_from_file renderer fx_nuke_drop_path;
       ui = MTexture.load_from_file renderer ui_path;
+      ui_button = MTexture.load_from_file renderer ui_button_path;
     }
 
   let get_tile t = t.tile
@@ -69,4 +72,5 @@ module MTexture_pack = struct
   let get_fx_attacked t = t.fx_attacked
   let get_fx_nuke_drop t = t.fx_nuke_drop
   let get_ui t = t.ui
+  let get_ui_button t = t.ui_button
 end

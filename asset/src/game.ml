@@ -232,15 +232,6 @@ module MGame = struct
         in
         Sdl.Rect.create (start*MHex.size) (start*MHex.size) sw sh in
 
-      let interface =
-        MInterface.create_window 300 300 518 387
-      in
-
-      let interface_tree = 
-        let x = MTree.create interface [] in
-        [x]
-      in
-
       let ctx : MGameContext.t = {
         over = false;
         camera = MCamera.create camera_rect;
@@ -261,7 +252,7 @@ module MGame = struct
         current_layer = MLayer_enum.MILITARY;
         window = MMenu.get_window menu_result;
         scale = 1.;
-        interface = interface_tree;
+        interface = [];
       } in
 
       let txt = MTexture_pack.create renderer in
