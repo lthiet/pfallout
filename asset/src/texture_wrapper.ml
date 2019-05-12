@@ -4,6 +4,8 @@ open Tsdl_ttf
 open Utils
 
 module MTexture = struct
+
+
   type t = {
     mTexture : Sdl.texture;
     mWidth : int;
