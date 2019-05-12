@@ -539,11 +539,11 @@ module MGameContext = struct
                   MInterface.center new_w w,
                   MInterface.center new_h h
                 in
-                MInterface.create_button  x y (Some w) (Some h) (Some wp) None "QUIT"
+                MInterface.create_button  y (Some w) (Some h) (Some wp) None "QUIT"
               in
 
               let new_interface_from_esc = 
-                let tmp1 = MTree.create (MInterface.create_window new_x new_y (Some new_w) (Some new_h) None None) in
+                let tmp1 = MTree.create (MInterface.create_window new_x new_y (Some new_w) (Some new_h) None None false) in
                 let tmp2 = MTree.append_child tmp1 quit_button in
                 tmp2
               in

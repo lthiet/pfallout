@@ -28,9 +28,10 @@ module MInterface = struct
     x : int; 
     y : int;
     w : int option;
-    w_percent : float option;
     h : int option;
+    w_percent : float option;
     h_percent : float option;
+    centered : bool;
     text : string option;
     kind : kind;
     role : role;
@@ -150,14 +151,15 @@ module MInterface = struct
       y = t.y + x
     }
 
-  let create_button x y w h w_percent h_percent text =
+  let create_button y w h w_percent h_percent text =
     let interface = {
-      x = x;
+      x = 0;
       y = y;
       w = w;
       h = h;
       w_percent = w_percent;
       h_percent = h_percent;
+      centered = true;
       text = Some text;
       kind = COMPOSED;
       role = BUTTON;
@@ -168,7 +170,7 @@ module MInterface = struct
       handlers = []
     }
 
-  let create_window x y w h w_percent h_percent =
+  let create_window x y w h w_percent h_percent centered =
     let interface = {
       x = x;
       y = y;
@@ -176,6 +178,7 @@ module MInterface = struct
       h = h;
       w_percent = w_percent;
       h_percent = h_percent;
+      centered = centered;
       text = None;
       kind = COMPOSED;
       role = WINDOW;
@@ -399,6 +402,28 @@ module MInterface = struct
         )
       )
 
+  let apply_center tree =
+    MTree.map tree ( fun x -> x ) ( fun x -> 
+        let interface = x.interface in
+        let pw = int_option_matcher interface.w in
+        (fun y -> 
+           let new_w = 
+             match y.interface.w_percent with
+             | None -> int_option_matcher y.interface.w
+             | Some percent -> round (float(pw) *. percent)
+           in
+           {
+             y with
+             interface = {
+               y.interface with
+               w = Some new_w;
+             }
+           }
+        )
+      )
+
+
+
 
 
 
@@ -536,7 +561,8 @@ module MInterface = struct
 
     List.iter (fun x ->
         let post_process_tree = 
-          let tmp1 = set_to_relative_coordinate x in
+          let tmp0 = apply_center x in
+          let tmp1 = set_to_relative_coordinate tmp0 in
           let tmp2 = set_to_relative_size tmp1 in
           tmp2
         in
