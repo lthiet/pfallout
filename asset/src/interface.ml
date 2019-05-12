@@ -5,6 +5,8 @@ open Texture_pack
 open Texture_wrapper
 open Keyboard_wrapper
 open Mouse_wrapper
+open Font_pack
+open Colors
 
 (* Implements the interface of the game *)
 (* All interface textures must have a corner, top, left and center texture, they may also have multiple state if needed *)
@@ -462,6 +464,8 @@ module MInterface = struct
     let rects = match_role_to_rect interface.role in
     let offset = match_role_to_offset interface.role in
 
+
+
     let interface_w,interface_h =
       int_option_matcher interface.w,
       int_option_matcher interface.h
@@ -577,9 +581,28 @@ module MInterface = struct
     in
 
     (* Resize *)
-    match rects.resize with
+    let () = match rects.resize with
+      | None -> ()
+      | Some _ -> MTexture.render renderer ~clip_src:(rects.resize) ~x:(interface.x+interface_w - offset) ~y:(interface.y+interface_h-offset) txt;
+    in
+
+    (* Create the texture for the text and render it*)
+    match interface.text with
     | None -> ()
-    | Some _ -> MTexture.render renderer ~clip_src:(rects.resize) ~x:(interface.x+interface_w - offset) ~y:(interface.y+interface_h-offset) txt;
+    | Some text ->
+      (* Create *)
+      let outline_size = 10 in
+      let font,font_outline = MFont_pack.open_font_with_outline MFont_pack.good_times 100 outline_size in
+      let txt_text = MTexture.load_from_rendered_text renderer font text MColor.white in
+      let txt_outline_text = MTexture.load_from_rendered_text renderer font_outline text MColor.black in
+      let x = center (int_option_matcher interface.w) (MTexture.get_w txt_text) in
+      let y = center (int_option_matcher interface.h) (MTexture.get_h txt_text) in
+
+      (* Render *)
+      MTexture.render renderer ~x:(x+interface.x-outline_size) ~y:(y+interface.y-outline_size) txt_outline_text;
+      MTexture.render renderer ~x:(x+interface.x) ~y:(y+interface.y) txt_text;
+
+
 
 
       (* The whole interface currently displayed,

@@ -469,8 +469,6 @@ module MGameContext = struct
 
           let quit_from_interface = List.exists (fun x -> x = "QUIT" )interface_interaction.clicked_tags in
 
-          let () = List.iter (print_string) interface_interaction.clicked_tags in
-
           (* Modify the foremost interface *)
           let window_interface = 
             match foreground_interface with
