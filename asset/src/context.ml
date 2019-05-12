@@ -467,7 +467,11 @@ module MGameContext = struct
             MInterface.add_interaction l
           in
 
+          (* If the quit signal was sent from interface *)
           let quit_from_interface = List.exists (fun x -> x = "QUIT" )interface_interaction.clicked_tags in
+
+          (* If the cheat signal was send from interface *)
+          let cheat_from_interface = List.exists (fun x -> x = "CHEAT" )interface_interaction.clicked_tags in
 
           (* Modify the foremost interface *)
           let window_interface = 
@@ -704,12 +708,29 @@ module MGameContext = struct
               end
           in
 
+          let added_from_cheat =
+            if not cheat_from_interface then
+              []
+            else
+              let free_spots = MGrid.empty_tiles context.grid MLayer_enum.MILITARY in
+              List.fold_left (fun acc x -> 
+                  let new_soldier = MMilitary.create_soldier x#get_r x#get_q (MFaction.get_code context.faction_controlled_by_player)
+                  in
+                  let () = MGrid.set_at context.grid x#get_r x#get_q new_soldier MLayer_enum.MILITARY in
+                  new_soldier :: acc
+                )
+                [] free_spots
+          in
+
+
           let added_e,deleted_e,animation_tmp = 
             let res = compute_new_grid e ctx_before_event in
-            MAction.get_added res,
+            (MAction.get_added res) @ added_from_cheat,
             MAction.get_deleted res,
             MAction.get_animation res
           in
+
+
 
           let faction_list,new_turn=
             let tmp = List.fold_right (

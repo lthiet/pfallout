@@ -1,5 +1,6 @@
 open Tree
 open Tsdl
+open Tsdl_ttf
 open Utils
 open Texture_pack
 open Texture_wrapper
@@ -602,8 +603,11 @@ module MInterface = struct
       MTexture.render renderer ~x:(x+interface.x-outline_size) ~y:(y+interface.y-outline_size) txt_outline_text;
       MTexture.render renderer ~x:(x+interface.x) ~y:(y+interface.y) txt_text;
 
-
-
+      (* Free *)
+      MTexture.free txt_text;
+      MTexture.free txt_outline_text;
+      Ttf.close_font font;
+      Ttf.close_font font_outline;
 
       (* The whole interface currently displayed,
          only the interface at the top of the list can

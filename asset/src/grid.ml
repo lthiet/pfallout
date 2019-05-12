@@ -273,6 +273,28 @@ module MGrid = struct
           acc
     ) [] list
 
+  let empty_tiles grid layer =
+    let rec aux i acc =
+      let rec aux_bis j acc_bis =
+        if j < 0 then
+          acc_bis
+        else
+          let new_acc = 
+            let tile = get_tile i j grid in
+            if empty_at grid i j layer && (not tile#is_impassable) then
+              tile :: acc_bis
+            else
+              acc_bis
+          in
+          aux_bis (j-1) new_acc
+      in
+      if i < 0 then
+        acc
+      else
+        aux (i-1) (aux_bis (grid.level_radius*2) acc)
+    in
+    aux (grid.level_radius*2) []
+
   (* Returns a lit of nearby enemies *)
   let nearby_enemies grid entity n layer =
     let tile = get_tile entity#get_r entity#get_q grid in
@@ -307,7 +329,6 @@ module MGrid = struct
           ) zone
       in Some tmp
     with Not_found -> None
-
 
 end
 ;;

@@ -4,7 +4,7 @@ open Utils
 
 
 module MFont_pack = struct
-  let good_times = "asset/font/good_times.ttf"
+  let good_times = "asset/font/goodtimes.ttf"
 
   let open_font path size = 
     manage_result (Ttf.open_font path size) "Error font %s"
