@@ -47,14 +47,15 @@ Pour effectuer une action, il faut faire :
     \item Sélectionner une action
     \item Sélectionner une destination
     \item Appuyer sur entrée pour confirmer
-    
 \end{enumerate}
+
 \subsection{But}
-Le but du jeu est de détruire les factions ennemies. Pour ce faire, il suffit de tuer toutes leur unités.
+Le but du jeu est de détruire les factions ennemies. Pour ce faire, il suffit de tuer toutes leurs unités.
 
 Vous commencez avec 5 unités, les ennemis commencent avec 2 et une ville chacun. Ils peuvent apparaître à l'infini. 
-Le seul moyen de détruire une ville est d'envoyer la bombe nucléaire. La stratégie est donc de saisir le plus rapidement les bombes nucléaires pour
+Le seul moyen de détruire une ville est d'envoyer la bombe nucléaire. La stratégie est donc de saisir les bombes nucléaires pour
 détruire les villes aussitôt que possible.
+
 
 \subsection{Factions}
 Il y a 3 factions dans le jeu. Les cagoulés, les verts et les bleus. Vous contrôlez les bleus.
@@ -79,9 +80,8 @@ Il existe deux items.
 Le plateau est une grille d'hexagone. La carte est une île deserte dans l'océan avec des biômes variés.
 
 \subsubsection{Type de cases}
-Il y a 3 types de cases. A l'heure actuelle, elles ne sont que cosmétiques,
-par la suite elles peuvent avoir un impact sur l'efficacité de combat d'unités
-en fonction de leur faction, mais par manque de temps on n'a pas pu les faire.
+Il y a 3 types de cases. A l'heure actuelle, elles ne sont que cosmétiques, par la suite elles peuvent avoir un impact sur l'efficacité de combat d'unités en fonction de leur faction,
+mais par manque de temps on n'a pas pu les faire.
 
 Il y a la neige, le desert et l'herbe.
 
@@ -90,7 +90,7 @@ En plus du biome, il y a des caractéristiques sur le terrain pour chaque case.
 
 \begin{itemize}
     \item Les forêts et les collines coûtent plus cher pour le movement.
-    \item Les montagnes et les lacs sont des obstacles ne peuvent pas être traversés.
+    \item Les montagnes et les lacs sont des obstacles qui ne peuvent pas être traversés.
 \end{itemize}
 
 \subsection{Tour par tour}
@@ -99,7 +99,7 @@ sur quoi je me suis inspiré pour le jeu.
 
 \subsubsection{Mouvement}
 
-Chaque unité a un nombre de mouvement. Lorsqu'elle se déplace d'une case, elle consomme $n$ points selon la case sur laquelle elle atterit.
+Chaque unité a un nombre de mouvements. Lorsqu'elle se déplace d'une case, elle consomme $n$ points selon la case sur laquelle elle atterit.
 Dans le jeu, les soldats sont les seuls à pouvoir se déplacer. Les villes ne peuvent pas.
 
 \subsubsection{Attaque}
@@ -134,48 +134,53 @@ Et leurs nouvelles positions :
 \subsection{Intelligence Artificielle}
 Les IA sont assez simple. De base, elles se déplacent au hasard.
 Si elles rencontrent un ennemi, elles vont se diriger vers cet ennemi en priorité. S'il y a un
-autre ennemi sur le chemin, elles s'attaquent, même si ce n'était pas l'ennemi prioritaire.
+autre ennemi sur le chemin, elles s'attaqueront, même si ce n'était pas l'ennemi prioritaire.
 
 En dessous d'un certain seuil, les IA vont chercher à fuire et chercher un pack de soin. Mais si il y a un ennemi
 tout près, elles vont se suicider et attaquer cet ennemi, car elles savent qu'elles vont mourir et vont préférer attaquer 
 pour donner une chance à leurs alliés.
 
 Sinon, en mode patrouille, si elles voient une bombe nucléaire, elles la prennent et l'utilisent sur un ennemi au hasard.
-:
 \section{Répartition du travail}
 \subsection{NGUYEN THIET}
 \begin{itemize}
     \item Gestion des appels à la bibliothèque SDL ( \textit{e.g.,} gestion du render, chargement des textures, initialisation
     du windows, \textit{etc.} )
-    \item Dessins (tuiles, caractèristiques de terrain, soldats, ville, interfaces, fond d'écran, titre, items, effets spéciaux)
-    \item Définition des boucles du menu et du jeu et le retour que chaque boucle passe entre elles.
-    \item Boucle principale. Gestion d'un type \texttt{context}, comment le mettre à jour et comment récupérer informations contenus pour avancer le jeu dans le temps
+    \item Dessins (tuiles, caractéristiques de terrain, soldats, villes, interfaces, fond d'écran, titres, items, effets spéciaux)
+    \item Définition des boucles du menu et du jeu et le retour que chaque boucle passe entre elles
+    \item Boucle principale. Gestion d'un type \texttt{context}, comment le mettre à jour et comment récupérer les informations contenues pour avancer le jeu dans le temps
     \item Définition du type des \texttt{unités} et les méthodes associées
-    \item Implémentation du plateau de jeu, le système de couches et la grille d'héxagone 
-    \item Système d'animation (animation de personnages et effets spéciaux)
-    \item Comportements des unités ennemies (Choix des actions selon le comportement, choix du comporter selon la situation)
+    \item Implémentation du plateau de jeu, le système de couches et la grille d'héxagones 
+    \item Résolution de circular build à travers différent \texttt{enum}
+    \item Système d'animations (animation de personnages et effets spéciaux)
+    \item Comportements des unités ennemies (Choix des actions selon le comportement, choix du comportement selon la situation)
     \item Implémentation de la caméra (déplacement et zoom)
     \item Gestion du curseur et un afficheur de portée de mouvement/attaque
     \item Affichage d'informations par rapport à une unité (points de mouvements et barre de vie)
-    \item Système d'interface avec quelque chose similaire aux \textit{event listeners} de Javascript
+    \item Système d'interfaces avec quelque chose similaire aux \textit{event listeners} de Javascript
     \item Définition et interaction avec les items
     \item Interaction clavier souris avec le jeu (en se servant des appels à \textit{SDL})
     \item Implémentation des algorithmes de recherche dans le graphe (pour les chemins)
     \item Empaquetage des textures
     \item Rédaction du rapport
+    \item Utilisation du cache LRU (notamment les fonctions qui génére les textures, et celle qui les libère quand on n'en a pas besoin)
 \end{itemize}
 
 \subsection{KOBAYASHI}
 \begin{itemize}
     \item Calcul des PV et mise à jour du plateau pendant les attaques 
-    \item Menu de réglages 
-    \item Cache LRU % WIP
+    \item Mise en correspondance de certaines touches du clavier pour choisir le type d'action
+    \item Menu des réglages 
+    \item Gestion de la fin de partie
+    \item Implémentation Cache LRU 
+    \item Rédaction du rapport (partie Cache LRU + correction des fautes d'orthographes)
 \end{itemize}
 
 Il y a également quelques travaux qui n'ont pas été retenus.
 
 \begin{itemize}
-    \item Un système d'interface. 
+    \item Système d'interfaces implémentée à partir de structures arborescentes
+    \
 \end{itemize}
 
 
@@ -200,7 +205,7 @@ Chaque implémentation est listé par ordre chronologique dans le développement
 \subsection*{Phase 3 : Plateau de jeu}
 \begin{enumerate}
     \item Définition du plateau de jeu (représenté par une matrice)
-    \item Implémentation des fonctionalités de la grille d'hexagone
+    \item Implémentation des fonctionalités de la grille d'hexagones
     \item Définition des tuiles et des \texttt{enum} qui la définissent
     \item Les dessins du plateau (tuiles, forêts, etc.)
 \end{enumerate}
@@ -216,31 +221,31 @@ Chaque implémentation est listé par ordre chronologique dans le développement
 \begin{enumerate}
     \item Formalisation et généralisation des actions et leur retour pour qu'ils puissent tous être du même type
     \item Implémentation des actions de déplacement et attaques
-    \item Interaction temporaire avec les unités avec le clavier
+    \item Interaction temporaire des unités avec le clavier
     \item Interaction du retour des actions avec le système de contexte
 \end{enumerate}
 
 
 \subsection*{Phase 6 : Animation}
 \begin{enumerate}
-    \item Définition d'un type stockant les informations nécessaire aux animations
-    \item Système de rendu pour les animations couplé avec les effets spéciaux
+    \item Définition d'un type stockant les informations nécessaires aux animations
+    \item Système de rendus pour les animations couplé avec les effets spéciaux
 \end{enumerate}
 
 \subsection*{Phase 7 : IA}
 \begin{enumerate}
     \item Formalisation d'un comportement d'une unité 
-    \item Systèmes similaire aux automates d'états finis pour sélectionner le comportement de chaque unités selon son environment
-    \item IA qui se déplacement au hasard,
-    \item et attaque une cible si il y en a une qui se trouve à proximité,
-    \item et qui va chercher des packs de soin si elles n'a pas beaucoup de points de vie,
+    \item Système similaire aux automates d'états finis pour sélectionner le comportement de chaque unités selon son environment
+    \item IA qui se déplace au hasard,
+    \item qui attaque une cible si il y en a une qui se trouve à proximité,
+    \item qui va chercher des packs de soin si elles n'a pas beaucoup de points de vie
     \item et qui va chercher les bombes nucléaires si elle peut.
 \end{enumerate}
 
 \subsection*{Phase 8 : Interfaces}
 \begin{enumerate}
-    \item Affichage des informations liés à chaque unités (ses points de vie et points de mouvement)
-    \item Système d'interface avec des \textit{event listeners}
+    \item Affichage des informations liées à chaque unités (ses points de vie et points de mouvement)
+    \item Système d'interfaces avec des \textit{event listeners}
     \item Formalisation et généralisation des interactions avec les interfaces dans le contexte
 \end{enumerate}
 
@@ -275,13 +280,11 @@ type t = {
 }
 \end{minted}
 
-NB : Ceci est une ancienne version du type \texttt{context}. Il se peut qu'elle ait évolué au fil du temps.
-
 Et pour chacun de ces attributs, il existe une fonction qui fait un appel aux autres modules, prend la réponse
 et modifie l'attribut dans l'objet \texttt{context}. La boucle principale \texttt{run} se sert de \texttt{context}
-pour afficher ce qu'il y a à afficher.
+pour les affichages.
 
-La boucle de menu posséde un type similaire, mais étant moins complexe, nous n'allons pas l'aborder en détail. Les noms des attributs parlent d'eux même.
+La boucle de menu possède un type similaire, mais étant moins complexe, nous n'allons pas l'aborder en détail. Les noms des attributs parlent d'eux même.
 
 Pour les attributs qui ne sont pas évidents : 
 
@@ -294,15 +297,15 @@ de l'action
     \item \texttt{action\_type} nous dit quelle action effectuer
     \item \texttt{movement\_range\_selector} est l'ensemble des tuiles sur laquelles la prochaine action va avoir un effet. Par exemple,
     si on veut faire un mouvement, on verra le tracé de la trajectoire.
-    \item \texttt{to\_be\_added} et \texttt{to\_be\_deleted} représente une liste d'unité à ajouter, resp. à effacer.
+    \item \texttt{to\_be\_added} et \texttt{to\_be\_deleted} représente une liste d'unités à ajouter, resp. à effacer.
     J'en discuterai plus tard dans le rapport. 
 \end{itemize}
 \subsection{Formalisation et généralisation}
 Dans les phases il y a beaucoup de \textit{"formalisation et généralisation"}. Plus précisément, j'ai cherché
-à généraliser le retour de certains types pour pouvoir les mettre dans une liste pour qu'ensuite \texttt{context.ml} s'en servir.
+à généraliser le retour de certains types pour pouvoir les mettre dans une liste pour qu'ensuite \texttt{context.ml} puisse s'en servir.
 Nous allons prendre l'exemple des actions, mais cela s'applique aussi pour les interfaces.
 
-Voici à quoi ressemble le produit de type que les actions retournent : 
+Voici à quoi ressemble le type produit que les actions retournent : 
 
 \begin{minted}[bgcolor=bg]{ocaml}
 type res = {
@@ -326,7 +329,7 @@ let add r1 r2 = {
 } 
 \end{minted}
 
-\texttt{context.ml} dispose de toutes les unités effacées ainsi que toutes les animations à faire. Il les traitent de cette façon : 
+\texttt{context.ml} dispose de toutes les unités effacées ainsi que toutes les animations à faire. Il les traite de cette façon : 
 
 \begin{minted}[bgcolor=bg,breaklines]{ocaml}
 let faction_list =
@@ -344,6 +347,29 @@ let faction_list =
 
 La raison pour laquelle on ne fait pas les deux en même temps est qu'il faut attendre que l'animation s'arrête avant de pouvoir les remettre.
 
+\subsection{Cache LRU}
+
+L'implémentation d'une mémoire cache a été nécessaire afin de garantir une accessibilité optimale des textures.L'idée étant de réduire le temps de chargement des textures
+les plus utilisées, nous avons opté pour l'algorithme de remplacement
+selon la politique $Least Recently Used$ : lorsque la taille maximale du cache est atteinte,
+nous supprimons de la structure l'élément le moins récemment utilisé.
+En ce qui concerne l'implémentation du cache, nous avons choisi de la représenter à partir d'une structure Map de la bibliothèque Ocaml.
+
+\begin{minted}[bgcolor=bg,breaklines]{ocaml}
+module Lru_cache = Map.Make(String)
+type cache_el = {
+    texture : MTexture.t;
+    timer : int 
+    }
+\end{minted}
+
+Ainsi, nous associons à chaque texture une chaîne de caractère pour la récupérer et un compteur qui sera incrémenté régulièrement.
+A chaque fois qu'un élément est accédé, son compteur est réinitialisé à 0, et lorsqu'un nouvel élément est ajouté à la structure, si elle a atteint sa taille maximale, l'élément dont le compteur est maximale est supprimé pour lui laisser la place.
+
+Nous n'avons pas eu le temps de l'implémenter pour toutes les textures. On ne l'utilise que pour l'affichage
+des points de mouvements restant, ce qui était le plus couteux. Une amélioration nette des performances peut être perçue.
+
+
 \subsection{Et le reste?}
 
 A l'heure où j'écris ce rapport (11/05/2019 23:58), je pense qu'il est déja bien chargé. J'ai jugé que les deux points précédemment cités étaient les
@@ -352,15 +378,15 @@ j'ai préféré m'arrêter ici pour les explications, et continuer à travailler
 
 Si il y a besoin de clarifications, je les ferai lors de la soutenance.
 
-\section{Problèmes et autre remarques}
+\section{Problèmes et autres remarques}
 \subsection{Build circulaire}
 Vous remarquerez qu'il y a beaucoup de fichier ayant le nom \texttt{x\_enum.ml}. C'est ma solution pour contourner le problèmes des
-\textit{circular builds}. Par exemple, \textit{faction\_enum.ml} contient des constantes pour chaque factions dans le jeu.
-Les factions contiennent des unités, et les unités ont besoin de savoir à quelle faction elles appartiennent. On voit clairement
+\textit{circular builds}. Par exemple, \textit{faction\_enum.ml} contient des constantes pour chaque faction dans le jeu.
+Les factions contiennent des unités qui elles-mêmes ont besoin de savoir à quelle faction elles appartiennent. On voit clairement
 le problème de build circulaire. 
 
 On se rend compte qu'au final, les unités n'ont pas besoin de savoir tout sur la faction, mais seulement dans quel camp ils sont (représenté par un enum),
-et éventuellement un identifiant unique si il y a plusieurs camps ayant la même faction. Ainsi, les factions importent ce type, et 
+et éventuellement un identifiant unique s'il y a plusieurs camps ayant la même faction. Ainsi, les factions importent ce type, et 
 les unités importent également ce type. Les unités ont besoin de tout juste ce qu'il faut et les factions contiennent les 
 informations nécessaires pour leur bon fonctionnement.
 
@@ -368,11 +394,11 @@ Pour le reste des \texttt{x\_enum.ml} qu'on rencontre, on peut en dire la même 
 
 \subsection{Conception confuse}
 Assez tôt dans le projet nous avons cru avoir besoin du paradigme programmation orientée objet. Finalement,
-ça ne servait à pas grand chose à part la factorisation de code. Par manque de temps je n'ai pas
+ça ne servait pas à grand chose à part la factorisation de code. Par manque de temps on n'a pas
 reconverti en type produit comme il l'aurait fallu le faire.
 
 \subsection{De bien trop grandes ambitions...}
-Au début du projet nous étions bien trop ambitieux. C'était du au fait que c'était le seul projet qu'on avait à ce moment là. Puis
+Au début du projet nous étions bien trop ambitieux. C'était dû au fait que c'était le seul projet qu'on avait à ce moment là. Puis
 d'autres projets se sont greffés à nos emplois du temps, puis les examens, puis les concours externes à passer. Nous sommes quand même
 contents de ce que nous avons fait. J'ai fait attention à rendre le code assez générique, si on le souhaitait, on peut facilement rajouter des unités,
 des actions etc.
@@ -385,7 +411,7 @@ des actions etc.
     \vspace{1cm}
 
      \includegraphics[scale=0.5]{asset/image/skill.png}
-    \caption{Des icônes pour l'arbre de compétence}
+    \caption{Des icônes pour l'arbre de compétences. Quelques icônes ont été réutilisés pour les actions}
     \vspace{1cm}
 
      \includegraphics[scale=0.5]{asset/image/sniper_eu.png}
