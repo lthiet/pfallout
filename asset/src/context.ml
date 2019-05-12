@@ -477,7 +477,6 @@ module MGameContext = struct
                 let window = MTree.get_elem fi in
                 let window_interface = MInterface.get_interface window in
                 let children_interface = MTree.get_children fi in
-
                 let rect_window = MInterface.get_rect window_interface in
                 let offset_w,offset_h = 
                   match MInterface.get_resize_window interface_interaction with
@@ -494,24 +493,63 @@ module MGameContext = struct
                   | Some x -> x
                 in
                 let new_window = 
-                  let tmp1 = MInterface.set_h window_interface offset_h in
-                  let tmp2 = MInterface.set_w tmp1 offset_w in
+                  let tmp1 = MInterface.set_h window_interface (Some offset_h) in
+                  let tmp2 = MInterface.set_w tmp1 (Some offset_w) in
                   let tmp3 = MInterface.set_x tmp2 offset_x in
                   let tmp4 = MInterface.set_y tmp3 offset_y in
                   let tmp5 = MInterface.set_interface window tmp4 in
                   (* Update the event listeners *)
                   MInterface.set_handlers tmp5 (MInterface.get_added_handlers interface_interaction)
                 in
-                Some (MTree.create new_window children_interface)
+                let res = 
+                  let tmp1 = MTree.create new_window in
+                  let tmp2 = MTree.append_children tmp1 children_interface in
+                  Some (tmp2)
+                in res
           in
+
+          (* If the user presses escape open up a window to quit *)
           let interface = 
             match window_interface with
             | None -> 
-              let new_window_from_esc = 
-                MTree.create (MInterface.create_window 500 500 500 500) []
+              (* Fetch the width and height of the system window *)
+              let win_w,win_h = Sdl.get_window_size ctx_before_event.window in
+
+              (* Compute the new width and height *)
+              let new_w,new_h =
+                let f n q =
+                  round ((float n ) *. q)
+                in
+                f win_w (2. /. 5.),
+                f win_h (3. /. 4.)
               in
+
+              (* Compute the new coordinates *)
+              let new_x,new_y =
+                MInterface.center win_w new_w,
+                MInterface.center win_h new_h
+              in
+
+              (* The button for quitting *)
+              let quit_button =
+                let wp = 8. /. 10. in
+                let h = 100 in
+                let w = round (wp *. float(new_w)) in
+                let x,y =
+                  MInterface.center new_w w,
+                  MInterface.center new_h h
+                in
+                MInterface.create_button  x y (Some w) (Some h) (Some wp) None "QUIT"
+              in
+
+              let new_interface_from_esc = 
+                let tmp1 = MTree.create (MInterface.create_window new_x new_y (Some new_w) (Some new_h) None None) in
+                let tmp2 = MTree.append_child tmp1 quit_button in
+                tmp2
+              in
+
               if MKeyboard.key_is_pressed e Sdl.Scancode.escape then
-                new_window_from_esc :: background_interfaces
+                new_interface_from_esc :: background_interfaces
               else
                 background_interfaces
             | Some x -> x :: background_interfaces
