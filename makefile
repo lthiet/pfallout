@@ -32,6 +32,7 @@ clean:
 	rm -rf *.pyg
 	rm -rf *.toc
 	rm -rf _minted-rapport/
+	rm -rf $(EXE)
 
 report:
 	pdflatex -shell-escape rapport.tex 
