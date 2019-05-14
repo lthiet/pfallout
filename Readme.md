@@ -1,3 +1,5 @@
+# Introduction
+
 This project was created as required by the concluding course "PROJET PFA"
 in which our knowledge and skill with the Ocaml language 
 and functional programming were tested following a 6 months course
@@ -24,7 +26,7 @@ If any problem occurs during the last command line, you should see that it is re
 `opam` will recommend that you run a command that looks like this : `opam depext ...`. Please run it and it will
 tell you which libraries you need to install in order to install `tsdl`.
 
-At a further date I will include the exact libraries needed in order to compile the game
+As soon as possible I will include the exact libraries needed in order to compile the game
 
 Once everything is installed, you can compile the game.
 
@@ -42,7 +44,7 @@ You can then run the game.
 
 The goal of the game is simple. 
 
-1. Get the nuclear bomb before the enemy does
+1. Get the nuclear bombs before the enemy does
 2. Blow up their cities
 3. Kill any survivors
 
@@ -86,7 +88,3 @@ Music is : https://soundcloud.com/leagueoflegends/omega-squad-teemo
 
 Unfortunately, I had to rush this game in the last few days. As a result, a lot of what I call *Fast food* code still remains.
 Once my burnout is over, I will clean the code base and open the project for public contributions in the near future.
-
-# Contact
-
-If you have any questions, feel free to contact me at : nguyenthiet.lam@gmail.com
