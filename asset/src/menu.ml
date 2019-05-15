@@ -27,6 +27,7 @@ module MMenu = struct
   type textures = {
     bg : MTexture.t;
     btn : MTexture.t;
+    title : MTexture.t;
 
     btn_settings : MTexture.t;
     settings_bg : MTexture.t;
@@ -185,6 +186,7 @@ module MMenu = struct
         (* Display the large mapsize button *)
         MButton.render renderer scale new_ctx.btn_Lmapsize textures.btn_Lmapsize;
 
+
         (* Update the renderer *)
         Sdl.render_present renderer;
         (* Continue the game *)
@@ -198,6 +200,11 @@ module MMenu = struct
         (* Display the start button *)
         MButton.render renderer scale new_ctx.btn_start textures.btn;
         MButton.render renderer scale new_ctx.btn_settings textures.btn_settings;
+
+        (* Render title *)
+        let x = (float (1920 - MTexture.get_w textures.title)) /. 2. in 
+        MTexture.render renderer ~x:(round x) ~scale:scale textures.title;
+
         (* Update the renderer *)
         Sdl.render_present renderer;
         (* Continue the game *)
@@ -216,6 +223,7 @@ module MMenu = struct
   let btn_Smapsize_path = "asset/image/btn_smap.png"
   let btn_Mmapsize_path = "asset/image/btn_mmap.png"
   let btn_Lmapsize_path = "asset/image/btn_lmap.png" 
+  let title_path = "asset/image/title.png" 
 
   let run renderer window = 
     (* Create the menu *)
@@ -229,6 +237,7 @@ module MMenu = struct
       btn_Smapsize = MTexture.load_from_file renderer btn_Smapsize_path;
       btn_Mmapsize = MTexture.load_from_file renderer btn_Mmapsize_path;
       btn_Lmapsize = MTexture.load_from_file renderer btn_Lmapsize_path;
+      title = MTexture.load_from_file renderer title_path;
     } in
     let ctx  = {
       over = false;

@@ -22,7 +22,7 @@ module MTexture_pack = struct
     fx_attacked : MTexture.t;
     fx_nuke_drop : MTexture.t;
     ui : MTexture.t;
-    ui_button : MTexture.t
+    ui_button : MTexture.t;
   }
 
   let tile_path = "asset/image/tiles.png"

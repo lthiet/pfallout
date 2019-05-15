@@ -31,7 +31,6 @@ let ev = Some (Sdl.Event.create ())
 module MGameContext = struct
   type t = {
     over : bool;
-    game_over : bool;
     camera : MCamera.t;
     grid : MGrid.t;
     cursor_selector : MCursor.cursor;
@@ -430,22 +429,12 @@ module MGameContext = struct
       let animation =
         MAnimation.compute_next context.animation
       in
-      let tmp = {
+      {
         context with
         animation = animation;
-      } in
-      (* Test if the game is over *)
-      let ennemy_number = List.fold_left (fun acc faction ->
-          if (faction=tmp.faction_controlled_by_player)
-          then begin acc end
-          else (acc+List.length faction.entities_list) ) 0 tmp.faction_list
-      in
-      let ally_number = List.length tmp.faction_controlled_by_player.entities_list 
-      in
-      let game_over = ( (ally_number=0) || (ennemy_number=0) )
-      in 
-      { tmp with game_over = tmp.over || (game_over && (MAnimation.is_over tmp.animation))}
+      }
     in
+
 
     (* Get the next event in the queue *)
     let ctx_with_event = if (Sdl.poll_event ev) then
@@ -582,7 +571,7 @@ module MGameContext = struct
                 let tmp3 = MTree.append_child tmp2 cheat_button in
                 tmp3
               in
-              if MKeyboard.key_is_pressed e Sdl.Scancode.escape then
+              if MKeyboard.key_is_pressed e Sdl.Scancode.m then
                 new_interface_from_esc :: background_interfaces
               else
                 background_interfaces
@@ -768,9 +757,6 @@ module MGameContext = struct
                 ctx_before_event.to_be_added
             end
           in
-          let faction_controlled_by_player =
-            List.find ( fun x -> MFaction.get_code x = MFaction.get_code ctx_before_event.faction_controlled_by_player) ctx_before_event.faction_list
-          in
 
           let new_animation = if not (MAnimation.is_over animation_tmp) then
               animation_tmp
@@ -785,7 +771,6 @@ module MGameContext = struct
             camera = camera;
             cursor_selector = cursor_selector;
             faction_list = faction_list;
-            faction_controlled_by_player = faction_controlled_by_player;
             action_src = action_src;
             action_dst = action_dst;
             action_layer = action_layer;
@@ -802,7 +787,44 @@ module MGameContext = struct
         ctx_before_event
     in
 
-    ctx_with_event |> faction_on_start_actions 
-    |> update_context_after_event |> inc_frame
+    let tmp = ctx_with_event |> faction_on_start_actions |> update_context_after_event |> inc_frame
+    in
+
+    let faction_controlled_by_player =
+      List.find ( fun x -> MFaction.get_code x = MFaction.get_code tmp.faction_controlled_by_player) tmp.faction_list
+    in
+
+    let game_over =
+      (* Test if the game is over *)
+      let ennemy_number = List.fold_left (fun acc faction ->
+          if (faction=tmp.faction_controlled_by_player)
+          then begin acc end
+          else (acc+List.length faction.entities_list) ) 0 tmp.faction_list
+      in
+      let ally_number = List.length faction_controlled_by_player.entities_list 
+      in
+
+      let () =
+        debug (string_of_int ennemy_number);
+        debug (string_of_bool (MAnimation.is_over ctx_before_event.animation));
+        print_newline ();
+      in
+      let game_over = ( (ally_number=0) || (ennemy_number=0) ) && (MAnimation.is_over ctx_before_event.animation)
+      in
+      let () =
+        if game_over then
+          debug "Game over"
+      in 
+      game_over
+    in
+
+    {tmp
+     with
+      faction_controlled_by_player = faction_controlled_by_player;
+      over = tmp.over || game_over
+    }
+
+
 end
 ;;
+

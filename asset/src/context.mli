@@ -3,7 +3,6 @@ module MGameContext :
 sig
   type t = {
     over : bool;
-    game_over : bool;
     camera : Camera.MCamera.t;
     grid : Grid.MGrid.t;
     cursor_selector : Cursor.MCursor.cursor;

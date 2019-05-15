@@ -236,7 +236,6 @@ module MGame = struct
 
       let ctx : MGameContext.t = {
         over = false;
-        game_over = false;
         camera = MCamera.create camera_rect;
         grid = grid;
         cursor_selector = MCursor.create start start MCursor.SELECTING;

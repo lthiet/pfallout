@@ -15,6 +15,7 @@ module MMenu :
     type textures = {
       bg : Texture_wrapper.MTexture.t;
       btn : Texture_wrapper.MTexture.t;
+      title : Texture_wrapper.MTexture.t;
       btn_settings : Texture_wrapper.MTexture.t;
       settings_bg : Texture_wrapper.MTexture.t;
       btn_return : Texture_wrapper.MTexture.t;

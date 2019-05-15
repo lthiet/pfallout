@@ -62,6 +62,7 @@ If any of these step has not been completed, you will probably lose.
     4. Attack a nearby unit
     5. Move a unit
 * `,` to open up the in-game menu. `M` for QWERTYs.
+* `R` to end your turn.
 * Arrows allow you to move the cursor around.
 
 In order to execute an action, it may a little bit *heavy*. Here are the things you need to do:
