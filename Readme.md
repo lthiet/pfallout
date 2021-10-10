@@ -84,8 +84,3 @@ All the art asset were made by me.
 A good chunk of the pseudo code for hex-based grid are from this website : https://www.redblobgames.com/grids/hexagons/
 
 Music is : https://soundcloud.com/leagueoflegends/omega-squad-teemo
-
-# What's next?
-
-Unfortunately, I had to rush this game in the last few days. As a result, a lot of what I call *Fast food* code still remains.
-Once my burnout is over, I will clean the code base and open the project for public contributions in the near future.
