@@ -6,7 +6,7 @@ and functional programming were tested following a 6 months course
 on advanced functional programming.
 
 This project is a turn based game, **heavily** inspired by *Civilization VI*. It was 
-created by me with a few contributions from Kenyu KOBAYASHI.
+created by me and my teammate Kenyu KOBAYASHI.
 
 # Compiling the game
 
